@@ -2552,11 +2552,11 @@ input, select, textarea {
 				}
 
 				.wrapper.style3 .icon.major:before {
-					color: #b74e91;
+					color: #612f3c;
 				}
 
 				.wrapper.style3-alt .icon.major:before {
-					color: #953d75;
+					color: #502440;
 				}
 
 /* Image */
@@ -3874,8 +3874,8 @@ input, select, textarea {
 
 	#intro {
 		background-attachment: fixed;
-		/* background-image: url("images/image_accueil.jpg"); */
-		background-color: #403d47;
+		background-image: url("images/intro.png");
+		background-color: #2d263f;
 		background-position: top right;
 		background-repeat: no-repeat;
 		background-size: 100% 100%;
