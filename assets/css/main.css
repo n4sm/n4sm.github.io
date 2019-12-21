@@ -3875,7 +3875,7 @@ input, select, textarea {
 	#intro {
 		background-attachment: fixed;
 		background-image: url("images/intro.png");
-		background-color: #2d263f;
+		/*background-color: #2d263f;*/
 		background-position: top right;
 		background-repeat: no-repeat;
 		background-size: 100% 100%;
