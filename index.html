@@ -323,7 +323,8 @@
 
       <section class="gblog-markdown">
         Bookwriter is a heap challenge I did on the pwnable.twplatform. This is a classic house of Orange challenge. Most of this write-up is based on thisawesome article about house of Orange.
-What we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte. In the alloc handler, it iterates once too may times through the alloc array, which means it can overlap on the first entry of the size array with a huge size which would be a chunk address, then we can easily bypass the size check.
+DISLAIMER: This write-up is about a challenge on the pwnable.twplatform, if you&rsquo;re currently doing it and you wanna succeed to pwn it, keep going and do not read my write-up.
+What we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte.
       </section>
       <div class="gblog-post__readmore">
         

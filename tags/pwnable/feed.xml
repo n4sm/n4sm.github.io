@@ -8,7 +8,7 @@
     
             <link href="http://n4sm.github.io/tags/pwnable/" rel="alternate" type="text/html" title="HTML" />
             <link href="http://n4sm.github.io/tags/pwnable/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-12T22:51:53+02:00</updated>
+    <updated>2022-05-13T00:04:19+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -38,6 +38,12 @@
   
   >this</a
 > awesome article about house of Orange.</p>
+<p>DISLAIMER: This write-up is about a challenge on the <a
+  class="gblog-markdown__link"
+  href="https://pwnable.tw/"
+  
+  >pwnable.tw</a
+> platform, if you&rsquo;re currently doing it and you wanna succeed to pwn it, keep going and do not read my write-up.</p>
 <div class="gblog-post__anchorwrap">
     <h2 id="what-we-can-do">
         What we can do
@@ -48,7 +54,7 @@
 </div>
 <ul>
 <li>In the edit feature, we can overwrite the bytes right after any chunk up to the <code>NULL</code> byte.</li>
-<li>In the alloc handler, it iterates once too may times through the alloc array, which means it can overlap on the first entry of the size array with a huge size which would be a chunk address, then we can easily bypass the size check.</li>
+<li>In the alloc handler, it iterates once too may times through the alloc array, which means it can overlap on the first entry of the size array with a huge size which would be a chunk address, then we can easily trigger large heap overflow.</li>
 </ul>
 <p>The libc version is <code>2.23</code> which means there not a lot of security checks about <code>_IO_FILE_plus</code> integrity compared to more recent versions.</p>
 <div class="gblog-post__anchorwrap">
