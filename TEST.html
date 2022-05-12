@@ -1,0 +1,2371 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+
+<style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; --title-bar-height:20px; }
+.mac-os-11 { --title-bar-height:28px; }
+html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0px; padding: 0px; height: auto; inset: 0px; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; tab-size: 4; }
+iframe { margin: auto; }
+a.url { word-break: break-all; }
+a:active, a:hover { outline: 0px; }
+.in-text-selection, ::selection { text-shadow: none; background: var(--select-text-bg-color); color: var(--select-text-font-color); }
+#write { margin: 0px auto; height: auto; width: inherit; word-break: normal; overflow-wrap: break-word; position: relative; white-space: normal; overflow-x: visible; padding-top: 36px; }
+#write.first-line-indent p { text-indent: 2em; }
+#write.first-line-indent li p, #write.first-line-indent p * { text-indent: 0px; }
+#write.first-line-indent li { margin-left: 2em; }
+.for-image #write { padding-left: 8px; padding-right: 8px; }
+body.typora-export { padding-left: 30px; padding-right: 30px; }
+.typora-export .footnote-line, .typora-export li, .typora-export p { white-space: pre-wrap; }
+.typora-export .task-list-item input { pointer-events: none; }
+@media screen and (max-width: 500px) {
+  body.typora-export { padding-left: 0px; padding-right: 0px; }
+  #write { padding-left: 20px; padding-right: 20px; }
+  .CodeMirror-sizer { margin-left: 0px !important; }
+  .CodeMirror-gutters { display: none !important; }
+}
+#write li > figure:last-child { margin-bottom: 0.5rem; }
+#write ol, #write ul { position: relative; }
+img { max-width: 100%; vertical-align: middle; image-orientation: from-image; }
+button, input, select, textarea { color: inherit; font: inherit; }
+input[type="checkbox"], input[type="radio"] { line-height: normal; padding: 0px; }
+*, ::after, ::before { box-sizing: border-box; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p, #write pre { width: inherit; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p { position: relative; }
+p { line-height: inherit; }
+h1, h2, h3, h4, h5, h6 { break-after: avoid-page; break-inside: avoid; orphans: 4; }
+p { orphans: 4; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+h5 { font-size: 1.2rem; }
+h6 { font-size: 1rem; }
+.md-math-block, .md-rawblock, h1, h2, h3, h4, h5, h6, p { margin-top: 1rem; margin-bottom: 1rem; }
+.hidden { display: none; }
+.md-blockmeta { color: rgb(204, 204, 204); font-weight: 700; font-style: italic; }
+a { cursor: pointer; }
+sup.md-footnote { padding: 2px 4px; background-color: rgba(238, 238, 238, 0.7); color: rgb(85, 85, 85); border-radius: 4px; cursor: pointer; }
+sup.md-footnote a, sup.md-footnote a:hover { color: inherit; text-transform: inherit; text-decoration: inherit; }
+#write input[type="checkbox"] { cursor: pointer; width: inherit; height: inherit; }
+figure { overflow-x: auto; margin: 1.2em 0px; max-width: calc(100% + 16px); padding: 0px; }
+figure > table { margin: 0px; }
+tr { break-inside: avoid; break-after: auto; }
+thead { display: table-header-group; }
+table { border-collapse: collapse; border-spacing: 0px; width: 100%; overflow: auto; break-inside: auto; text-align: left; }
+table.md-table td { min-width: 32px; }
+.CodeMirror-gutters { border-right: 0px; background-color: inherit; }
+.CodeMirror-linenumber { user-select: none; }
+.CodeMirror { text-align: left; }
+.CodeMirror-placeholder { opacity: 0.3; }
+.CodeMirror pre { padding: 0px 4px; }
+.CodeMirror-lines { padding: 0px; }
+div.hr:focus { cursor: none; }
+#write pre { white-space: pre-wrap; }
+#write.fences-no-line-wrapping pre { white-space: pre; }
+#write pre.ty-contain-cm { white-space: normal; }
+.CodeMirror-gutters { margin-right: 4px; }
+.md-fences { font-size: 0.9rem; display: block; break-inside: avoid; text-align: left; overflow: visible; white-space: pre; background: inherit; position: relative !important; }
+.md-fences-adv-panel { width: 100%; margin-top: 10px; text-align: center; padding-top: 0px; padding-bottom: 8px; overflow-x: auto; }
+#write .md-fences.mock-cm { white-space: pre-wrap; }
+.md-fences.md-fences-with-lineno { padding-left: 0px; }
+#write.fences-no-line-wrapping .md-fences.mock-cm { white-space: pre; overflow-x: auto; }
+.md-fences.mock-cm.md-fences-with-lineno { padding-left: 8px; }
+.CodeMirror-line, twitterwidget { break-inside: avoid; }
+.footnotes { opacity: 0.8; font-size: 0.9rem; margin-top: 1em; margin-bottom: 1em; }
+.footnotes + .footnotes { margin-top: 0px; }
+.md-reset { margin: 0px; padding: 0px; border: 0px; outline: 0px; vertical-align: top; background: 0px 0px; text-decoration: none; text-shadow: none; float: none; position: static; width: auto; height: auto; white-space: nowrap; cursor: inherit; -webkit-tap-highlight-color: transparent; line-height: normal; font-weight: 400; text-align: left; box-sizing: content-box; direction: ltr; }
+li div { padding-top: 0px; }
+blockquote { margin: 1rem 0px; }
+li .mathjax-block, li p { margin: 0.5rem 0px; }
+li blockquote { margin: 1rem 0px; }
+li { margin: 0px; position: relative; }
+blockquote > :last-child { margin-bottom: 0px; }
+blockquote > :first-child, li > :first-child { margin-top: 0px; }
+.footnotes-area { color: rgb(136, 136, 136); margin-top: 0.714rem; padding-bottom: 0.143rem; white-space: normal; }
+#write .footnote-line { white-space: pre-wrap; }
+@media print {
+  body, html { border: 1px solid transparent; height: 99%; break-after: avoid; break-before: avoid; font-variant-ligatures: no-common-ligatures; }
+  #write { margin-top: 0px; padding-top: 0px; border-color: transparent !important; }
+  .typora-export * { -webkit-print-color-adjust: exact; }
+  .typora-export #write { break-after: avoid; }
+  .typora-export #write::after { height: 0px; }
+  .is-mac table { break-inside: avoid; }
+  .typora-export-show-outline .typora-export-sidebar { display: none; }
+}
+.footnote-line { margin-top: 0.714em; font-size: 0.7em; }
+a img, img a { cursor: pointer; }
+pre.md-meta-block { font-size: 0.8rem; min-height: 0.8rem; white-space: pre-wrap; background: rgb(204, 204, 204); display: block; overflow-x: hidden; }
+p > .md-image:only-child:not(.md-img-error) img, p > img:only-child { display: block; margin: auto; }
+#write.first-line-indent p > .md-image:only-child:not(.md-img-error) img { left: -2em; position: relative; }
+p > .md-image:only-child { display: inline-block; width: 100%; }
+#write .MathJax_Display { margin: 0.8em 0px 0px; }
+.md-math-block { width: 100%; }
+.md-math-block:not(:empty)::after { display: none; }
+.MathJax_ref { fill: currentcolor; }
+[contenteditable="true"]:active, [contenteditable="true"]:focus, [contenteditable="false"]:active, [contenteditable="false"]:focus { outline: 0px; box-shadow: none; }
+.md-task-list-item { position: relative; list-style-type: none; }
+.task-list-item.md-task-list-item { padding-left: 0px; }
+.md-task-list-item > input { position: absolute; top: 0px; left: 0px; margin-left: -1.2em; margin-top: calc(1em - 10px); border: none; }
+.math { font-size: 1rem; }
+.md-toc { min-height: 3.58rem; position: relative; font-size: 0.9rem; border-radius: 10px; }
+.md-toc-content { position: relative; margin-left: 0px; }
+.md-toc-content::after, .md-toc::after { display: none; }
+.md-toc-item { display: block; color: rgb(65, 131, 196); }
+.md-toc-item a { text-decoration: none; }
+.md-toc-inner:hover { text-decoration: underline; }
+.md-toc-inner { display: inline-block; cursor: pointer; }
+.md-toc-h1 .md-toc-inner { margin-left: 0px; font-weight: 700; }
+.md-toc-h2 .md-toc-inner { margin-left: 2em; }
+.md-toc-h3 .md-toc-inner { margin-left: 4em; }
+.md-toc-h4 .md-toc-inner { margin-left: 6em; }
+.md-toc-h5 .md-toc-inner { margin-left: 8em; }
+.md-toc-h6 .md-toc-inner { margin-left: 10em; }
+@media screen and (max-width: 48em) {
+  .md-toc-h3 .md-toc-inner { margin-left: 3.5em; }
+  .md-toc-h4 .md-toc-inner { margin-left: 5em; }
+  .md-toc-h5 .md-toc-inner { margin-left: 6.5em; }
+  .md-toc-h6 .md-toc-inner { margin-left: 8em; }
+}
+a.md-toc-inner { font-size: inherit; font-style: inherit; font-weight: inherit; line-height: inherit; }
+.footnote-line a:not(.reversefootnote) { color: inherit; }
+.md-attr { display: none; }
+.md-fn-count::after { content: "."; }
+code, pre, samp, tt { font-family: var(--monospace); }
+kbd { margin: 0px 0.1em; padding: 0.1em 0.6em; font-size: 0.8em; color: rgb(36, 39, 41); background: rgb(255, 255, 255); border: 1px solid rgb(173, 179, 185); border-radius: 3px; box-shadow: rgba(12, 13, 14, 0.2) 0px 1px 0px, rgb(255, 255, 255) 0px 0px 0px 2px inset; white-space: nowrap; vertical-align: middle; }
+.md-comment { color: rgb(162, 127, 3); opacity: 0.6; font-family: var(--monospace); }
+code { text-align: left; vertical-align: initial; }
+a.md-print-anchor { white-space: pre !important; border-width: initial !important; border-style: none !important; border-color: initial !important; display: inline-block !important; position: absolute !important; width: 1px !important; right: 0px !important; outline: 0px !important; background: 0px 0px !important; text-decoration: initial !important; text-shadow: initial !important; }
+.os-windows.monocolor-emoji .md-emoji { font-family: "Segoe UI Symbol", sans-serif; }
+.md-diagram-panel > svg { max-width: 100%; }
+[lang="flow"] svg, [lang="mermaid"] svg { max-width: 100%; height: auto; }
+[lang="mermaid"] .node text { font-size: 1rem; }
+table tr th { border-bottom: 0px; }
+video { max-width: 100%; display: block; margin: 0px auto; }
+iframe { max-width: 100%; width: 100%; border: none; }
+.highlight td, .highlight tr { border: 0px; }
+mark { background: rgb(255, 255, 0); color: rgb(0, 0, 0); }
+.md-html-inline .md-plain, .md-html-inline strong, mark .md-inline-math, mark strong { color: inherit; }
+.md-expand mark .md-meta { opacity: 0.3 !important; }
+mark .md-meta { color: rgb(0, 0, 0); }
+@media print {
+  .typora-export h1, .typora-export h2, .typora-export h3, .typora-export h4, .typora-export h5, .typora-export h6 { break-inside: avoid; }
+}
+.md-diagram-panel .messageText { stroke: none !important; }
+.md-diagram-panel .start-state { fill: var(--node-fill); }
+.md-diagram-panel .edgeLabel rect { opacity: 1 !important; }
+.md-fences.md-fences-math { font-size: 1em; }
+.md-fences-advanced:not(.md-focus) { padding: 0px; white-space: nowrap; border: 0px; }
+.md-fences-advanced:not(.md-focus) { background: inherit; }
+.typora-export-show-outline .typora-export-content { max-width: 1440px; margin: auto; display: flex; flex-direction: row; }
+.typora-export-sidebar { width: 300px; font-size: 0.8rem; margin-top: 80px; margin-right: 18px; }
+.typora-export-show-outline #write { --webkit-flex:2; flex: 2 1 0%; }
+.typora-export-sidebar .outline-content { position: fixed; top: 0px; max-height: 100%; overflow: hidden auto; padding-bottom: 30px; padding-top: 60px; width: 300px; }
+@media screen and (max-width: 1024px) {
+  .typora-export-sidebar, .typora-export-sidebar .outline-content { width: 240px; }
+}
+@media screen and (max-width: 800px) {
+  .typora-export-sidebar { display: none; }
+}
+.outline-content li, .outline-content ul { margin-left: 0px; margin-right: 0px; padding-left: 0px; padding-right: 0px; list-style: none; }
+.outline-content ul { margin-top: 0px; margin-bottom: 0px; }
+.outline-content strong { font-weight: 400; }
+.outline-expander { width: 1rem; height: 1.42857rem; position: relative; display: table-cell; vertical-align: middle; cursor: pointer; padding-left: 4px; }
+.outline-expander::before { content: ""; position: relative; font-family: Ionicons; display: inline-block; font-size: 8px; vertical-align: middle; }
+.outline-item { padding-top: 3px; padding-bottom: 3px; cursor: pointer; }
+.outline-expander:hover::before { content: ""; }
+.outline-h1 > .outline-item { padding-left: 0px; }
+.outline-h2 > .outline-item { padding-left: 1em; }
+.outline-h3 > .outline-item { padding-left: 2em; }
+.outline-h4 > .outline-item { padding-left: 3em; }
+.outline-h5 > .outline-item { padding-left: 4em; }
+.outline-h6 > .outline-item { padding-left: 5em; }
+.outline-label { cursor: pointer; display: table-cell; vertical-align: middle; text-decoration: none; color: inherit; }
+.outline-label:hover { text-decoration: underline; }
+.outline-item:hover { border-color: rgb(245, 245, 245); background-color: var(--item-hover-bg-color); }
+.outline-item:hover { margin-left: -28px; margin-right: -28px; border-left: 28px solid transparent; border-right: 28px solid transparent; }
+.outline-item-single .outline-expander::before, .outline-item-single .outline-expander:hover::before { display: none; }
+.outline-item-open > .outline-item > .outline-expander::before { content: ""; }
+.outline-children { display: none; }
+.info-panel-tab-wrapper { display: none; }
+.outline-item-open > .outline-children { display: block; }
+.typora-export .outline-item { padding-top: 1px; padding-bottom: 1px; }
+.typora-export .outline-item:hover { margin-right: -8px; border-right: 8px solid transparent; }
+.typora-export .outline-expander::before { content: "+"; font-family: inherit; top: -1px; }
+.typora-export .outline-expander:hover::before, .typora-export .outline-item-open > .outline-item > .outline-expander::before { content: "−"; }
+.typora-export-collapse-outline .outline-children { display: none; }
+.typora-export-collapse-outline .outline-item-open > .outline-children, .typora-export-no-collapse-outline .outline-children { display: block; }
+.typora-export-no-collapse-outline .outline-expander::before { content: "" !important; }
+.typora-export-show-outline .outline-item-active > .outline-item .outline-label { font-weight: 700; }
+.md-inline-math-container mjx-container { zoom: 0.95; }
+
+
+.CodeMirror { height: auto; }
+.CodeMirror.cm-s-inner { background: inherit; }
+.CodeMirror-scroll { overflow: auto hidden; z-index: 3; }
+.CodeMirror-gutter-filler, .CodeMirror-scrollbar-filler { background-color: rgb(255, 255, 255); }
+.CodeMirror-gutters { border-right: 1px solid rgb(221, 221, 221); background: inherit; white-space: nowrap; }
+.CodeMirror-linenumber { padding: 0px 3px 0px 5px; text-align: right; color: rgb(153, 153, 153); }
+.cm-s-inner .cm-keyword { color: rgb(119, 0, 136); }
+.cm-s-inner .cm-atom, .cm-s-inner.cm-atom { color: rgb(34, 17, 153); }
+.cm-s-inner .cm-number { color: rgb(17, 102, 68); }
+.cm-s-inner .cm-def { color: rgb(0, 0, 255); }
+.cm-s-inner .cm-variable { color: rgb(0, 0, 0); }
+.cm-s-inner .cm-variable-2 { color: rgb(0, 85, 170); }
+.cm-s-inner .cm-variable-3 { color: rgb(0, 136, 85); }
+.cm-s-inner .cm-string { color: rgb(170, 17, 17); }
+.cm-s-inner .cm-property { color: rgb(0, 0, 0); }
+.cm-s-inner .cm-operator { color: rgb(152, 26, 26); }
+.cm-s-inner .cm-comment, .cm-s-inner.cm-comment { color: rgb(170, 85, 0); }
+.cm-s-inner .cm-string-2 { color: rgb(255, 85, 0); }
+.cm-s-inner .cm-meta { color: rgb(85, 85, 85); }
+.cm-s-inner .cm-qualifier { color: rgb(85, 85, 85); }
+.cm-s-inner .cm-builtin { color: rgb(51, 0, 170); }
+.cm-s-inner .cm-bracket { color: rgb(153, 153, 119); }
+.cm-s-inner .cm-tag { color: rgb(17, 119, 0); }
+.cm-s-inner .cm-attribute { color: rgb(0, 0, 204); }
+.cm-s-inner .cm-header, .cm-s-inner.cm-header { color: rgb(0, 0, 255); }
+.cm-s-inner .cm-quote, .cm-s-inner.cm-quote { color: rgb(0, 153, 0); }
+.cm-s-inner .cm-hr, .cm-s-inner.cm-hr { color: rgb(153, 153, 153); }
+.cm-s-inner .cm-link, .cm-s-inner.cm-link { color: rgb(0, 0, 204); }
+.cm-negative { color: rgb(221, 68, 68); }
+.cm-positive { color: rgb(34, 153, 34); }
+.cm-header, .cm-strong { font-weight: 700; }
+.cm-del { text-decoration: line-through; }
+.cm-em { font-style: italic; }
+.cm-link { text-decoration: underline; }
+.cm-error { color: red; }
+.cm-invalidchar { color: red; }
+.cm-constant { color: rgb(38, 139, 210); }
+.cm-defined { color: rgb(181, 137, 0); }
+div.CodeMirror span.CodeMirror-matchingbracket { color: rgb(0, 255, 0); }
+div.CodeMirror span.CodeMirror-nonmatchingbracket { color: rgb(255, 34, 34); }
+.cm-s-inner .CodeMirror-activeline-background { background: inherit; }
+.CodeMirror { position: relative; overflow: hidden; }
+.CodeMirror-scroll { height: 100%; outline: 0px; position: relative; box-sizing: content-box; background: inherit; }
+.CodeMirror-sizer { position: relative; }
+.CodeMirror-gutter-filler, .CodeMirror-hscrollbar, .CodeMirror-scrollbar-filler, .CodeMirror-vscrollbar { position: absolute; z-index: 6; display: none; outline: 0px; }
+.CodeMirror-vscrollbar { right: 0px; top: 0px; overflow: hidden; }
+.CodeMirror-hscrollbar { bottom: 0px; left: 0px; overflow: auto hidden; }
+.CodeMirror-scrollbar-filler { right: 0px; bottom: 0px; }
+.CodeMirror-gutter-filler { left: 0px; bottom: 0px; }
+.CodeMirror-gutters { position: absolute; left: 0px; top: 0px; padding-bottom: 10px; z-index: 3; overflow-y: hidden; }
+.CodeMirror-gutter { white-space: normal; height: 100%; box-sizing: content-box; padding-bottom: 30px; margin-bottom: -32px; display: inline-block; }
+.CodeMirror-gutter-wrapper { position: absolute; z-index: 4; background: 0px 0px !important; border: none !important; }
+.CodeMirror-gutter-background { position: absolute; top: 0px; bottom: 0px; z-index: 4; }
+.CodeMirror-gutter-elt { position: absolute; cursor: default; z-index: 4; }
+.CodeMirror-lines { cursor: text; }
+.CodeMirror pre { border-radius: 0px; border-width: 0px; background: 0px 0px; font-family: inherit; font-size: inherit; margin: 0px; white-space: pre; overflow-wrap: normal; color: inherit; z-index: 2; position: relative; overflow: visible; }
+.CodeMirror-wrap pre { overflow-wrap: break-word; white-space: pre-wrap; word-break: normal; }
+.CodeMirror-code pre { border-right: 30px solid transparent; width: fit-content; }
+.CodeMirror-wrap .CodeMirror-code pre { border-right: none; width: auto; }
+.CodeMirror-linebackground { position: absolute; inset: 0px; z-index: 0; }
+.CodeMirror-linewidget { position: relative; z-index: 2; overflow: auto; }
+.CodeMirror-wrap .CodeMirror-scroll { overflow-x: hidden; }
+.CodeMirror-measure { position: absolute; width: 100%; height: 0px; overflow: hidden; visibility: hidden; }
+.CodeMirror-measure pre { position: static; }
+.CodeMirror div.CodeMirror-cursor { position: absolute; visibility: hidden; border-right: none; width: 0px; }
+.CodeMirror div.CodeMirror-cursor { visibility: hidden; }
+.CodeMirror-focused div.CodeMirror-cursor { visibility: inherit; }
+.cm-searching { background: rgba(255, 255, 0, 0.4); }
+span.cm-underlined { text-decoration: underline; }
+span.cm-strikethrough { text-decoration: line-through; }
+.cm-tw-syntaxerror { color: rgb(255, 255, 255); background-color: rgb(153, 0, 0); }
+.cm-tw-deleted { text-decoration: line-through; }
+.cm-tw-header5 { font-weight: 700; }
+.cm-tw-listitem:first-child { padding-left: 10px; }
+.cm-tw-box { border-style: solid; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-color: inherit; border-top-width: 0px !important; }
+.cm-tw-underline { text-decoration: underline; }
+@media print {
+  .CodeMirror div.CodeMirror-cursor { visibility: hidden; }
+}
+
+
+:root {
+  /* dark color for background*/
+  /* default color */
+  --bg-color1: hsl(220, 13%, 18%);
+  /* for most panel, context, header, etc */
+  --bg-color2: rgb(33, 37, 43);
+  /* for toc and table edit panel */
+  --bg-color3: rgba(16, 17, 20, 0.5);
+  /* for tips */
+  --bg-color4: black;
+  /* for blockquote, codeblock, input, etc */
+  --bg-color5: rgb(29, 31, 35);
+  /* light color for text and icon*/
+  /* default color */
+  --text-color1: hsl(220, 6%, 71%);
+  /* for text on panel */
+  --text-color2: rgb(220, 220, 220);
+  /* for checkbox and radio */
+  --text-color3: hsl(192, 6%, 40%);
+  /* for tips */
+  --text-color4: white;
+  /* for focus mode */
+  --text-color5: rgba(170, 178, 180, 0.5);
+  /* link color */
+  --link-color: rgb(197, 202, 210);
+  /* table color */
+  --table-border-color: rgb(100, 104, 116);
+  --table-thead-color: rgb(31, 35, 40);
+  --table-bg-color: rgb(40, 44, 52);
+  --table-bg-darker-color: rgb(35, 40, 46);
+  /* hover color */
+  /* default hover background color */
+  --hover-bg-color1: rgb(62, 66, 73);
+  /* for input item */
+  --hover-bg-color2: hsl(220, 9%, 14%);
+  /* for button on toc and table edit panel */
+  --hover-bg-color3: rgba(62, 66, 73, 0.8);
+  /* default hover text color */
+  --hover-text-color: white;
+  /* active color */
+  --active-color: var(--hover-bg-color1);
+  /* input color */
+  --input-color: rgb(29, 31, 35);
+  /* menu divider color */
+  /*   --menu-divider-color: rgb(95, 97, 101); */
+  --menu-divider-color: hsl(220, 5%, 40%);
+  /* scrollbar color */
+  --scrollbar-thumb-color: var(--menu-divider-color);
+  --scrollbar-track-color: rgba(95, 97, 101, 0.3);
+  /* theme select color */
+  --theme-select-color: rgba(255, 255, 255, 0.5);
+  --button-color: rgb(62, 66, 73);
+  --select-color: rgb(33, 37, 43);
+  /* focus color */
+  --focus-color: rgba(100, 100, 100, 0.8);
+  --focus-ring-color: var(--focus-color);
+  /* codeblock color */
+  --code-red-color: hsl(355, 65%, 65%);
+  --code-yellow-color: hsl(39, 67%, 69%);
+  --code-cyan-color: hsl(187, 47%, 55%);
+  --code-blue-color: hsl(207, 82%, 66%);
+  --code-purple-color: hsl(286, 60%, 67%);
+  --code-orange-color: hsl(29, 54%, 61%);
+  --code-green-color: hsl(95, 38%, 62%);
+  --code-grey-color: hsl(220, 9%, 55%);
+
+  --code-select-bg-color: rgb(64, 72, 89);
+  --code-cursor-color: hsl(220, 100%, 66%);
+  /* implicit selection text bg color */
+  --select-text-bg-color: rgb(150, 156, 170);
+  /* implicit button color */
+  --primary-color: var(--button-color);
+  --primary-btn-border-color: transparent;
+  --primary-btn-text-color: var(--text-color2);
+  /* implicit sidebar color */
+  --side-bar-bg-color: var(--bg-color2);
+  --control-text-color: var(--text-color2);
+  /* implicit text color */
+  --text-color: var(--text-color1);
+  /* implicit background color for setting menu */
+  --bg-color: var(--bg-color1);
+  /* implicit hover color */
+  --item-hover-bg-color: var(--hover-bg-color1);
+  --item-hover-text-color: var(--hover-text-color);
+  /* implicit active color */
+  --active-file-bg-color: var(--hover-bg-color);
+  /* implicit mathjax edit panel background color */
+  --rawblock-edit-panel-bd: var(--bg-color5);
+  /* implicit focus mode color */
+  --blur-text-color: var(--text-color5);
+  /* implicit search result select color */
+  --search-select-bg-color: var(--select-text-bg-color);
+  --search-select-bg-color: rgb(56, 71, 95);
+
+  --control-text-hover-color: var(--hover-text-color);
+  /* implicit active file color in sidebar file menu treeview */
+  --active-file-text-color: var(--hover-text-color);
+  --active-file-border-color: var(--hover-text-color);
+
+  --node-border: var(--menu-divider-color);
+  --node-fill: var(--bg-color2);
+}
+
+/* font */
+/* basic style */
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: "Open Sans", "Clear Sans", "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+  color: var(--text-color1);
+  background: var(--bg-color1);
+  line-height: 1.6;
+}
+
+/* text selection background color */
+.in-text-selection {
+  background-color: rgb(64, 72, 89);
+}
+
+/* link */
+#write a:not([role="menuitem"]) {
+  color: var(--link-color) !important;
+}
+
+#write a:not([role="menuitem"]):hover {
+  color: var(--hover-text-color) !important;
+}
+
+/* h1-h6 */
+#write h1,
+#write h2,
+#write h3,
+#write h4,
+#write h5,
+#write h6 {
+  margin-top: 0.5em;
+  margin-bottom: 0em;
+  line-height: 1em;
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8);
+  padding-top: 0.3em;
+}
+
+#write h1 {
+  font-size: 2.5em;
+  padding-bottom: 0.5em;
+  border-bottom: 3px double var(--text-color5);
+  
+}
+
+/* #write h1:before {
+  content: "\00A7  ";
+}
+ */
+#write h2 {
+  font-size: 2em;
+  padding-bottom: 0.5em;
+  border-bottom: 3px double var(--text-color5);
+}
+
+/* #write h2:before {
+  content: "\00A7  ";
+}
+ */
+#write h3 {
+  font-size: 1.75em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid var(--text-color5);
+}
+
+#write h4 {
+  font-size: 1.55em;
+}
+
+#write h5 {
+  font-size: 1.35em;
+}
+
+#write h6 {
+  font-size: 1.2em;
+}
+
+/* horizontal divider */
+hr {
+  height: 1px;
+  background-color: var(--text-color5);
+  border: 0px;
+}
+
+/* list */
+ul,
+ol {
+  padding-left: 30px;
+}
+
+/* blockquote */
+blockquote {
+  border-left: 4px solid var(--text-color1);
+  padding: 4px 15px;
+  color: var(--text-color1);
+  background-color: var(--bg-color5);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+blockquote blockquote {
+  padding-right: 0em;
+}
+
+/* table */
+.md-rawblock > .md-rawblock-container table,
+.md-table-fig,
+.md-table-fig:active {
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+table thead tr {
+  background-color: var(--table-thead-color);
+}
+
+table tr th {
+  font-weight: bold;
+  border-left: 1px solid var(--table-border-color);
+  border-right: 1px solid var(--table-border-color);
+  text-align: left;
+  margin: 0;
+  padding: 6px 13px;
+}
+
+table tbody tr {
+  border-top: 1px solid var(--table-border-color);
+  margin: 0;
+  padding: 0;
+}
+
+table tbody tr:nth-child(2n) {
+  background-color: var(--table-bg-darker-color);
+}
+
+table tbody tr:nth-child(2n + 1) {
+  background-color: var(--table-bg-color);
+}
+
+table tr td {
+  border-left: 1px solid var(--table-border-color);
+  border-right: 1px solid var(--table-border-color);
+  text-align: left;
+  margin: 0;
+  padding: 6px 13px;
+}
+
+table tr th:first-child,
+table tr td:first-child {
+  border-left-width: 0px;
+}
+
+table tr th:last-child,
+table tr td:last-child {
+  border-right-width: 0px;
+}
+
+/* table edit panel */
+.ty-table-edit {
+  background-color: var(--bg-color3);
+  border: 0px;
+  border-radius: 6px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left: 6px;
+  padding-right: 6px;
+  margin-top: -29px !important;
+}
+
+/* button on table edit panel */
+.ty-table-edit button {
+  background-color: transparent;
+  color: var(--text-color2);
+  border: 0px;
+  margin-left: 0px !important;
+}
+
+/* button hover on table edit panel */
+.ty-table-edit button:hover {
+  background-color: var(--hover-bg-color3);
+  color: var(--hover-text-color);
+}
+
+/* adjusting table panel */
+.popover {
+  background-color: var(--bg-color2);
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* arrow of adjusting table panel */
+.popover.bottom > .arrow:after {
+  border-bottom-color: var(--bg-color2);
+}
+
+/* divider in adjust table panel */
+.md-grid-board-wrap .popover-title {
+  border-top-color: var(--menu-divider-color);
+}
+
+/* grid size */
+.md-grid-board a {
+  width: 15px;
+  height: 15px;
+}
+
+/* existing thread grid */
+.md-grid-board tr[row="1"] .md-grid-ext {
+  background-color: rgb(60, 60, 60);
+}
+
+/* not existing thread grid */
+.md-grid-board tr[row="1"] {
+  background-color: rgb(220, 220, 220);
+}
+
+/* existing grid */
+.md-grid-board .md-grid-ext {
+  background-color: rgb(120, 120, 120);
+}
+
+/* selected thread grid */
+.md-grid-board tr[row="1"] a.md-active,
+.md-grid-board tr[row="1"] a:hover {
+  background-color: rgb(60, 60, 60);
+}
+
+/* selected grid */
+.md-grid-board a.md-active,
+.md-grid-board a:hover {
+  border-color: var(--menu-divider-color);
+  background-color: rgb(120, 120, 120);
+}
+
+/* task */
+.md-task-list-item > input {
+  margin-left: -1.3em;
+}
+
+/* footnote */
+sup.md-footnote {
+  color: var(--text-color1);
+  background-color: var(--bg-color2);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* mathjax */
+/* .mathjax-block>.code-tooltip {
+    bottom: .375rem;
+}
+.md-mathjax-midline {
+    background: #fafafa;
+} */
+.md-inline-math script {
+  color: var(--text-color1);
+}
+
+.on-focus-mode #write svg {
+  opacity: 1;
+}
+
+.md-rawblock > .md-rawblock-container {
+  transition: 0.5s;
+}
+
+.md-rawblock > .md-rawblock-tooltip {
+  transition: 0.5s;
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.md-rawblock:hover > .md-rawblock-tooltip {
+  transition: 0.5s;
+  visibility: visible;
+  opacity: 1;
+  animation: none;
+}
+
+/* meta information of image */
+.md-image > .md-meta {
+  border: 0px;
+  padding: 2px 0px 0px 4px;
+  font-size: 0.9em;
+  color: var(--text-color1);
+}
+
+/* input */
+input {
+  background-color: var(--input-color) !important;
+  border: 0px !important;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* input hover */
+/* input:hover {
+    background-color: var(--hover-bg-color2) !important;
+} */
+/* checkbox */
+input[type="checkbox"]:before {
+  content: "";
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  vertical-align: middle;
+  text-align: center;
+  border: 0px;
+  border-radius: 3px;
+  background-color: var(--input-color);
+  margin-top: -0.5rem;
+  margin-left: -0.1rem;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* checkbox hover */
+input[type="checkbox"]:not([disabled]):not(:checked):hover:before {
+  content: "\2713";
+  font-size: 0.9rem;
+  line-height: 1.2rem;
+  color: var(--text-color3);
+}
+
+/* checkbox checked*/
+input[type="checkbox"]:checked:before {
+  content: "\2713";
+  font-size: 0.9rem;
+  line-height: 1.2rem;
+  color: var(--text-color2);
+}
+
+/* checkbox checked hover*/
+input[type="checkbox"]:checked:hover:before {
+  content: "\2713";
+  font-size: 0.9rem;
+  line-height: 1.2rem;
+  color: var(--hover-text-color);
+}
+
+/* radio */
+input[type="radio"]:before {
+  content: "";
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  vertical-align: middle;
+  text-align: center;
+  border: 0px;
+  border-radius: 0.55rem;
+  background-color: var(--input-color);
+  margin-top: -0.5rem;
+  margin-left: -0.1rem;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* radio hover */
+input[type="radio"]:not([disabled]):not(:checked):hover:before {
+  content: "\25CF";
+  font-size: 0.6rem;
+  line-height: 1.1rem;
+  color: var(--text-color3);
+}
+
+/* radio checked */
+input[type="radio"]:checked:before {
+  content: "\25CF";
+  font-size: 0.6rem;
+  line-height: 1.1rem;
+  color: var(--text-color2);
+}
+
+/* radio checked hover*/
+input[type="radio"]:checked:before {
+  content: "\25CF";
+  font-size: 0.6rem;
+  line-height: 1.1rem;
+  color: var(--hover-text-color);
+}
+
+/* default focus style */
+:focus {
+  outline-color: var(--focus-color);
+}
+
+/* exit source view button */
+.typora-sourceview-on #toggle-sourceview-btn {
+  background-color: var(--bg-color2);
+}
+
+.typora-sourceview-on #toggle-sourceview-btn:hover {
+  background-color: var(--hover-bg-color1);
+}
+
+/* shadow for image item*/
+.md-image img {
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* toc */
+.md-toc {
+  background-color: var(--bg-color3);
+  border-radius: 6px;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+  border: 0px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* toc content */
+.md-toc-content {
+  padding-top: 5px;
+  padding-bottom: 8px;
+  margin-top: 15px;
+  margin-bottom: 0px;
+}
+
+/* remove outline when toc is selected */
+.md-toc:focus .md-toc-content {
+  border: 0px;
+  margin: 0px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* toc item */
+.md-toc-item {
+  margin: 2px;
+}
+
+/* toc edit panel */
+#write div.md-toc-tooltip {
+  border: 0px;
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: var(--bg-color3);
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  opacity: 0;
+  visibility: hidden;
+  display: block !important;
+  transition: 0.3s;
+}
+
+#write .md-toc:focus div.md-toc-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+#write .md-toc:focus {
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+}
+
+/* toc delete button */
+.md-delete-toc {
+  background-color: transparent;
+}
+
+/* html block */
+.md-htmlblock:hover .md-htmlblock-container {
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  border-top-right-radius: 0px;
+}
+
+/* search panel */
+#md-searchpanel {
+  background-color: var(--bg-color2);
+  color: var(--text-color2);
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* ignore case button and find whole word button */
+.searchpanel-search-option-btn {
+  border: 0px;
+}
+
+/* button on search panel */
+#md-searchpanel .btn:hover {
+  color: var(--hover-text-color);
+  background-color: var(--hover-bg-color1) !important;
+}
+
+/* remove shadow around input in search panel*/
+#md-searchpanel input {
+  box-shadow: none;
+}
+
+/* search option button hover */
+.searchpanel-search-option-btn:not(.active):hover {
+  color: var(--hover-text-color);
+  background-color: var(--hover-bg-color1);
+}
+
+/* close button in search panel */
+#md-searchpanel .input-group-addon.close-btn {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* replaceall button */
+.ty-replace-panel-row #search-panel-replaceall-btn {
+  padding-left: 8px;
+  padding-right: 6px !important;
+}
+
+/* replace button */
+.ty-replace-panel-row #search-panel-replace-btn {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* sidebar */
+.sidebar-menu {
+  color: var(--text-color2);
+}
+
+/* sidebar shadow */
+#typora-sidebar,
+.typora-node #typora-sidebar {
+  box-shadow: 3px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* divider between file item and search */
+.ty-sidebar-search-panel {
+  border-color: var(--menu-divider-color);
+}
+
+/* file item in sidebar */
+#file-library .file-list-item {
+  border-bottom: 0px;
+  opacity: 1;
+  border-left: 4px solid;
+  border-color: var(--bg-color2);
+}
+
+/* file item hover */
+#file-library .file-list-item:hover {
+  background-color: var(--hover-bg-color1);
+  color: var(--hover-text-color);
+  border-color: var(--hover-bg-color1);
+}
+
+/* file item active */
+#file-library .file-list-item.active {
+  background-color: var(--hover-bg-color1);
+  color: var(--hover-text-color);
+  border-color: var(--hover-text-color);
+}
+
+/* suffix of file item*/
+.file-list-item-file-ext-part {
+  opacity: 0.8;
+}
+
+/* sidebar file menu */
+#sidebar-files-menu {
+  border: 0px;
+  box-shadow: -2px -2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* sidebar file menu item */
+.dropdown-menu > li > a {
+  color: var(--text-color2);
+}
+
+.dropdown-menu > li > a:hover {
+  color: var(--hover-text-color);
+}
+
+/* sidebar file menu close button */
+#close-sidebar-menu-btn:hover {
+  color: var(--hover-text-color);
+}
+
+/* sidebar file menu divider */
+#sidebar-files-menu > .show + .menuitem-group-label.show {
+  border-color: var(--menu-divider-color);
+}
+
+/* sidebar osx tab */
+.html-for-mac .sidebar-osx-tab > .sidebar-tabs {
+  border: 0px;
+  box-shadow: 0 4px 10px -5px rgba(0, 0, 0, 0.5);
+}
+
+.html-for-mac .sidebar-content {
+  z-index: -1; /* so that the background doesn't overlap with the shadow */
+}
+
+/* sidebar footer */
+.sidebar-footer {
+  border: 0px;
+  box-shadow: 0 -4px 10px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* remove outline when file item in treeview is selected*/
+.file-library-node:not(.file-node-root):focus > .file-node-content {
+  outline: none;
+}
+
+/* sort button on sidebar file menu */
+.ty-side-sort-btn.active,
+.ty-side-sort-btn:hover {
+  color: var(--hover-text-color);
+}
+
+/* setting */
+/* header in setting */
+.window-header {
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* sidebar in setting */
+.sidebar {
+  background-color: var(--bg-color2) !important;
+  box-shadow: 3px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+.list-group-content {
+  margin-left: 10px !important;
+}
+
+/* sidebar button in setting menu */
+.nav-group-item {
+  color: var(--text-color2) !important;
+  border-top-left-radius: 6px !important;
+  border-bottom-left-radius: 6px !important;
+  border-top-right-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+}
+
+/* sidebar button hover in setting menu */
+.nav-group-item:hover,
+.nav-group-item:active,
+.nav-group-item.active {
+  background-color: var(--hover-bg-color1) !important;
+  color: var(--hover-text-color) !important;
+}
+
+/* remove up and down button from number type input*/
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+}
+
+/* the indent example in setting.editor */
+div[data-index="2"] .label-input-group td:last-child div {
+  border: 0px !important;
+  border-radius: 6px;
+  background-color: var(--bg-color5);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  margin: 10px !important;
+}
+
+/* button in setting menu */
+.ty-preferences button.btn-default {
+  border: 0px;
+  background-color: var(--bg-color5);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+/* button hover in setting menu */
+.ty-preferences .btn-default:not([disabled]):hover {
+  background-color: var(--hover-bg-color1) !important;
+}
+
+/* return button in setting menu */
+.window-header button:hover {
+  color: var(--text-color2) !important;
+}
+
+/* search input in setting menu */
+.search-input {
+  border-top-left-radius: 6px !important;
+  border-bottom-left-radius: 6px !important;
+  border-top-right-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
+  margin-left: 10px !important;
+}
+
+.search-input:focus {
+  border: none !important;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* select item (mostly in setting menu) */
+select {
+  border: 0px;
+  border-radius: 6px;
+  background-color: var(--input-color) !important;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* enabled select item hover */
+select:not([disabled]):hover {
+  color: var(--text-color2);
+  opacity: 1;
+}
+
+/* disabled select item hover */
+select[disabled]:hover {
+  opacity: 0.5;
+}
+
+/* mega menu */
+.megamenu-content,
+.megamenu-opened header {
+  background: var(--bg-color1);
+}
+
+.megamenu-content {
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.megamenu-opened .megamenu-content {
+  visibility: visible;
+  opacity: 1;
+  animation: none;
+}
+
+/* mega menu sidebar*/
+.megamenu-menu {
+  background-color: var(--bg-color2);
+  box-shadow: 3px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* return button in mega menu */
+#megamenu-menu-sidebar .menu-style-btn {
+  border: 0px;
+}
+
+/* remove divider in mega menu */
+.megamenu-menu-header {
+  border-color: var(--menu-divider-color);
+}
+
+/* return button color in mega menu */
+.megamenu-menu-header #megamenu-menu-header-title {
+  color: var(--text-color2);
+}
+
+/* return button hover in mega menu */
+.megamenu-menu-header:hover {
+  background-color: var(--hover-bg-color1);
+}
+
+/* return button hover in mega menu */
+.megamenu-menu-header:hover #megamenu-menu-header-title {
+  color: var(--hover-text-color);
+}
+
+/* long button in mega menu */
+.long-btn {
+  border: 0px;
+  background-color: var(--bg-color5);
+  color: var(--text-color1);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  margin-bottom: 10px;
+  margin-left: 10px;
+}
+
+/* recent file in mega menu */
+#recent-file-panel {
+  padding: 10px;
+}
+
+#recent-document-table {
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+#recent-file-panel-action-btn {
+  background: var(--bg-color5);
+  border: 0px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+#recent-file-panel thead tr {
+  background-color: var(--table-thead-color);
+}
+
+#recent-file-panel tbody tr:nth-child(2n) {
+  background-color: var(--table-bg-darker-color);
+}
+
+#recent-file-panel tbody tr:nth-child(2n + 1) {
+  background-color: var(--table-bg-color);
+}
+
+#recent-file-panel-action-btn:hover {
+  background-color: var(--hover-bg-color1);
+  color: var(--text-color2);
+}
+
+/* theme preview */
+.theme-preview-div {
+  box-shadow: 10px 0px 10px rgba(0, 0, 0, 0.8);
+}
+
+/* theme preview hover */
+.theme-preview-div:hover {
+  border-color: var(--theme-select-color);
+}
+
+/* context menu and spell check panel */
+.dropdown-menu:not(.megamenu-menu-list) {
+  background-color: var(--bg-color2);
+  color: var(--text-color2);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* divider in context menu and spell check panel */
+.dropdown-menu .divider {
+  border-color: var(--menu-divider-color);
+}
+
+/* remove divider outline */
+.dropdown-menu {
+  border: 0px;
+}
+
+/* footer */
+footer.ty-footer {
+  border-top: 0px !important;
+  background-color: var(--bg-color2) !important;
+  /*     color: var(--text-color2); */
+  box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* footer item */
+.footer-item,
+#outline-btn,
+#footer-word-count {
+  color: var(--text-color2);
+  opacity: 1;
+}
+
+/* footer item hover */
+.footer-item:hover,
+#outline-btn:hover {
+  background-color: var(--hover-bg-color1);
+  color: var(--hover-text-color);
+}
+
+/* button on some panel */
+.btn {
+  border: 0px;
+  outline-width: 0px !important;
+}
+
+.btn:hover {
+  background-color: var(--hover-bg-color1);
+  color: var(--hover-text-color);
+}
+
+/* traffic button hover */
+#top-titlebar .toolbar-icon.btn:hover {
+  color: var(--text-color2);
+  background-color: var(--hover-bg-color1);
+}
+
+/* traffic button hover */
+#top-titlebar #w-close:hover {
+  background-color: #e81123 !important;
+}
+
+/* adjust maxmize restore button height */
+.typora-maxmized #w-restore {
+  height: 24px;
+}
+
+/* left upper button hover */
+.ty-menu-btn-area:hover .ty-menu-btn-area-sub {
+  color: var(--text-color2) !important;
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  padding-right: 10px;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+/* scrollbar track */
+::-webkit-scrollbar-track:hover {
+  background-color: var(--scrollbar-track-color) !important;
+  border-radius: 4px;
+}
+
+/* scrollbar thumb */
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-thumb-color) !important;
+  border-radius: 4px;
+}
+
+/* tip when hover on a button */
+#ty-tooltip {
+  background-color: var(--bg-color4);
+  color: var(--text-color4);
+}
+
+/* item container hover in context menu */
+.menu-item-container:hover {
+  background-color: var(--bg-color2);
+}
+
+/* item in context menu */
+.menu-item-container .menu-style-btn {
+  border-color: var(--menu-divider-color);
+}
+
+/* mathjax edit panel*/
+.md-rawblock-before {
+  border-top-left-radius: 6px;
+}
+
+.md-rawblock-after {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* mathjax focus */
+.MathJax_SVG:focus {
+  outline: none;
+  background-color: transparent;
+}
+
+/* notification panel */
+#md-notification {
+  background-color: var(--bg-color2) !important;
+  color: var(--text-color2);
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+#ty-surpress-mode-warning-close-btn {
+  float: unset !important;
+  margin: 0px !important;
+}
+
+.unibody-window #md-notification p {
+  bottom: -4px !important;
+}
+
+/* inline codeblock */
+code {
+  font-size: 0.9em;
+  background-color: var(--bg-color5);
+  border-radius: 6px;
+  padding: 4px 4px 4px 4px;
+  margin: 0px 0px 0px 0px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* codeblock */
+.md-fences,
+.md-fences:active {
+  background-color: var(--bg-color5);
+  border-radius: 6px;
+  padding: 8px 4px 8px 4px !important;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+.md-fences .code-tooltip {
+  display: block !important;
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+  background-color: var(--bg-color3);
+}
+
+.md-fences.md-focus .code-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.CodeMirror-lines {
+  padding-left: 4px;
+}
+
+/* selected text and cursor */
+.CodeMirror-selected,
+.CodeMirror-selectedtext {
+  background: var(--code-select-bg-color) !important;
+}
+
+.CodeMirror div.CodeMirror-cursor {
+  border-left: 2px solid var(--code-cursor-color);
+  z-index: 3;
+}
+
+.CodeMirror.cm-s-typora-default div.CodeMirror-cursor {
+  border-left: 3px solid var(--code-cursor-color);
+}
+
+/* highlight */
+.cm-s-inner .cm-property {
+  color: var(--code-blue-color) !important;
+}
+
+.cm-s-inner .cm-operator {
+  color: var(--code-cyan-color) !important;
+}
+
+.cm-s-inner .cm-keyword {
+  color: var(--code-purple-color) !important;
+}
+
+.cm-s-inner .cm-tag {
+  color: var(--code-red-color) !important;
+}
+
+.cm-s-inner .cm-attribute {
+  color: var(--code-orange-color) !important;
+}
+
+.cm-s-inner .cm-string {
+  color: var(--code-green-color) !important;
+}
+
+.cm-s-inner .cm-comment,
+.cm-s-inner.cm-comment {
+  /*     color: var(--code-orange-color) !important; */
+  color: var(--code-grey-color) !important;
+  font-style: italic;
+}
+
+.cm-s-inner .cm-header,
+.cm-s-inner .cm-def,
+.cm-s-inner.cm-header,
+.cm-s-inner.cm-def {
+  /*     color: var(--code-red-color) !important; */
+  color: var(--code-blue-color) !important;
+}
+
+.cm-s-inner .cm-meta,
+.cm-s-inner .cm-qualifier {
+  color: var(--code-red-color) !important;
+}
+
+.cm-s-inner .cm-builtin {
+  /*     color: var(--code-blue-color) !important; */
+  color: var(--code-cyan-color) !important;
+}
+
+.cm-s-inner .cm-bracket {
+  color: var(--text-color1) !important;
+}
+
+.cm-s-inner .cm-number {
+  color: var(--code-orange-color) !important;
+}
+
+.cm-s-inner .cm-variable {
+  color: var(--text-color1) !important;
+}
+
+.cm-s-inner .cm-variable-2 {
+  /*     color: var(--code-blue-color) !important; */
+  color: var(--code-yellow-color) !important;
+}
+
+.cm-s-typora-default .cm-header,
+.cm-s-typora-default .cm-property {
+  color: var(--code-red-color) !important;
+}
+
+.cm-s-typora-default .cm-string {
+  /*     color: var(--code-blue-color); */
+  color: var(--code-purple-color);
+}
+
+.cm-s-typora-default .cm-atom {
+  color: var(--code-grey-color);
+  font-style: italic;
+}
+
+.cm-s-typora-default .cm-number {
+  color: var(--code-orange-color);
+  font-style: normal !important;
+}
+
+.cm-s-typora-default .cm-link {
+  color: var(--code-blue-color);
+}
+
+.cm-s-typora-default .CodeMirror-activeline-background {
+  background: var(--hover-bg-color1);
+}
+
+.cm-s-typora-default .cm-comment,
+.cm-s-typora-default .cm-code {
+  color: var(--code-purple-color);
+}
+
+.cm-s-typora-default .cm-tag {
+  /*     color: var(--code-red-color); */
+  color: var(--code-blue-color);
+}
+
+.cm-s-typora-default .cm-strong,
+.cm-s-typora-default .cm-em,
+.cm-s-typora-default .cm-del {
+  /*     color: var(--code-green-color); */
+  color: var(--code-orange-color);
+}
+
+.cm-s-typora-default .cm-block-start.cm-variable-2 {
+  /*     color: var(--code-orange-color); */
+  color: var(--code-red-color);
+}
+
+.cm-formatting-task .cm-formatting-task {
+  color: var(--code-red-color);
+}
+
+/* math formula tag */
+.cm-s-inner .cm-atom,
+.cm-s-inner.cm-atom {
+  color: var(--code-blue-color);
+}
+
+/* inline codeblock in source mode */
+.cm-s-typora-default .cm-comment {
+  color: var(--code-green-color);
+}
+
+/* horizontal divider when language is markdown */
+.cm-s-inner .cm-hr {
+  color: var(--text-color1);
+}
+
+/* variable type when language is c/cpp */
+.cm-s-inner .cm-variable-3 {
+  color: var(--code-purple-color);
+}
+
+/* in pie chart and flowchart */
+.cm-s-inner .cm-quote,
+.cm-s-inner.cm-quote {
+  color: var(--code-green-color);
+}
+
+/* unknown highlight keyword */
+.cm-s-inner .cm-link {
+  color: var(--code-blue-color);
+}
+
+.cm-s-inner .cm-negative {
+  color: #d95050;
+}
+
+.cm-s-inner .cm-positive {
+  color: #50e650;
+}
+
+.cm-s-inner .cm-string-2 {
+  color: #f50;
+}
+
+.CodeMirror-gutters {
+  border-right: none;
+}
+
+/* focus mode */
+.on-focus-mode .md-end-block:not(.md-focus) .md-toc-item {
+  opacity: 0.5;
+}
+
+.on-focus-mode #write h1:not(.md-focus):before {
+  opacity: 0.5;
+}
+
+.on-focus-mode #write h2:not(.md-focus):before {
+  opacity: 0.5;
+}
+
+.on-focus-mode #write h1:not(.md-focus) {
+  border-color: var(--text-color5);
+}
+
+.on-focus-mode #write h2:not(.md-focus) {
+  border-color: var(--text-color5);
+}
+
+.on-focus-mode #write h3:not(.md-focus) {
+  border-color: var(--text-color5);
+}
+
+/* YAML block */
+pre.md-meta-block,
+pre.md-meta-block:active {
+  background-color: var(--bg-color5);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* switch between different mode */
+#typora-source {
+  display: block !important;
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.typora-sourceview-on #typora-source {
+  visibility: visible;
+  opacity: 1;
+}
+
+#typora-source .CodeMirror-lines {
+  max-width: 1200px;
+  padding-left: 70px;
+  padding-right: 70px;
+}
+
+#write {
+  display: block !important;
+  visibility: visible;
+  opacity: 1;
+  transition: 0.3s;
+  max-width: 1200px;
+  padding-left: 70px;
+  padding-right: 70px;
+}
+
+.typora-sourceview-on #write {
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* #md-searchpanel {
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.3s !important;
+}
+
+.on-search-panel-open #md-searchpanel {
+    visibility: visible;
+    opacity: 1;
+} */
+
+.uni-preference-panel {
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.show-preference-panel .uni-preference-panel {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* quick open menu */
+.typora-quick-open-item:hover {
+  background-color: var(--hover-bg-color1);
+  color: var(--hover-text-color);
+}
+
+/* insert table panel */
+.modal-content {
+  border: 0px;
+  border-radius: 6px;
+}
+
+.modal-content .btn-primary {
+  background-color: var(--hover-bg-color1);
+  color: var(--text-color1);
+  outline-width: 0px;
+}
+
+.modal-content .btn-primary:hover {
+  color: var(--hover-text-color);
+}
+
+.modal-content .form-control,
+.modal-content .form-control:focus {
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+.modal-backdrop {
+  background-color: black;
+  opacity: 0.3 !important;
+}
+
+/* zoom  */
+#zoom-hint #zoom-hint-reset {
+  color: var(--text-color1);
+}
+
+#zoom-hint .zoom-hint-button:hover {
+  color: var(--hover-text-color) !important;
+}
+
+/* word count */
+#footer-word-count-info {
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.ty-show-word-count #footer-word-count-info {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* spell check */
+#spell-check-panel {
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.ty-show-spell-check #spell-check-panel {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* search result */
+.md-search-select {
+  border: 2px solid rgb(69, 125, 255);
+  box-sizing: content-box;
+  color: var(--text-color1) !important;
+}
+
+.md-search-hit {
+  background-color: var(--search-select-bg-color);
+}
+
+/* search panel message */
+#searchpanel-msg {
+  background-color: var(--bg-color2);
+  color: var(--text-color2);
+}
+
+.searchpanel-msg-btn:hover {
+  background-color: var(--hover-bg-color1);
+  color: var(--hover-text-color);
+}
+
+/* language selection for codeblock */
+.auto-suggest-container {
+  border: 0px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  background-color: var(--bg-color2);
+}
+
+/* sidebar outline item hover and active */
+.outline-item:hover {
+  color: var(--hover-text-color);
+}
+
+.outline-label:hover {
+  text-decoration: none;
+}
+
+.pin-outline .outline-active {
+  color: var(--hover-text-color);
+}
+
+/* sidebar title hover */
+.info-panel-tab:hover {
+  color: var(--hover-text-color) !important;
+}
+
+/* active file in sidebar file menu treeview */
+.file-tree-node.active > .file-node-background {
+  background-color: var(--hover-bg-color1);
+}
+
+/* hover file in sidebar file menu treeview */
+.file-node-content:hover {
+  cursor: pointer;
+}
+
+/* saved button in megamenu */
+#m-saved:hover {
+  background-color: var(--bg-color2);
+  color: var(--text-color2);
+  cursor: default;
+}
+
+/* mermaid flowchart */
+.node rect,
+.node circle,
+.node ellipse,
+.node polygon,
+.node path {
+  fill: var(--bg-color2) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.edgePath .path {
+  stroke: var(--menu-divider-color) !important;
+}
+
+.label {
+  color: var(--text-color1) !important;
+}
+
+.edgeLabel rect {
+  fill: transparent !important;
+}
+
+.cluster rect {
+  fill: var(--bg-color5) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+/* mermaid sequence*/
+text.actor {
+  fill: var(--text-color1) !important;
+}
+
+.messageLine0,
+.messageLine1 {
+  stroke: var(--menu-divider-color) !important;
+}
+
+rect[class*="activation"] {
+  fill: var(--bg-color2) !important;
+}
+
+.actor-line {
+  stroke-width: 1px !important;
+}
+
+.labelBox {
+  stroke: rgb(150, 150, 150) !important;
+}
+
+.labelText {
+  fill: var(--text-color1) !important;
+}
+
+.loopText {
+  fill: var(--text-color1) !important;
+}
+
+.loopLine {
+  stroke: rgb(150, 150, 150) !important;
+}
+
+.note {
+  fill: var(--bg-color2) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.noteText {
+  fill: var(--text-color1) !important;
+}
+
+/* mermaid class */
+g.classGroup text {
+  fill: var(--text-color) !important;
+}
+
+g.classGroup rect {
+  stroke: var(--menu-divider-color) !important;
+  fill: var(--bg-color2) !important;
+}
+
+g.classGroup line {
+  stroke: var(--menu-divider-color) !important;
+}
+
+.classLabel .label {
+  fill: var(--text-color1) !important;
+}
+
+.relation {
+  stroke: var(--menu-divider-color) !important;
+}
+
+#compositionStart,
+#compositionEnd,
+#aggregationStart,
+#aggregationEnd,
+#dependencyStart,
+#dependencyStart,
+#extensionStart,
+#extensionEnd {
+  fill: var(--menu-divider-color) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.cardinality text {
+  fill: var(--text-color) !important;
+}
+
+/* mermaid state v1 */
+.stateGroup rect,
+.stateGroup line {
+  fill: var(--bg-color2) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.stateGroup text {
+  fill: var(--text-color) !important;
+}
+
+.stateGroup circle {
+  fill: var(--bg-color4) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.stateGroup .composit {
+  /*   fill: rgb(36,40,47) !important; */
+  fill: hsl(218, 13%, 17%) !important;
+}
+
+.stateGroup .alt-composit {
+  /*   fill: rgb(36,40,47) !important; */
+  fill: hsl(218, 13%, 16.5%) !important;
+}
+
+.state-note rect {
+  fill: var(--bg-color2) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.state-note text {
+  fill: var(--text-color) !important;
+}
+
+.stateLabel text {
+  fill: var(--text-color) !important;
+}
+
+#dependencyEnd {
+  fill: var(--menu-divider-color) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+/* mermaid state v2*/
+.state-start {
+  fill: var(--bg-color4) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.state-end {
+  stroke: var(--menu-divider-color) !important;
+  fill: var(--bg-color4) !important;
+}
+
+.divider {
+  stroke: var(--menu-divider-color) !important;
+  fill: var(--bg-color5) !important;
+  fill: hsl(218, 13%, 13.5%) !important;
+}
+
+.fork-join {
+  fill: var(--bg-color2) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.title-state {
+  fill: var(--bg-color2) !important;
+}
+
+.statediagram-cluster .outer {
+  /*   fill: var(--bg-color4) !important; */
+  stroke: var(--menu-divider-color) !important;
+}
+
+.statediagram-cluster .inner {
+  /*   fill: var(--bg-color2) !important; */
+  fill: hsl(218, 13%, 16.5%) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.statediagram-cluster-alt .inner {
+  /*   fill: var(--bg-color5) !important; */
+  fill: hsl(218, 13%, 16%) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.transition {
+  stroke: var(--menu-divider-color) !important;
+}
+
+#statediagram-barbEnd {
+  fill: var(--menu-divider-color) !important;
+}
+
+/* mermaid journey */
+.journey-section {
+  fill: var(--bg-color5) !important;
+  stroke: var(--menu-divider-color) !important;
+}
+
+.journey-section div {
+  color: var(--text-color) !important;
+}
+
+.task {
+  fill: var(--bg-color2) !important;
+  stroke: var(--menu-divider-color) !important;
+  stroke-width: 1px !important;
+}
+
+.task div {
+  color: var(--text-color) !important;
+}
+
+#arrowhead {
+  fill: var(--menu-divider-color) !important;
+  stroke: var(--menu-divider-color) !important;
+  stroke-width: 0.3px !important;
+}
+
+pre[mermaid-type="journey"] line {
+  stroke: var(--menu-divider-color) !important;
+  stroke-width: 2px !important;
+}
+
+pre[mermaid-type="journey"] text {
+  fill: var(--text-color1) !important;
+}
+
+pre[mermaid-type="journey"] g path,
+pre[mermaid-type="journey"] g line {
+  fill: rgb(100, 104, 110) !important;
+  stroke: var(--text-color) !important;
+}
+
+.task-line {
+  stroke: var(--menu-divider-color) !important;
+}
+
+/* mermaid erDiagram */
+pre[mermaid-type="erDiagram"] rect {
+  fill: var(--bg-color2) !important;
+}
+
+pre[mermaid-type="erDiagram"] text {
+  fill: var(--text-color) !important;
+}
+
+pre[mermaid-type="erDiagram"] path {
+  stroke: var(--menu-divider-color) !important;
+}
+
+#ZERO_OR_ONE_START circle,
+#ZERO_OR_ONE_END circle,
+#ZERO_OR_MORE_START circle,
+#ZERO_OR_MORE_END circle {
+  fill: var(--bg-color) !important;
+}
+
+/* mermaid gantt */
+.titleText {
+  fill: var(--text-color1) !important;
+}
+
+.section0,
+.section2 {
+  fill: var(--table-thread-color) !important;
+}
+
+.section1,
+.section3 {
+  fill: var(--table-bg-color) !important;
+}
+
+.task0,
+.task1,
+.task2,
+.task3 {
+  fill: rgb(80, 84, 90) !important;
+  stroke: rgb(80, 84, 90) !important;
+}
+
+.taskText0,
+.taskText1,
+.taskText2,
+.taskText3 {
+  fill: var(--text-color2) !important;
+}
+
+.active0,
+.active1,
+.active2,
+.active3 {
+  fill: rgb(100, 104, 110) !important;
+  stroke: rgb(100, 104, 110) !important;
+}
+
+.activeText0,
+.activeText1,
+.activeText2,
+.activeText3 {
+  fill: var(--text-color2) !important;
+}
+
+.done0,
+.done1,
+.done2,
+.done3 {
+  fill: rgb(48, 51, 58) !important;
+  stroke: rgb(48, 51, 58) !important;
+}
+
+.crit0,
+.crit1,
+.crit2,
+.crit3 {
+  fill: rgb(150, 150, 150) !important;
+  stroke: var(--text-color1) !important;
+}
+
+.activeCrit0,
+.activeCrit1,
+.activeCrit2,
+.activeCrit3 {
+  fill: rgb(100, 104, 110) !important;
+  stroke: var(--text-color1) !important;
+}
+
+.doneCrit0,
+.doneCrit1,
+.doneCrit2,
+.doneCrit3 {
+  fill: rgb(48, 51, 58) !important;
+  stroke: var(--text-color1) !important;
+}
+
+.taskTextOutside0,
+.taskTextOutside2,
+.taskTextOutside1,
+.taskTextOutside3 {
+  fill: var(--text-color1) !important;
+}
+
+.grid text {
+  fill: white !important;
+}
+
+.today {
+  stroke: var(--text-color1) !important;
+}
+
+/* mermaid pie chart */
+g.legend > text {
+  fill: var(--text-color1) !important;
+}
+
+g.legend > rect {
+  stroke: var(--bg-color) !important;
+}
+
+g > path {
+  stroke: var(--bg-color) !important;
+}
+
+g > text.slice {
+  fill: var(--bg-color) !important;
+}
+
+/* flow diagram */
+.md-fences[lang="flow"] .md-diagram-panel-preview rect {
+  fill: var(--bg-color2) !important;
+  stroke: var(--menu-divider-color) !important;
+  stroke-width: 1.2 !important;
+}
+
+.md-fences[lang="flow"] .md-diagram-panel-preview path {
+  stroke: var(--menu-divider-color) !important;
+  stroke-width: 1.2 !important;
+}
+
+.md-fences[lang="flow"] #cond {
+  fill: var(--bg-color2) !important;
+}
+
+/* sequence diagram */
+.md-fences[lang="sequence"] .md-diagram-panel-preview rect:not([fill="none"]) {
+  fill: var(--bg-color2) !important;
+  stroke: var(--menu-divider-color) !important;
+  stroke-width: 1.2 !important;
+}
+
+.md-fences[lang="sequence"] .md-diagram-panel-preview path {
+  fill: var(--menu-divider-color) !important;
+  stroke: var(--menu-divider-color) !important;
+  stroke-width: 1.2 !important;
+}
+
+.md-fences[lang="sequence"] text,
+.md-fences[lang="flow"] text {
+  font-family: "Consolas" !important;
+}
+
+/* remove box shadow when not edit graph */
+.md-fences[lang="sequence"]:not(.md-focus),
+.md-fences[lang="mermaid"]:not(.md-focus),
+.md-fences[lang="flow"]:not(.md-focus) {
+  box-shadow: none;
+}
+
+/* remove border when edit graph */
+.md-diagram-panel {
+  border: none !important;
+}
+
+kbd {
+  background: var(--bg-color5);
+  color: var(--text-color1);
+  font-family: "Lucida Console";
+  border-color: var(--menu-divider-color);
+  box-shadow: 0 2px 0 var(--menu-divider-color);
+}
+
+
+mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+  min-height: 1px;
+  min-width: 1px;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-assistive-mml {
+  position: absolute !important;
+  top: 0px;
+  left: 0px;
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 1px 0px 0px 0px !important;
+  border: 0px !important;
+  display: block !important;
+  width: auto !important;
+  overflow: hidden !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+mjx-assistive-mml[display="block"] {
+  width: 100% !important;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][display="true"][width="full"] {
+  display: flex;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line], svg[data-table] > g > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame], svg[data-table] > g > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed, svg[data-table] > g > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted, svg[data-table] > g > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > g > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
+  stroke-width: 3;
+}
+
+g[data-mml-node="xypic"] path {
+  stroke-width: inherit;
+}
+
+.MathJax g[data-mml-node="xypic"] path {
+  stroke-width: inherit;
+}
+mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
+							stroke-width: 0;
+						}
+</style><title>il</title>
+</head>
+<body class='typora-export'><div class='typora-export-content'>
+<div id='write'  class=''><h2 id='why-am-i-doing-this-'><span>Why am I doing this ?</span></h2><p><span>Because it&#39;s fun, lol. That&#39;s kind of useless but nevermind, I do this mainly to improve my skills in Rust and to learn more about compilation theory. And to use it for my DBI engine.</span></p><h2 id='structure'><span>Structure</span></h2><p><span>To include the IR in my DBI engine, I have to choice a particular layout / design. I distinguish two designs: </span></p><ul><li><span>A lifter on function granularity, it requires to lift the whole function. But the optimizations pass are easier to achieve because the code is entirely lifted.</span></li><li><span>A lifter on basic block granularity, that&#39;s harder to develop but it&#39;s the most reliable option since we just have to instrument the guest program basic block per basic block. That&#39;s harder because if we want to apply some optimizations pass, we have to reconstruct the function according to the basic blocks we&#39;ve reached, and from those we don&#39;t reach. That&#39;s also the slower option.</span></li></ul><p><span>For now let&#39;s say we pick the first option. I choose to develop in a first time a very low level IR which would be structured like this:</span></p><pre class="md-fences md-end-block ty-contain-cm modeLoaded" spellcheck="false" lang="rust"><div class="CodeMirror cm-s-inner cm-s-null-scroll CodeMirror-wrap" lang="rust"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 9.45833px; left: 7.98611px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"><pre>x</pre></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation" style=""><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-keyword">pub</span> <span class="cm-keyword">struct</span> <span class="cm-def">ArithmeticOperand</span> {</span></pre></div><div class="" style="position: relative;"><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp;<span class="cm-variable">name</span>: <span class="cm-variable">String</span>,</span></pre></div><div class="" style="position: relative;"><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp;<span class="cm-variable">phi</span>: <span class="cm-atom">bool</span></span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">}</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
+</span></span></pre><div class="" style="position: relative;"><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-meta">#[derive(Debug, Clone)]</span></span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-keyword">pub</span> <span class="cm-keyword">struct</span> <span class="cm-def">ArithmeticExpression</span> {</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp;<span class="cm-variable">name</span>: <span class="cm-variable">String</span>,</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp;<span class="cm-variable">operator</span>: <span class="cm-atom">Option</span><span class="cm-operator">&lt;</span><span class="cm-variable">ArithmeticOperators</span><span class="cm-operator">&gt;</span>,</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp;<span class="cm-variable">op1</span>: <span class="cm-atom">Option</span><span class="cm-operator">&lt;</span><span class="cm-variable">ArithmeticOperand</span><span class="cm-operator">&gt;</span>,</span></pre><div class="" style="position: relative;"><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp;<span class="cm-variable">op2</span>: <span class="cm-atom">Option</span><span class="cm-operator">&lt;</span><span class="cm-variable">ArithmeticOperand</span><span class="cm-operator">&gt;</span>,</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp;<span class="cm-variable">constant</span>: <span class="cm-atom">Option</span><span class="cm-operator">&lt;</span><span class="cm-atom">u64</span><span class="cm-operator">&gt;</span>,</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">}</span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 298px;"></div><div class="CodeMirror-gutters" style="display: none; height: 298px;"></div></div></div></pre><p><span>Each expression has an unique name</span></p><div contenteditable="false" spellcheck="false" class="mathjax-block md-end-block md-math-block md-rawblock" id="mathjax-n18" cid="n18" mdtype="math_block" data-math-tag-before="0" data-math-labels="[]" data-math-tag-after="0"><div class="md-rawblock-container md-math-container" contenteditable="false" tabindex="-1"><mjx-container class="MathJax" jax="SVG" display="true" style="position: relative;"><svg xmlns="http://www.w3.org/2000/svg" width="14.945ex" height="2.262ex" role="img" focusable="false" viewBox="0 -750 6605.8 1000" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" style="vertical-align: -0.566ex;"><defs><path id="MJX-26-TEX-I-1D465" d="M52 289Q59 331 106 386T222 442Q257 442 286 424T329 379Q371 442 430 442Q467 442 494 420T522 361Q522 332 508 314T481 292T458 288Q439 288 427 299T415 328Q415 374 465 391Q454 404 425 404Q412 404 406 402Q368 386 350 336Q290 115 290 78Q290 50 306 38T341 26Q378 26 414 59T463 140Q466 150 469 151T485 153H489Q504 153 504 145Q504 144 502 134Q486 77 440 33T333 -11Q263 -11 227 52Q186 -10 133 -10H127Q78 -10 57 16T35 71Q35 103 54 123T99 143Q142 143 142 101Q142 81 130 66T107 46T94 41L91 40Q91 39 97 36T113 29T132 26Q168 26 194 71Q203 87 217 139T245 247T261 313Q266 340 266 352Q266 380 251 392T217 404Q177 404 142 372T93 290Q91 281 88 280T72 278H58Q52 284 52 289Z"></path><path id="MJX-26-TEX-I-1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"></path><path id="MJX-26-TEX-N-2261" d="M56 444Q56 457 70 464H707Q722 456 722 444Q722 430 706 424H72Q56 429 56 444ZM56 237T56 250T70 270H707Q722 262 722 250T707 230H70Q56 237 56 250ZM56 56Q56 71 72 76H706Q722 70 722 56Q722 44 707 36H70Q56 43 56 56Z"></path><path id="MJX-26-TEX-I-1D44E" d="M33 157Q33 258 109 349T280 441Q331 441 370 392Q386 422 416 422Q429 422 439 414T449 394Q449 381 412 234T374 68Q374 43 381 35T402 26Q411 27 422 35Q443 55 463 131Q469 151 473 152Q475 153 483 153H487Q506 153 506 144Q506 138 501 117T481 63T449 13Q436 0 417 -8Q409 -10 393 -10Q359 -10 336 5T306 36L300 51Q299 52 296 50Q294 48 292 46Q233 -10 172 -10Q117 -10 75 30T33 157ZM351 328Q351 334 346 350T323 385T277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q217 26 254 59T298 110Q300 114 325 217T351 328Z"></path><path id="MJX-26-TEX-N-A0" d=""></path><path id="MJX-26-TEX-N-28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path><path id="MJX-26-TEX-I-1D45A" d="M21 287Q22 293 24 303T36 341T56 388T88 425T132 442T175 435T205 417T221 395T229 376L231 369Q231 367 232 367L243 378Q303 442 384 442Q401 442 415 440T441 433T460 423T475 411T485 398T493 385T497 373T500 364T502 357L510 367Q573 442 659 442Q713 442 746 415T780 336Q780 285 742 178T704 50Q705 36 709 31T724 26Q752 26 776 56T815 138Q818 149 821 151T837 153Q857 153 857 145Q857 144 853 130Q845 101 831 73T785 17T716 -10Q669 -10 648 17T627 73Q627 92 663 193T700 345Q700 404 656 404H651Q565 404 506 303L499 291L466 157Q433 26 428 16Q415 -11 385 -11Q372 -11 364 -4T353 8T350 18Q350 29 384 161L420 307Q423 322 423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 181Q151 335 151 342Q154 357 154 369Q154 405 129 405Q107 405 92 377T69 316T57 280Q55 278 41 278H27Q21 284 21 287Z"></path><path id="MJX-26-TEX-I-1D45C" d="M201 -11Q126 -11 80 38T34 156Q34 221 64 279T146 380Q222 441 301 441Q333 441 341 440Q354 437 367 433T402 417T438 387T464 338T476 268Q476 161 390 75T201 -11ZM121 120Q121 70 147 48T206 26Q250 26 289 58T351 142Q360 163 374 216T388 308Q388 352 370 375Q346 405 306 405Q243 405 195 347Q158 303 140 230T121 120Z"></path><path id="MJX-26-TEX-I-1D451" d="M366 683Q367 683 438 688T511 694Q523 694 523 686Q523 679 450 384T375 83T374 68Q374 26 402 26Q411 27 422 35Q443 55 463 131Q469 151 473 152Q475 153 483 153H487H491Q506 153 506 145Q506 140 503 129Q490 79 473 48T445 8T417 -8Q409 -10 393 -10Q359 -10 336 5T306 36L300 51Q299 52 296 50Q294 48 292 46Q233 -10 172 -10Q117 -10 75 30T33 157Q33 205 53 255T101 341Q148 398 195 420T280 442Q336 442 364 400Q369 394 369 396Q370 400 396 505T424 616Q424 629 417 632T378 637H357Q351 643 351 645T353 664Q358 683 366 683ZM352 326Q329 405 277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q233 26 290 98L298 109L352 326Z"></path><path id="MJX-26-TEX-I-1D45D" d="M23 287Q24 290 25 295T30 317T40 348T55 381T75 411T101 433T134 442Q209 442 230 378L240 387Q302 442 358 442Q423 442 460 395T497 281Q497 173 421 82T249 -10Q227 -10 210 -4Q199 1 187 11T168 28L161 36Q160 35 139 -51T118 -138Q118 -144 126 -145T163 -148H188Q194 -155 194 -157T191 -175Q188 -187 185 -190T172 -194Q170 -194 161 -194T127 -193T65 -192Q-5 -192 -24 -194H-32Q-39 -187 -39 -183Q-37 -156 -26 -148H-6Q28 -147 33 -136Q36 -130 94 103T155 350Q156 355 156 364Q156 405 131 405Q109 405 94 377T71 316T59 280Q57 278 43 278H29Q23 284 23 287ZM178 102Q200 26 252 26Q282 26 310 49T356 107Q374 141 392 215T411 325V331Q411 405 350 405Q339 405 328 402T306 393T286 380T269 365T254 350T243 336T235 326L232 322Q232 321 229 308T218 264T204 212Q178 106 178 102Z"></path><path id="MJX-26-TEX-N-29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="msup"><g data-mml-node="mi"><use data-c="1D465" xlink:href="#MJX-26-TEX-I-1D465"></use></g><g data-mml-node="mi" transform="translate(605,413) scale(0.707)"><use data-c="1D45B" xlink:href="#MJX-26-TEX-I-1D45B"></use></g></g><g data-mml-node="mo" transform="translate(1357,0)"><use data-c="2261" xlink:href="#MJX-26-TEX-N-2261"></use></g><g data-mml-node="mi" transform="translate(2412.8,0)"><use data-c="1D44E" xlink:href="#MJX-26-TEX-I-1D44E"></use></g><g data-mml-node="mtext" transform="translate(2941.8,0)"><use data-c="A0" xlink:href="#MJX-26-TEX-N-A0"></use></g><g data-mml-node="mo" transform="translate(3191.8,0)"><use data-c="28" xlink:href="#MJX-26-TEX-N-28"></use></g><g data-mml-node="mi" transform="translate(3580.8,0)"><use data-c="1D45A" xlink:href="#MJX-26-TEX-I-1D45A"></use></g><g data-mml-node="mi" transform="translate(4458.8,0)"><use data-c="1D45C" xlink:href="#MJX-26-TEX-I-1D45C"></use></g><g data-mml-node="mi" transform="translate(4943.8,0)"><use data-c="1D451" xlink:href="#MJX-26-TEX-I-1D451"></use></g><g data-mml-node="mtext" transform="translate(5463.8,0)"><use data-c="A0" xlink:href="#MJX-26-TEX-N-A0"></use></g><g data-mml-node="mi" transform="translate(5713.8,0)"><use data-c="1D45D" xlink:href="#MJX-26-TEX-I-1D45D"></use></g><g data-mml-node="mo" transform="translate(6216.8,0)"><use data-c="29" xlink:href="#MJX-26-TEX-N-29"></use></g></g></g></svg><mjx-assistive-mml unselectable="on" display="block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><msup><mi>x</mi><mi>n</mi></msup><mo>≡</mo><mi>a</mi><mtext>&nbsp;</mtext><mo stretchy="false">(</mo><mi>m</mi><mi>o</mi><mi>d</mi><mtext>&nbsp;</mtext><mi>p</mi><mo stretchy="false">)</mo></math></mjx-assistive-mml></mjx-container></div></div><p>&nbsp;</p></div></div>
+</body>
+</html>

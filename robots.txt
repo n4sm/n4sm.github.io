@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /categories/*
+Disallow: /tags/*
+
+Sitemap: http://n4sm.github.io/sitemap.xml
