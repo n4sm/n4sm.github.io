@@ -6,9 +6,9 @@
     
     
     
-            <link href="https://n4sm.github.io/tags/Blind-Date/" rel="alternate" type="text/html" title="HTML" />
-            <link href="https://n4sm.github.io/tags/Blind-Date/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-14T21:47:39+02:00</updated>
+            <link href="https://nasm.re/tags/Blind-Date/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://nasm.re/tags/Blind-Date/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-14T22:28:25+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -16,12 +16,12 @@
                 <email>nasm@pm.me</email>
             </author>
         
-    <id>https://n4sm.github.io/tags/Blind-Date/</id>
+    <id>https://nasm.re/tags/Blind-Date/</id>
         
         <entry>
             <title type="html"><![CDATA[[FCSC 2021 - pwn] Blind Date]]></title>
-            <link href="https://n4sm.github.io/posts/blindate/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>https://n4sm.github.io/posts/blindate/</id>
+            <link href="https://nasm.re/posts/blindate/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/blindate/</id>
             
             <published>2021-05-03T00:00:00+00:00</published>
             <updated>2021-05-03T00:00:00+00:00</updated>
@@ -30,7 +30,7 @@
             <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
     <h1 id="blind-date-489-pts">
         Blind Date (489 pts)
-        <a data-clipboard-text="https://n4sm.github.io/posts/blindate/#blind-date-489-pts" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Blind Date (489 pts)" href="#blind-date-489-pts">
+        <a data-clipboard-text="https://nasm.re/posts/blindate/#blind-date-489-pts" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Blind Date (489 pts)" href="#blind-date-489-pts">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h1>
@@ -57,7 +57,7 @@ So, no source code is provided, we juste have a netcat to which we can interact.
 <div class="gblog-post__anchorwrap">
     <h3 id="find-the-right-offset">
         Find the right offset
-        <a data-clipboard-text="https://n4sm.github.io/posts/blindate/#find-the-right-offset" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Find the right offset" href="#find-the-right-offset">
+        <a data-clipboard-text="https://nasm.re/posts/blindate/#find-the-right-offset" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Find the right offset" href="#find-the-right-offset">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h3>
@@ -173,7 +173,7 @@ So, no source code is provided, we juste have a netcat to which we can interact.
 <div class="gblog-post__anchorwrap">
     <h3 id="stack-reading">
         Stack reading
-        <a data-clipboard-text="https://n4sm.github.io/posts/blindate/#stack-reading" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Stack reading" href="#stack-reading">
+        <a data-clipboard-text="https://nasm.re/posts/blindate/#stack-reading" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Stack reading" href="#stack-reading">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h3>
@@ -236,7 +236,7 @@ STOP: &lt;class <span class="s1">&#39;KeyboardInterrupt&#39;</span>&gt;
 <div class="gblog-post__anchorwrap">
     <h3 id="stop-gadget">
         Stop gadget
-        <a data-clipboard-text="https://n4sm.github.io/posts/blindate/#stop-gadget" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Stop gadget" href="#stop-gadget">
+        <a data-clipboard-text="https://nasm.re/posts/blindate/#stop-gadget" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Stop gadget" href="#stop-gadget">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h3>
@@ -360,7 +360,7 @@ And so for our attack we will use it.</p>
 <div class="gblog-post__anchorwrap">
     <h3 id="brop-gadget">
         Brop gadget
-        <a data-clipboard-text="https://n4sm.github.io/posts/blindate/#brop-gadget" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Brop gadget" href="#brop-gadget">
+        <a data-clipboard-text="https://nasm.re/posts/blindate/#brop-gadget" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Brop gadget" href="#brop-gadget">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h3>
@@ -431,7 +431,7 @@ Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:\
 <div class="gblog-post__anchorwrap">
     <h3 id="procedure-linkage-table-plt">
         Procedure linkage table (PLT)
-        <a data-clipboard-text="https://n4sm.github.io/posts/blindate/#procedure-linkage-table-plt" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Procedure linkage table (PLT)" href="#procedure-linkage-table-plt">
+        <a data-clipboard-text="https://nasm.re/posts/blindate/#procedure-linkage-table-plt" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Procedure linkage table (PLT)" href="#procedure-linkage-table-plt">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h3>
@@ -496,7 +496,7 @@ That&rsquo;s how I developped this function:</p>
 <div class="gblog-post__anchorwrap">
     <h3 id="leaking-the-binary">
         Leaking the binary
-        <a data-clipboard-text="https://n4sm.github.io/posts/blindate/#leaking-the-binary" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leaking the binary" href="#leaking-the-binary">
+        <a data-clipboard-text="https://nasm.re/posts/blindate/#leaking-the-binary" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leaking the binary" href="#leaking-the-binary">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h3>
@@ -578,7 +578,7 @@ str_bin_sh 	0x1633e8 	0x141998
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="put-everything-together">
         Put everything together
-        <a data-clipboard-text="https://n4sm.github.io/posts/blindate/#put-everything-together" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Put everything together" href="#put-everything-together">
+        <a data-clipboard-text="https://nasm.re/posts/blindate/#put-everything-together" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Put everything together" href="#put-everything-together">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -854,21 +854,21 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
                         
                             
                              
-                                <category scheme="https://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                                <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
                              
-                                <category scheme="https://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
+                                <category scheme="https://nasm.re/tags/ret2school" term="ret2school" label="ret2school" />
                              
-                                <category scheme="https://n4sm.github.io/tags/FCSC" term="FCSC" label="FCSC" />
+                                <category scheme="https://nasm.re/tags/FCSC" term="FCSC" label="FCSC" />
                              
-                                <category scheme="https://n4sm.github.io/tags/Blind-Date" term="Blind-Date" label="Blind Date" />
+                                <category scheme="https://nasm.re/tags/Blind-Date" term="Blind-Date" label="Blind Date" />
                              
-                                <category scheme="https://n4sm.github.io/tags/n4sm" term="n4sm" label="n4sm" />
+                                <category scheme="https://nasm.re/tags/n4sm" term="n4sm" label="n4sm" />
                              
-                                <category scheme="https://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
                              
-                                <category scheme="https://n4sm.github.io/tags/2021" term="2021" label="2021" />
+                                <category scheme="https://nasm.re/tags/2021" term="2021" label="2021" />
                              
-                                <category scheme="https://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
                             
                         
                     

@@ -6,9 +6,9 @@
     
     
     
-            <link href="https://n4sm.github.io/tags/buffer-overflow/" rel="alternate" type="text/html" title="HTML" />
-            <link href="https://n4sm.github.io/tags/buffer-overflow/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-14T21:47:39+02:00</updated>
+            <link href="https://nasm.re/tags/buffer-overflow/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://nasm.re/tags/buffer-overflow/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-14T22:28:25+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -16,12 +16,12 @@
                 <email>nasm@pm.me</email>
             </author>
         
-    <id>https://n4sm.github.io/tags/buffer-overflow/</id>
+    <id>https://nasm.re/tags/buffer-overflow/</id>
         
         <entry>
             <title type="html"><![CDATA[[UnionCTF 2021 - pwn] babyrarf]]></title>
-            <link href="https://n4sm.github.io/posts/babyrarf/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>https://n4sm.github.io/posts/babyrarf/</id>
+            <link href="https://nasm.re/posts/babyrarf/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/babyrarf/</id>
             
             <published>2021-02-21T00:00:00+00:00</published>
             <updated>2021-02-21T00:00:00+00:00</updated>
@@ -36,7 +36,7 @@
 <div class="gblog-post__anchorwrap">
     <h2 id="unionctf-babyrarf">
         [UnionCTF] Babyrarf
-        <a data-clipboard-text="https://n4sm.github.io/posts/babyrarf/#unionctf-babyrarf" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor [UnionCTF] Babyrarf" href="#unionctf-babyrarf">
+        <a data-clipboard-text="https://nasm.re/posts/babyrarf/#unionctf-babyrarf" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor [UnionCTF] Babyrarf" href="#unionctf-babyrarf">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -353,17 +353,17 @@ union<span class="o">{</span>baby_rarf_d0o_d00_do0_doo_do0_d0o<span class="o">}<
                         
                             
                              
-                                <category scheme="https://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                                <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
                              
-                                <category scheme="https://n4sm.github.io/tags/unionCTF-2021" term="unionCTF-2021" label="unionCTF 2021" />
+                                <category scheme="https://nasm.re/tags/unionCTF-2021" term="unionCTF-2021" label="unionCTF 2021" />
                              
-                                <category scheme="https://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
                              
-                                <category scheme="https://n4sm.github.io/tags/buffer-overflow" term="buffer-overflow" label="buffer overflow" />
+                                <category scheme="https://nasm.re/tags/buffer-overflow" term="buffer-overflow" label="buffer overflow" />
                              
-                                <category scheme="https://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
                              
-                                <category scheme="https://n4sm.github.io/tags/2021" term="2021" label="2021" />
+                                <category scheme="https://nasm.re/tags/2021" term="2021" label="2021" />
                             
                         
                     

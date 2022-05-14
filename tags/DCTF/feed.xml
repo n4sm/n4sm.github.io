@@ -6,9 +6,9 @@
     
     
     
-            <link href="https://n4sm.github.io/tags/DCTF/" rel="alternate" type="text/html" title="HTML" />
-            <link href="https://n4sm.github.io/tags/DCTF/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-14T21:47:39+02:00</updated>
+            <link href="https://nasm.re/tags/DCTF/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://nasm.re/tags/DCTF/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-14T22:28:25+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -16,12 +16,12 @@
                 <email>nasm@pm.me</email>
             </author>
         
-    <id>https://n4sm.github.io/tags/DCTF/</id>
+    <id>https://nasm.re/tags/DCTF/</id>
         
         <entry>
             <title type="html"><![CDATA[[DCTF 2022 - pwn] phonebook]]></title>
-            <link href="https://n4sm.github.io/posts/phonebook/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>https://n4sm.github.io/posts/phonebook/</id>
+            <link href="https://nasm.re/posts/phonebook/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/phonebook/</id>
             
             <published>2022-04-17T00:00:00+00:00</published>
             <updated>2022-04-17T00:00:00+00:00</updated>
@@ -30,7 +30,7 @@
             <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
     <h2 id="intro">
         Intro
-        <a data-clipboard-text="https://n4sm.github.io/posts/phonebook/#intro" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Intro" href="#intro">
+        <a data-clipboard-text="https://nasm.re/posts/phonebook/#intro" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Intro" href="#intro">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -44,7 +44,7 @@
 <div class="gblog-post__anchorwrap">
     <h2 id="the-bug">
         The bug
-        <a data-clipboard-text="https://n4sm.github.io/posts/phonebook/#the-bug" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor The bug" href="#the-bug">
+        <a data-clipboard-text="https://nasm.re/posts/phonebook/#the-bug" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor The bug" href="#the-bug">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -103,7 +103,7 @@ Choose an option: [1-5]
 <div class="gblog-post__anchorwrap">
     <h2 id="leak-libc">
         Leak libc
-        <a data-clipboard-text="https://n4sm.github.io/posts/phonebook/#leak-libc" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leak libc" href="#leak-libc">
+        <a data-clipboard-text="https://nasm.re/posts/phonebook/#leak-libc" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leak libc" href="#leak-libc">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -151,7 +151,7 @@ Choose an option: [1-5]
 <div class="gblog-post__anchorwrap">
     <h2 id="profit">
         PROFIT
-        <a data-clipboard-text="https://n4sm.github.io/posts/phonebook/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
+        <a data-clipboard-text="https://nasm.re/posts/phonebook/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -191,17 +191,17 @@ DCTF{C4n_1_g3t_y0ur_numb3r?}
                         
                             
                              
-                                <category scheme="https://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                                <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
                              
-                                <category scheme="https://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
+                                <category scheme="https://nasm.re/tags/ret2school" term="ret2school" label="ret2school" />
                              
-                                <category scheme="https://n4sm.github.io/tags/DCTF" term="DCTF" label="DCTF" />
+                                <category scheme="https://nasm.re/tags/DCTF" term="DCTF" label="DCTF" />
                              
-                                <category scheme="https://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
                              
-                                <category scheme="https://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
                              
-                                <category scheme="https://n4sm.github.io/tags/2022" term="2022" label="2022" />
+                                <category scheme="https://nasm.re/tags/2022" term="2022" label="2022" />
                             
                         
                     

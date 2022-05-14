@@ -6,9 +6,9 @@
     
     
     
-            <link href="https://n4sm.github.io/tags/Breizh-CTF/" rel="alternate" type="text/html" title="HTML" />
-            <link href="https://n4sm.github.io/tags/Breizh-CTF/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-14T21:47:39+02:00</updated>
+            <link href="https://nasm.re/tags/Breizh-CTF/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://nasm.re/tags/Breizh-CTF/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-14T22:28:25+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -16,12 +16,12 @@
                 <email>nasm@pm.me</email>
             </author>
         
-    <id>https://n4sm.github.io/tags/Breizh-CTF/</id>
+    <id>https://nasm.re/tags/Breizh-CTF/</id>
         
         <entry>
             <title type="html"><![CDATA[[Breizh CTF 2022 - pwn] Faible Ty Reseau]]></title>
-            <link href="https://n4sm.github.io/posts/ftm/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>https://n4sm.github.io/posts/ftm/</id>
+            <link href="https://nasm.re/posts/ftm/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/ftm/</id>
             
             <published>2022-03-04T00:00:00+00:00</published>
             <updated>2022-03-04T00:00:00+00:00</updated>
@@ -177,17 +177,17 @@ BZHCTF<span class="o">{</span>9024b719d4449bc9827478e50f0279427ccb542cc3ecdec21f
                         
                             
                              
-                                <category scheme="https://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                                <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
                              
-                                <category scheme="https://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
+                                <category scheme="https://nasm.re/tags/ret2school" term="ret2school" label="ret2school" />
                              
-                                <category scheme="https://n4sm.github.io/tags/Breizh-CTF" term="Breizh-CTF" label="Breizh CTF" />
+                                <category scheme="https://nasm.re/tags/Breizh-CTF" term="Breizh-CTF" label="Breizh CTF" />
                              
-                                <category scheme="https://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
                              
-                                <category scheme="https://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
                              
-                                <category scheme="https://n4sm.github.io/tags/2022" term="2022" label="2022" />
+                                <category scheme="https://nasm.re/tags/2022" term="2022" label="2022" />
                             
                         
                     

@@ -6,9 +6,9 @@
     
     
     
-            <link href="https://n4sm.github.io/tags/mipsy/" rel="alternate" type="text/html" title="HTML" />
-            <link href="https://n4sm.github.io/tags/mipsy/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-14T21:47:39+02:00</updated>
+            <link href="https://nasm.re/tags/mipsy/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://nasm.re/tags/mipsy/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-14T22:28:25+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -16,12 +16,12 @@
                 <email>nasm@pm.me</email>
             </author>
         
-    <id>https://n4sm.github.io/tags/mipsy/</id>
+    <id>https://nasm.re/tags/mipsy/</id>
         
         <entry>
             <title type="html"><![CDATA[[FCSC 2021 - pwn] Itsy Mipsy router]]></title>
-            <link href="https://n4sm.github.io/posts/mipsy/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>https://n4sm.github.io/posts/mipsy/</id>
+            <link href="https://nasm.re/posts/mipsy/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/mipsy/</id>
             
             <published>2021-05-03T00:00:00+00:00</published>
             <updated>2021-05-03T00:00:00+00:00</updated>
@@ -30,7 +30,7 @@
             <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
     <h1 id="itsy-mipsy-router-200-pts">
         Itsy Mipsy Router (200 pts)
-        <a data-clipboard-text="https://n4sm.github.io/posts/mipsy/#itsy-mipsy-router-200-pts" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Itsy Mipsy Router (200 pts)" href="#itsy-mipsy-router-200-pts">
+        <a data-clipboard-text="https://nasm.re/posts/mipsy/#itsy-mipsy-router-200-pts" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Itsy Mipsy Router (200 pts)" href="#itsy-mipsy-router-200-pts">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h1>
@@ -45,7 +45,7 @@ It&rsquo;s not a very hard challenge but I found it very interesting because it 
 <div class="gblog-post__anchorwrap">
     <h2 id="setup">
         Setup
-        <a data-clipboard-text="https://n4sm.github.io/posts/mipsy/#setup" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Setup" href="#setup">
+        <a data-clipboard-text="https://nasm.re/posts/mipsy/#setup" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Setup" href="#setup">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -154,7 +154,7 @@ Menu:
 <div class="gblog-post__anchorwrap">
     <h2 id="reverse-engineering">
         Reverse Engineering
-        <a data-clipboard-text="https://n4sm.github.io/posts/mipsy/#reverse-engineering" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Reverse Engineering" href="#reverse-engineering">
+        <a data-clipboard-text="https://nasm.re/posts/mipsy/#reverse-engineering" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Reverse Engineering" href="#reverse-engineering">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -374,7 +374,7 @@ And the result of this encryption routine is compared to a constant value with <
 <div class="gblog-post__anchorwrap">
     <h2 id="exploitation">
         Exploitation
-        <a data-clipboard-text="https://n4sm.github.io/posts/mipsy/#exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Exploitation" href="#exploitation">
+        <a data-clipboard-text="https://nasm.re/posts/mipsy/#exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Exploitation" href="#exploitation">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -409,7 +409,7 @@ But since we&rsquo;re able to jmp everywhere, we have to figure out what kind of
 <div class="gblog-post__anchorwrap">
     <h4 id="one-gadget-">
         One gadget ?
-        <a data-clipboard-text="https://n4sm.github.io/posts/mipsy/#one-gadget-" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor One gadget ?" href="#one-gadget-">
+        <a data-clipboard-text="https://nasm.re/posts/mipsy/#one-gadget-" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor One gadget ?" href="#one-gadget-">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h4>
@@ -604,7 +604,7 @@ But since we&rsquo;re able to jmp everywhere, we have to figure out what kind of
 <div class="gblog-post__anchorwrap">
     <h4 id="ropchain">
         ROPchain
-        <a data-clipboard-text="https://n4sm.github.io/posts/mipsy/#ropchain" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain">
+        <a data-clipboard-text="https://nasm.re/posts/mipsy/#ropchain" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h4>
@@ -692,7 +692,7 @@ The code looks like such:</p>
 <div class="gblog-post__anchorwrap">
     <h2 id="put-all-together">
         Put all together
-        <a data-clipboard-text="https://n4sm.github.io/posts/mipsy/#put-all-together" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Put all together" href="#put-all-together">
+        <a data-clipboard-text="https://nasm.re/posts/mipsy/#put-all-together" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Put all together" href="#put-all-together">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -780,7 +780,7 @@ So we have to add to our payload:</p>
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="final-part">
         Final part
-        <a data-clipboard-text="https://n4sm.github.io/posts/mipsy/#final-part" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final part" href="#final-part">
+        <a data-clipboard-text="https://nasm.re/posts/mipsy/#final-part" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final part" href="#final-part">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -838,23 +838,23 @@ This challenge was very cool because it&rsquo;s a &ldquo;real world&rdquo; scena
                         
                             
                              
-                                <category scheme="https://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                                <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
                              
-                                <category scheme="https://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
+                                <category scheme="https://nasm.re/tags/ret2school" term="ret2school" label="ret2school" />
                              
-                                <category scheme="https://n4sm.github.io/tags/FCSC" term="FCSC" label="FCSC" />
+                                <category scheme="https://nasm.re/tags/FCSC" term="FCSC" label="FCSC" />
                              
-                                <category scheme="https://n4sm.github.io/tags/mipsy" term="mipsy" label="mipsy" />
+                                <category scheme="https://nasm.re/tags/mipsy" term="mipsy" label="mipsy" />
                              
-                                <category scheme="https://n4sm.github.io/tags/n4sm" term="n4sm" label="n4sm" />
+                                <category scheme="https://nasm.re/tags/n4sm" term="n4sm" label="n4sm" />
                              
-                                <category scheme="https://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
                              
-                                <category scheme="https://n4sm.github.io/tags/2021" term="2021" label="2021" />
+                                <category scheme="https://nasm.re/tags/2021" term="2021" label="2021" />
                              
-                                <category scheme="https://n4sm.github.io/tags/mips" term="mips" label="mips" />
+                                <category scheme="https://nasm.re/tags/mips" term="mips" label="mips" />
                              
-                                <category scheme="https://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
                             
                         
                     
