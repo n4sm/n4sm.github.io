@@ -6,9 +6,9 @@
     
     
     
-            <link href="http://n4sm.github.io/tags/hack.lu/" rel="alternate" type="text/html" title="HTML" />
-            <link href="http://n4sm.github.io/tags/hack.lu/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-13T00:04:19+02:00</updated>
+            <link href="https://n4sm.github.io/tags/hack.lu/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://n4sm.github.io/tags/hack.lu/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-14T21:47:39+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -16,12 +16,12 @@
                 <email>nasm@pm.me</email>
             </author>
         
-    <id>http://n4sm.github.io/tags/hack.lu/</id>
+    <id>https://n4sm.github.io/tags/hack.lu/</id>
         
         <entry>
             <title type="html"><![CDATA[[Hack.lu 2021 - pwn] Cloudinspect]]></title>
-            <link href="http://n4sm.github.io/posts/cloudinspect/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>http://n4sm.github.io/posts/cloudinspect/</id>
+            <link href="https://n4sm.github.io/posts/cloudinspect/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://n4sm.github.io/posts/cloudinspect/</id>
             
             <published>2021-11-07T00:00:00+00:00</published>
             <updated>2021-11-07T00:00:00+00:00</updated>
@@ -30,7 +30,7 @@
             <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
     <h1 id="cloudinspect">
         CloudInspect
-        <a data-clipboard-text="http://n4sm.github.io/posts/cloudinspect/#cloudinspect" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor CloudInspect" href="#cloudinspect">
+        <a data-clipboard-text="https://n4sm.github.io/posts/cloudinspect/#cloudinspect" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor CloudInspect" href="#cloudinspect">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h1>
@@ -55,7 +55,7 @@ The <code>flag</code> is located right next to the hypervisor. Go get it!</p>
 <div class="gblog-post__anchorwrap">
     <h2 id="vulnerable-pci-device">
         Vulnerable PCI device
-        <a data-clipboard-text="http://n4sm.github.io/posts/cloudinspect/#vulnerable-pci-device" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Vulnerable PCI device" href="#vulnerable-pci-device">
+        <a data-clipboard-text="https://n4sm.github.io/posts/cloudinspect/#vulnerable-pci-device" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Vulnerable PCI device" href="#vulnerable-pci-device">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -325,7 +325,7 @@ Field 4 : 1337    : device ID
 <div class="gblog-post__anchorwrap">
     <h2 id="device-interactions">
         Device interactions
-        <a data-clipboard-text="http://n4sm.github.io/posts/cloudinspect/#device-interactions" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Device interactions" href="#device-interactions">
+        <a data-clipboard-text="https://n4sm.github.io/posts/cloudinspect/#device-interactions" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Device interactions" href="#device-interactions">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -438,7 +438,7 @@ Field 4 : 1337    : device ID
 <div class="gblog-post__anchorwrap">
     <h2 id="exploitation">
         Exploitation
-        <a data-clipboard-text="http://n4sm.github.io/posts/cloudinspect/#exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Exploitation" href="#exploitation">
+        <a data-clipboard-text="https://n4sm.github.io/posts/cloudinspect/#exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Exploitation" href="#exploitation">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -466,7 +466,7 @@ Field 4 : 1337    : device ID
 <div class="gblog-post__anchorwrap">
     <h3 id="leak-some-memory-areas">
         Leak some memory areas
-        <a data-clipboard-text="http://n4sm.github.io/posts/cloudinspect/#leak-some-memory-areas" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leak some memory areas" href="#leak-some-memory-areas">
+        <a data-clipboard-text="https://n4sm.github.io/posts/cloudinspect/#leak-some-memory-areas" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leak some memory areas" href="#leak-some-memory-areas">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h3>
@@ -539,7 +539,7 @@ pwndbg&gt; search -4 0x7fc60400 -w
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h3 id="write-the-shellcode">
         Write the shellcode
-        <a data-clipboard-text="http://n4sm.github.io/posts/cloudinspect/#write-the-shellcode" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Write the shellcode" href="#write-the-shellcode">
+        <a data-clipboard-text="https://n4sm.github.io/posts/cloudinspect/#write-the-shellcode" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Write the shellcode" href="#write-the-shellcode">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h3>
@@ -577,7 +577,7 @@ ret <span class="p">;</span> <span class="k">return</span> to <span class="k">co
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h3 id="craft-fake-memoryregionops-structure">
         Craft fake MemoryRegionOps structure
-        <a data-clipboard-text="http://n4sm.github.io/posts/cloudinspect/#craft-fake-memoryregionops-structure" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Craft fake MemoryRegionOps structure" href="#craft-fake-memoryregionops-structure">
+        <a data-clipboard-text="https://n4sm.github.io/posts/cloudinspect/#craft-fake-memoryregionops-structure" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Craft fake MemoryRegionOps structure" href="#craft-fake-memoryregionops-structure">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h3>
@@ -611,7 +611,7 @@ ret <span class="p">;</span> <span class="k">return</span> to <span class="k">co
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h3 id="hook-mmioops--profit">
         Hook mmio.ops + PROFIT
-        <a data-clipboard-text="http://n4sm.github.io/posts/cloudinspect/#hook-mmioops--profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Hook mmio.ops &#43; PROFIT" href="#hook-mmioops--profit">
+        <a data-clipboard-text="https://n4sm.github.io/posts/cloudinspect/#hook-mmioops--profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Hook mmio.ops &#43; PROFIT" href="#hook-mmioops--profit">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h3>
@@ -664,7 +664,7 @@ You can the final exploit <a
 <div class="gblog-post__anchorwrap">
     <h2 id="resources">
         Resources
-        <a data-clipboard-text="http://n4sm.github.io/posts/cloudinspect/#resources" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Resources" href="#resources">
+        <a data-clipboard-text="https://n4sm.github.io/posts/cloudinspect/#resources" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Resources" href="#resources">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -699,27 +699,27 @@ You can the final exploit <a
                         
                             
                              
-                                <category scheme="http://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                                <category scheme="https://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
                              
-                                <category scheme="http://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
+                                <category scheme="https://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
                              
-                                <category scheme="http://n4sm.github.io/tags/hack.lu" term="hack.lu" label="hack.lu" />
+                                <category scheme="https://n4sm.github.io/tags/hack.lu" term="hack.lu" label="hack.lu" />
                              
-                                <category scheme="http://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
                              
-                                <category scheme="http://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                                <category scheme="https://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
                              
-                                <category scheme="http://n4sm.github.io/tags/heap" term="heap" label="heap" />
+                                <category scheme="https://n4sm.github.io/tags/heap" term="heap" label="heap" />
                              
-                                <category scheme="http://n4sm.github.io/tags/arbitrary-read" term="arbitrary-read" label="arbitrary read" />
+                                <category scheme="https://n4sm.github.io/tags/arbitrary-read" term="arbitrary-read" label="arbitrary read" />
                              
-                                <category scheme="http://n4sm.github.io/tags/arbitrary-write" term="arbitrary-write" label="arbitrary write" />
+                                <category scheme="https://n4sm.github.io/tags/arbitrary-write" term="arbitrary-write" label="arbitrary write" />
                              
-                                <category scheme="http://n4sm.github.io/tags/hypervisor" term="hypervisor" label="hypervisor" />
+                                <category scheme="https://n4sm.github.io/tags/hypervisor" term="hypervisor" label="hypervisor" />
                              
-                                <category scheme="http://n4sm.github.io/tags/qemu" term="qemu" label="qemu" />
+                                <category scheme="https://n4sm.github.io/tags/qemu" term="qemu" label="qemu" />
                              
-                                <category scheme="http://n4sm.github.io/tags/2021" term="2021" label="2021" />
+                                <category scheme="https://n4sm.github.io/tags/2021" term="2021" label="2021" />
                             
                         
                     

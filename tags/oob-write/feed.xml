@@ -6,9 +6,9 @@
     
     
     
-            <link href="http://n4sm.github.io/tags/oob-write/" rel="alternate" type="text/html" title="HTML" />
-            <link href="http://n4sm.github.io/tags/oob-write/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-13T00:04:19+02:00</updated>
+            <link href="https://n4sm.github.io/tags/oob-write/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://n4sm.github.io/tags/oob-write/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-14T21:47:39+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -16,12 +16,12 @@
                 <email>nasm@pm.me</email>
             </author>
         
-    <id>http://n4sm.github.io/tags/oob-write/</id>
+    <id>https://n4sm.github.io/tags/oob-write/</id>
         
         <entry>
             <title type="html"><![CDATA[[ASIS CTF QUALS 2021 - pwn] abbr & justpwnit]]></title>
-            <link href="http://n4sm.github.io/posts/pwnasis/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>http://n4sm.github.io/posts/pwnasis/</id>
+            <link href="https://n4sm.github.io/posts/pwnasis/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://n4sm.github.io/posts/pwnasis/</id>
             
             <published>2021-10-24T00:00:00+00:00</published>
             <updated>2021-10-24T00:00:00+00:00</updated>
@@ -37,7 +37,7 @@ You can find the related files <a
 <div class="gblog-post__anchorwrap">
     <h1 id="justpwnit">
         justpwnit
-        <a data-clipboard-text="http://n4sm.github.io/posts/pwnasis/#justpwnit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor justpwnit" href="#justpwnit">
+        <a data-clipboard-text="https://n4sm.github.io/posts/pwnasis/#justpwnit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor justpwnit" href="#justpwnit">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h1>
@@ -122,7 +122,7 @@ Furthermore, <code>index</code> is a signed integer, which means we can input a 
 <div class="gblog-post__anchorwrap">
     <h2 id="ropchain">
         ROPchain
-        <a data-clipboard-text="http://n4sm.github.io/posts/pwnasis/#ropchain" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain">
+        <a data-clipboard-text="https://n4sm.github.io/posts/pwnasis/#ropchain" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -189,7 +189,7 @@ ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
 </code></pre><div class="gblog-post__anchorwrap">
     <h2 id="full-exploit">
         Full exploit
-        <a data-clipboard-text="http://n4sm.github.io/posts/pwnasis/#full-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Full exploit" href="#full-exploit">
+        <a data-clipboard-text="https://n4sm.github.io/posts/pwnasis/#full-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Full exploit" href="#full-exploit">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -280,7 +280,7 @@ ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h1 id="abbr">
         abbr
-        <a data-clipboard-text="http://n4sm.github.io/posts/pwnasis/#abbr" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor abbr" href="#abbr">
+        <a data-clipboard-text="https://n4sm.github.io/posts/pwnasis/#abbr" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor abbr" href="#abbr">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h1>
@@ -447,7 +447,7 @@ So we send <code>b&quot;wwwwww&quot; + b&quot;A&quot;*(0x1000-16) + pwn.p64(gadg
 <div class="gblog-post__anchorwrap">
     <h2 id="ropchain-1">
         ROPchain
-        <a data-clipboard-text="http://n4sm.github.io/posts/pwnasis/#ropchain-1" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain-1">
+        <a data-clipboard-text="https://n4sm.github.io/posts/pwnasis/#ropchain-1" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain-1">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -531,7 +531,7 @@ ASIS<span class="o">{</span>d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n<span class="o
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="final-exploit">
         Final exploit
-        <a data-clipboard-text="http://n4sm.github.io/posts/pwnasis/#final-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final exploit" href="#final-exploit">
+        <a data-clipboard-text="https://n4sm.github.io/posts/pwnasis/#final-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final exploit" href="#final-exploit">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -639,21 +639,21 @@ ASIS<span class="o">{</span>d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n<span class="o
                         
                             
                              
-                                <category scheme="http://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                                <category scheme="https://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
                              
-                                <category scheme="http://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
+                                <category scheme="https://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
                              
-                                <category scheme="http://n4sm.github.io/tags/ASIS-CTF" term="ASIS-CTF" label="ASIS CTF" />
+                                <category scheme="https://n4sm.github.io/tags/ASIS-CTF" term="ASIS-CTF" label="ASIS CTF" />
                              
-                                <category scheme="http://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
                              
-                                <category scheme="http://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                                <category scheme="https://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
                              
-                                <category scheme="http://n4sm.github.io/tags/heap" term="heap" label="heap" />
+                                <category scheme="https://n4sm.github.io/tags/heap" term="heap" label="heap" />
                              
-                                <category scheme="http://n4sm.github.io/tags/oob-write" term="oob-write" label="oob write" />
+                                <category scheme="https://n4sm.github.io/tags/oob-write" term="oob-write" label="oob write" />
                              
-                                <category scheme="http://n4sm.github.io/tags/2021" term="2021" label="2021" />
+                                <category scheme="https://n4sm.github.io/tags/2021" term="2021" label="2021" />
                             
                         
                     

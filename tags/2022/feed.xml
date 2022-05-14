@@ -6,9 +6,9 @@
     
     
     
-            <link href="http://n4sm.github.io/tags/2022/" rel="alternate" type="text/html" title="HTML" />
-            <link href="http://n4sm.github.io/tags/2022/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-13T00:04:19+02:00</updated>
+            <link href="https://n4sm.github.io/tags/2022/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://n4sm.github.io/tags/2022/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-14T21:47:39+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -16,12 +16,12 @@
                 <email>nasm@pm.me</email>
             </author>
         
-    <id>http://n4sm.github.io/tags/2022/</id>
+    <id>https://n4sm.github.io/tags/2022/</id>
         
         <entry>
             <title type="html"><![CDATA[[pwnable.tw - pwn] Bookwriter]]></title>
-            <link href="http://n4sm.github.io/posts/bookwriter/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>http://n4sm.github.io/posts/bookwriter/</id>
+            <link href="https://n4sm.github.io/posts/bookwriter/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://n4sm.github.io/posts/bookwriter/</id>
             
             <published>2022-05-12T00:00:00+00:00</published>
             <updated>2022-05-12T00:00:00+00:00</updated>
@@ -47,7 +47,7 @@
 <div class="gblog-post__anchorwrap">
     <h2 id="what-we-can-do">
         What we can do
-        <a data-clipboard-text="http://n4sm.github.io/posts/bookwriter/#what-we-can-do" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What we can do" href="#what-we-can-do">
+        <a data-clipboard-text="https://n4sm.github.io/posts/bookwriter/#what-we-can-do" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What we can do" href="#what-we-can-do">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -60,7 +60,7 @@
 <div class="gblog-post__anchorwrap">
     <h2 id="top-chunk-freein">
         Top chunk free&rsquo;in
-        <a data-clipboard-text="http://n4sm.github.io/posts/bookwriter/#top-chunk-freein" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Top chunk free&rsquo;in" href="#top-chunk-freein">
+        <a data-clipboard-text="https://n4sm.github.io/posts/bookwriter/#top-chunk-freein" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Top chunk free&rsquo;in" href="#top-chunk-freein">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -162,7 +162,7 @@ libc: 0x7f301566d000
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h1 id="file-stream-exploitation">
         File stream exploitation
-        <a data-clipboard-text="http://n4sm.github.io/posts/bookwriter/#file-stream-exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor File stream exploitation" href="#file-stream-exploitation">
+        <a data-clipboard-text="https://n4sm.github.io/posts/bookwriter/#file-stream-exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor File stream exploitation" href="#file-stream-exploitation">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h1>
@@ -564,7 +564,7 @@ What we wanna reach would be the <code>_IO_OVERFLOW (fp, EOF) == EOF</code> chec
 <div class="gblog-post__anchorwrap">
     <h2 id="unsortedbin-attack">
         unsortedbin attack
-        <a data-clipboard-text="http://n4sm.github.io/posts/bookwriter/#unsortedbin-attack" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor unsortedbin attack" href="#unsortedbin-attack">
+        <a data-clipboard-text="https://n4sm.github.io/posts/bookwriter/#unsortedbin-attack" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor unsortedbin attack" href="#unsortedbin-attack">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -574,7 +574,7 @@ What we wanna reach would be the <code>_IO_OVERFLOW (fp, EOF) == EOF</code> chec
 <div class="gblog-post__anchorwrap">
     <h2 id="put-everything-together">
         Put everything together
-        <a data-clipboard-text="http://n4sm.github.io/posts/bookwriter/#put-everything-together" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Put everything together" href="#put-everything-together">
+        <a data-clipboard-text="https://n4sm.github.io/posts/bookwriter/#put-everything-together" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Put everything together" href="#put-everything-together">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -606,7 +606,7 @@ What we wanna reach would be the <code>_IO_OVERFLOW (fp, EOF) == EOF</code> chec
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="profit">
         PROFIT
-        <a data-clipboard-text="http://n4sm.github.io/posts/bookwriter/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
+        <a data-clipboard-text="https://n4sm.github.io/posts/bookwriter/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -631,7 +631,7 @@ $ id
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="annexes">
         Annexes
-        <a data-clipboard-text="http://n4sm.github.io/posts/bookwriter/#annexes" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Annexes" href="#annexes">
+        <a data-clipboard-text="https://n4sm.github.io/posts/bookwriter/#annexes" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Annexes" href="#annexes">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -806,15 +806,15 @@ $ id
                         
                             
                              
-                                <category scheme="http://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                                <category scheme="https://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
                              
-                                <category scheme="http://n4sm.github.io/tags/pwnable" term="pwnable" label="pwnable" />
+                                <category scheme="https://n4sm.github.io/tags/pwnable" term="pwnable" label="pwnable" />
                              
-                                <category scheme="http://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
                              
-                                <category scheme="http://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                                <category scheme="https://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
                              
-                                <category scheme="http://n4sm.github.io/tags/2022" term="2022" label="2022" />
+                                <category scheme="https://n4sm.github.io/tags/2022" term="2022" label="2022" />
                             
                         
                     
@@ -825,8 +825,8 @@ $ id
         
         <entry>
             <title type="html"><![CDATA[[DCTF 2022 - pwn] phonebook]]></title>
-            <link href="http://n4sm.github.io/posts/phonebook/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>http://n4sm.github.io/posts/phonebook/</id>
+            <link href="https://n4sm.github.io/posts/phonebook/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://n4sm.github.io/posts/phonebook/</id>
             
             <published>2022-04-17T00:00:00+00:00</published>
             <updated>2022-04-17T00:00:00+00:00</updated>
@@ -835,7 +835,7 @@ $ id
             <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
     <h2 id="intro">
         Intro
-        <a data-clipboard-text="http://n4sm.github.io/posts/phonebook/#intro" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Intro" href="#intro">
+        <a data-clipboard-text="https://n4sm.github.io/posts/phonebook/#intro" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Intro" href="#intro">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -849,7 +849,7 @@ $ id
 <div class="gblog-post__anchorwrap">
     <h2 id="the-bug">
         The bug
-        <a data-clipboard-text="http://n4sm.github.io/posts/phonebook/#the-bug" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor The bug" href="#the-bug">
+        <a data-clipboard-text="https://n4sm.github.io/posts/phonebook/#the-bug" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor The bug" href="#the-bug">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -908,7 +908,7 @@ Choose an option: [1-5]
 <div class="gblog-post__anchorwrap">
     <h2 id="leak-libc">
         Leak libc
-        <a data-clipboard-text="http://n4sm.github.io/posts/phonebook/#leak-libc" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leak libc" href="#leak-libc">
+        <a data-clipboard-text="https://n4sm.github.io/posts/phonebook/#leak-libc" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leak libc" href="#leak-libc">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -956,7 +956,7 @@ Choose an option: [1-5]
 <div class="gblog-post__anchorwrap">
     <h2 id="profit">
         PROFIT
-        <a data-clipboard-text="http://n4sm.github.io/posts/phonebook/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
+        <a data-clipboard-text="https://n4sm.github.io/posts/phonebook/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -996,17 +996,17 @@ DCTF{C4n_1_g3t_y0ur_numb3r?}
                         
                             
                              
-                                <category scheme="http://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                                <category scheme="https://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
                              
-                                <category scheme="http://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
+                                <category scheme="https://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
                              
-                                <category scheme="http://n4sm.github.io/tags/DCTF" term="DCTF" label="DCTF" />
+                                <category scheme="https://n4sm.github.io/tags/DCTF" term="DCTF" label="DCTF" />
                              
-                                <category scheme="http://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
                              
-                                <category scheme="http://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                                <category scheme="https://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
                              
-                                <category scheme="http://n4sm.github.io/tags/2022" term="2022" label="2022" />
+                                <category scheme="https://n4sm.github.io/tags/2022" term="2022" label="2022" />
                             
                         
                     
@@ -1017,8 +1017,8 @@ DCTF{C4n_1_g3t_y0ur_numb3r?}
         
         <entry>
             <title type="html"><![CDATA[[Breizh CTF 2022 - pwn] Faible Ty Reseau]]></title>
-            <link href="http://n4sm.github.io/posts/ftm/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>http://n4sm.github.io/posts/ftm/</id>
+            <link href="https://n4sm.github.io/posts/ftm/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://n4sm.github.io/posts/ftm/</id>
             
             <published>2022-03-04T00:00:00+00:00</published>
             <updated>2022-03-04T00:00:00+00:00</updated>
@@ -1174,17 +1174,17 @@ BZHCTF<span class="o">{</span>9024b719d4449bc9827478e50f0279427ccb542cc3ecdec21f
                         
                             
                              
-                                <category scheme="http://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
+                                <category scheme="https://n4sm.github.io/tags/ctf" term="ctf" label="ctf" />
                              
-                                <category scheme="http://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
+                                <category scheme="https://n4sm.github.io/tags/ret2school" term="ret2school" label="ret2school" />
                              
-                                <category scheme="http://n4sm.github.io/tags/Breizh-CTF" term="Breizh-CTF" label="Breizh CTF" />
+                                <category scheme="https://n4sm.github.io/tags/Breizh-CTF" term="Breizh-CTF" label="Breizh CTF" />
                              
-                                <category scheme="http://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://n4sm.github.io/tags/nasm" term="nasm" label="nasm" />
                              
-                                <category scheme="http://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
+                                <category scheme="https://n4sm.github.io/tags/pwn" term="pwn" label="pwn" />
                              
-                                <category scheme="http://n4sm.github.io/tags/2022" term="2022" label="2022" />
+                                <category scheme="https://n4sm.github.io/tags/2022" term="2022" label="2022" />
                             
                         
                     

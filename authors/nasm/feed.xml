@@ -6,9 +6,9 @@
     
     
     
-            <link href="http://n4sm.github.io/authors/nasm/" rel="alternate" type="text/html" title="HTML" />
-            <link href="http://n4sm.github.io/authors/nasm/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-13T00:04:19+02:00</updated>
+            <link href="https://n4sm.github.io/authors/nasm/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://n4sm.github.io/authors/nasm/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-14T21:47:39+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -16,12 +16,12 @@
                 <email>nasm@pm.me</email>
             </author>
         
-    <id>http://n4sm.github.io/authors/nasm/</id>
+    <id>https://n4sm.github.io/authors/nasm/</id>
         
         <entry>
             <title type="html"><![CDATA[About]]></title>
-            <link href="http://n4sm.github.io/posts/about/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>http://n4sm.github.io/posts/about/</id>
+            <link href="https://n4sm.github.io/posts/about/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://n4sm.github.io/posts/about/</id>
             
                     <author>
                         <name>nasm</name>
@@ -62,7 +62,7 @@ Here are some ideas to get you started:
                         
                             
                              
-                                <category scheme="http://n4sm.github.io/authors/nasm" term="nasm" label="nasm" />
+                                <category scheme="https://n4sm.github.io/authors/nasm" term="nasm" label="nasm" />
                             
                         
                     
