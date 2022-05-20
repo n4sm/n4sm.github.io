@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/ctf/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/ctf/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-20T02:20:23+02:00</updated>
+    <updated>2022-05-20T02:38:21+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -19,7 +19,7 @@
     <id>https://nasm.re/tags/ctf/</id>
         
         <entry>
-            <title type="html"><![CDATA[[HackTheBox Cyber Apocalypse 2022 - pwn] Once for all]]></title>
+            <title type="html"><![CDATA[[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all]]></title>
             <link href="https://nasm.re/posts/onceforall/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/onceforall/</id>
             
@@ -27,7 +27,18 @@
             <updated>2022-05-19T00:00:00+00:00</updated>
             
             
-            <content type="html"><![CDATA[<p>Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.</p>
+            <content type="html"><![CDATA[<p>Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.
+Find the tasks and the final exploit <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/"
+  
+  >here</a
+> and <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/exploit.py"
+  
+  >here</a
+>.</p>
 <div class="gblog-post__anchorwrap">
     <h1 id="reverse-engineering">
         Reverse engineering
@@ -813,7 +824,18 @@ glibc
 once_and_for_all
 $ cat flag.txt
 HTB{m4y_th3_f0rc3_b3_w1th_B0Nn13!}
-</code></pre>]]></content>
+</code></pre><p>Find the tasks and the final exploit <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/"
+  
+  >here</a
+> and <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/exploit.py"
+  
+  >here</a
+>.</p>
+]]></content>
             
                  
                     

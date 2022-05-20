@@ -14,7 +14,7 @@
 
 
 
-  <meta name="description" content="Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.
+  <meta name="description" content="Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.
 Reverse engineering     All the snippets of pseudo-code are issued by IDA freeware:
 int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [rsp&#43;18h] [rbp-8h] BYREF  int i; // [rsp&#43;1Ch] [rbp-4h]  for ( i = 0; i &lt;= 49; &#43;&#43;i ) { puts(s); printf(&amp;unk_1310); __isoc99_scanf(&amp;unk_13C8, &amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(&#34;[-] Invalid choice!" />
 
@@ -37,7 +37,7 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
 
     <title>
       
-        [HackTheBox Cyber Apocalypse 2022 - pwn] Once for all | 
+        [HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all | 
       repr
     </title>
 
@@ -63,12 +63,12 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
 
     
 
-    <meta property="og:title" content="[HackTheBox Cyber Apocalypse 2022 - pwn] Once for all" />
+    <meta property="og:title" content="[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all" />
 <meta
   property="og:description"
   content="
     
-      Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.
+      Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.
 Reverse engineering     All the snippets of pseudo-code are issued by IDA freeware:
 int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [rsp&#43;18h] [rbp-8h] BYREF  int i; // [rsp&#43;1Ch] [rbp-4h]  for ( i = 0; i &lt;= 49; &#43;&#43;i ) { puts(s); printf(&amp;unk_1310); __isoc99_scanf(&amp;unk_13C8, &amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(&#34;[-] Invalid choice!
     
@@ -94,12 +94,12 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
 <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:image" content="https://nasm.re/risa.png" />
     
-<meta name="twitter:title" content="[HackTheBox Cyber Apocalypse 2022 - pwn] Once for all" />
+<meta name="twitter:title" content="[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all" />
 <meta
   name="twitter:description"
   content="
     
-      Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.
+      Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.
 Reverse engineering     All the snippets of pseudo-code are issued by IDA freeware:
 int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [rsp&#43;18h] [rbp-8h] BYREF  int i; // [rsp&#43;1Ch] [rbp-4h]  for ( i = 0; i &lt;= 49; &#43;&#43;i ) { puts(s); printf(&amp;unk_1310); __isoc99_scanf(&amp;unk_13C8, &amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(&#34;[-] Invalid choice!
     
@@ -191,10 +191,10 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
     "@context": "http://schema.org",
     "@type": "BlogPosting",
     "articleSection": "posts",
-    "name": "[HackTheBox Cyber Apocalypse 2022 - pwn] Once for all",
-    "headline": "[HackTheBox Cyber Apocalypse 2022 - pwn] Once for all",
+    "name": "[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all",
+    "headline": "[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all",
     "alternativeHeadline": "",
-    "description": "Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.\nReverse engineering     All the snippets of pseudo-code are issued by IDA freeware:\nint __cdecl main(int argc, const char **argv, const char **envp) { int v4; \/\/ [rsp\u002b18h] [rbp-8h] BYREF  int i; \/\/ [rsp\u002b1Ch] [rbp-4h]  for ( i = 0; i \u0026lt;= 49; \u002b\u002bi ) { puts(s); printf(\u0026amp;unk_1310); __isoc99_scanf(\u0026amp;unk_13C8, \u0026amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(\u0026#34;[-] Invalid choice!",
+    "description": "Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.\nReverse engineering     All the snippets of pseudo-code are issued by IDA freeware:\nint __cdecl main(int argc, const char **argv, const char **envp) { int v4; \/\/ [rsp\u002b18h] [rbp-8h] BYREF  int i; \/\/ [rsp\u002b1Ch] [rbp-4h]  for ( i = 0; i \u0026lt;= 49; \u002b\u002bi ) { puts(s); printf(\u0026amp;unk_1310); __isoc99_scanf(\u0026amp;unk_13C8, \u0026amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(\u0026#34;[-] Invalid choice!",
     "inLanguage": "en",
     "isFamilyFriendly": "true",
     "mainEntityOfPage": {
@@ -224,7 +224,7 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/onceforall\/",
-    "wordCount" : "3297",
+    "wordCount" : "3315",
     "genre" : [ "ctf" , "HackTheBox" ]
 }
 </script>
@@ -365,7 +365,7 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
       
 
 
-      <h1 class="gblog-post__title">[HackTheBox Cyber Apocalypse 2022 - pwn] Once for all</h1>
+      <h1 class="gblog-post__title">[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all</h1>
 
       
         <div class="flex flex-wrap align-center gblog-post__meta gblog-post__meta--head">
@@ -441,7 +441,18 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
       
     </header>
     <section class="gblog-markdown">
-      <p>Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.</p>
+      <p>Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.
+Find the tasks and the final exploit <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/"
+  
+  >here</a
+> and <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/exploit.py"
+  
+  >here</a
+>.</p>
 <div class="gblog-post__anchorwrap">
     <h1 id="reverse-engineering">
         Reverse engineering
@@ -1227,7 +1238,18 @@ glibc
 once_and_for_all
 $ cat flag.txt
 HTB{m4y_th3_f0rc3_b3_w1th_B0Nn13!}
-</code></pre>
+</code></pre><p>Find the tasks and the final exploit <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/"
+  
+  >here</a
+> and <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/exploit.py"
+  
+  >here</a
+>.</p>
+
     </section>
   </article>
 

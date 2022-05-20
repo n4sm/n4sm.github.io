@@ -302,12 +302,12 @@
     <article class="gblog-post">
       <header class="gblog-post__header">
         <h1 class="gblog-post__title">
-          <a href="/posts/onceforall/">[HackTheBox Cyber Apocalypse 2022 - pwn] Once for all</a>
+          <a href="/posts/onceforall/">[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all</a>
         </h1>
       </header>
 
       <section class="gblog-markdown">
-        Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.
+        Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.
 Reverse engineering     All the snippets of pseudo-code are issued by IDA freeware:
 int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [rsp+18h] [rbp-8h] BYREF  int i; // [rsp+1Ch] [rbp-4h]  for ( i = 0; i &lt;= 49; ++i ) { puts(s); printf(&amp;unk_1310); __isoc99_scanf(&amp;unk_13C8, &amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(&#34;[-] Invalid choice!
       </section>
