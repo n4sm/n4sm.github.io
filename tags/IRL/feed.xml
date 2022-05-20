@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[IRL on repr]]></title>
+    
+        <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
+    
+    
+    
+            <link href="https://nasm.re/tags/IRL/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://nasm.re/tags/IRL/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2022-05-20T02:20:23+02:00</updated>
+    
+        <author>
+            <name>nasm</name>
+            
+                <email>nasm@pm.me</email>
+            </author>
+        
+    <id>https://nasm.re/tags/IRL/</id>
+        
+        <entry>
+            <title type="html"><![CDATA[[TRACS 2021 - RE] Coffre]]></title>
+            <link href="https://nasm.re/posts/safe/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/safe/</id>
+            
+            <published>2021-12-05T00:00:00+00:00</published>
+            <updated>2021-12-05T00:00:00+00:00</updated>
+            
+            
+            <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
+    <h2 id="intro">
+        Intro
+        <a data-clipboard-text="https://nasm.re/posts/safe/#intro" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Intro" href="#intro">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<blockquote>
+<p>Epreuve 12-3 – Coffre
+En tant que stagiaire vous avez accès aux locaux de la NSB. Vous allez collecter des informations dans les locaux. Un coffre est présent dans les locaux en salle rideau. Il appartient à Richard Cresus de la Tune. Essayez d’ouvrir ce coffre. Quel est l’IBAN contenu dans le coffre ? Format de la réponse : IBAN sans séparateur.</p>
+</blockquote>
+<p>Basically, we have to crack open an electronic safe. It&rsquo;s locked with an electromagnet and requires a pin to open, moreover it prints an id right before asking for the pin. We previously were given a link to the download page one of the safe&rsquo;s software update (<code>http://safe-locks.tracs.viarezo.fr/download</code>).</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="reversing-the-custom-libcryptoso-library">
+        Reversing the custom libcrypto.so library
+        <a data-clipboard-text="https://nasm.re/posts/safe/#reversing-the-custom-libcryptoso-library" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Reversing the custom libcrypto.so library" href="#reversing-the-custom-libcryptoso-library">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>The software update comes in the from of a <code>.maj</code> archive that we extracted to get two <code>libcrypto.so</code> libraries (one for x86, the other one for arm64 v7). We checked if the files were equivalent by looking at their code structure, and we finally choose to reverse the x86 library (even though the safe probably used the arm one) because it was easier.</p>
+<p>Firstly, we looked at how the pin was checked, more specifically at the <code>libsafe_test_passcode</code> in IDA:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="n">_BOOL8</span> <span class="kr">__fastcall</span> <span class="nf">libsafe_test_passcode</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">a1</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">v2</span><span class="p">;</span> <span class="c1">// eax
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span> <span class="c1">// [rsp+1Ch] [rbp-64h]
+</span><span class="c1"></span>  <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">36</span><span class="p">];</span> <span class="c1">// [rsp+20h] [rbp-60h] BYREF
+</span><span class="c1"></span>  <span class="kt">char</span> <span class="n">s1</span><span class="p">[</span><span class="mi">40</span><span class="p">];</span> <span class="c1">// [rsp+50h] [rbp-30h] BYREF
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v6</span><span class="p">;</span> <span class="c1">// [rsp+78h] [rbp-8h]
+</span><span class="c1"></span>
+  <span class="n">v6</span> <span class="o">=</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+  <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">&#34;.safe_db&#34;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">fd</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0LL</span><span class="p">;</span>
+  <span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="mh">0x24uLL</span><span class="p">);</span>
+  <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+  <span class="n">v2</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">a1</span><span class="p">);</span>
+  <span class="n">sha256sum</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">s1</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">memcmp</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">buf</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="mh">0x20uLL</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>We assume the argument is a pointer to the pin, for which we compute its <code>sha256sum</code>. And if it is equal to <code>buf[4:0x24]</code>, it means the pin correct! So we have to understand what <code>buf[4:0x24]</code> is, which is stored in the <code>.safe_db</code> file. To do so we look at the <code>libsafe_generate_new_passcode</code> function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">libsafe_generate_new_passcode</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kr">__int8</span> <span class="o">*</span><span class="n">a1</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">v1</span><span class="p">;</span> <span class="c1">// eax
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-468h]
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span> <span class="c1">// [rsp+1Ch] [rbp-464h]
+</span><span class="c1"></span>  <span class="kt">char</span> <span class="n">file_content</span><span class="p">[</span><span class="mi">36</span><span class="p">];</span> <span class="c1">// [rsp+20h] [rbp-460h] BYREF
+</span><span class="c1"></span>  <span class="kt">char</span> <span class="n">hash_rand_buf</span><span class="p">[</span><span class="mi">32</span><span class="p">];</span> <span class="c1">// [rsp+50h] [rbp-430h] BYREF
+</span><span class="c1"></span>  <span class="kt">char</span> <span class="n">rand_buf</span><span class="p">[</span><span class="mi">1032</span><span class="p">];</span> <span class="c1">// [rsp+70h] [rbp-410h] BYREF
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">canary</span><span class="p">;</span> <span class="c1">// [rsp+478h] [rbp-8h]
+</span><span class="c1"></span>
+  <span class="n">canary</span> <span class="o">=</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+  <span class="n">v1</span> <span class="o">=</span> <span class="n">time</span><span class="p">(</span><span class="mi">0LL</span><span class="p">);</span>
+  <span class="n">srand</span><span class="p">(</span><span class="n">v1</span><span class="p">);</span>
+  <span class="n">memset</span><span class="p">(</span><span class="n">file_content</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">file_content</span><span class="p">));</span>
+  <span class="o">*</span><span class="p">(</span><span class="n">_DWORD</span> <span class="o">*</span><span class="p">)</span><span class="n">file_content</span> <span class="o">=</span> <span class="n">rand</span><span class="p">();</span>
+  <span class="k">for</span> <span class="p">(</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">1023</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span> <span class="p">)</span>
+    <span class="n">rand_buf</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">rand</span><span class="p">();</span>
+  <span class="n">sha256sum</span><span class="p">(</span><span class="n">rand_buf</span><span class="p">,</span> <span class="mi">1024LL</span><span class="p">,</span> <span class="n">hash_rand_buf</span><span class="p">);</span>
+  <span class="n">_build_passcode</span><span class="p">((</span><span class="kr">__int64</span><span class="p">)</span><span class="n">hash_rand_buf</span><span class="p">,</span> <span class="mi">32LL</span><span class="p">,</span> <span class="p">(</span><span class="kr">__int64</span><span class="p">)</span><span class="n">a1</span><span class="p">,</span> <span class="mi">8LL</span><span class="p">);</span>
+  <span class="n">sha256sum</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="mi">8LL</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">file_content</span><span class="p">[</span><span class="mi">4</span><span class="p">]);</span>
+  <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">&#34;.safe_db&#34;</span><span class="p">,</span> <span class="mi">577</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">fd</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1LL</span><span class="p">;</span>
+  <span class="n">write</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">file_content</span><span class="p">,</span> <span class="mh">0x24uLL</span><span class="p">);</span>
+  <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+  <span class="k">return</span> <span class="mi">0LL</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>The function is very basic:</p>
+<ul>
+<li>It takes as argument a pointer to the buffer to cipher for which we compute the hash to fill out the <code>.safe_db</code> file.</li>
+<li>It initializes the PRNG with <code>time(NULL)</code> passed as an argument to<code>srand</code>. It then creates an array of <code>1024</code> random bytes with the use of <code>rand</code>.</li>
+<li>Then, this array is hashed with <code>sha256sum</code> and its hash is given to the <code>_build_passcode</code> function. The result is stored in the <code>a1</code> argument.</li>
+<li>The argument is hashed again and in the target file we write at <code>file_content[:4]</code> the first <code>rand</code> value and at <code>file_content[4:0x24]</code> the hash of the previous ciphered buffer.</li>
+</ul>
+<p>The core of the encryption algorithm is in the <code>build_passcode</code> function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">build_passcode</span><span class="p">(</span>
+        <span class="kt">unsigned</span> <span class="kr">__int8</span> <span class="o">*</span><span class="n">hash_rand_buf</span><span class="p">,</span>
+        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">length_hash</span><span class="p">,</span>
+        <span class="kt">unsigned</span> <span class="kr">__int8</span> <span class="o">*</span><span class="n">out</span><span class="p">,</span>
+        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">opaque_8</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kr">__int64</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// rax
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// [rsp+20h] [rbp-10h]
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">length_base</span><span class="p">;</span> <span class="c1">// [rsp+24h] [rbp-Ch]
+</span><span class="c1"></span>
+  <span class="n">lenght_base</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="s">&#34;1234567890ABCD&#34;</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="p">;</span> <span class="o">++</span><span class="n">i</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">opaque_8</span> <span class="p">)</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">base</span><span class="p">[</span><span class="n">hash_rand_buf</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="n">length_hash</span><span class="p">]</span> <span class="o">%</span> <span class="n">length_base</span><span class="p">];</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>That&rsquo;s just basically filling out the <code>out</code> buffer with <code>base[hash_rand_buf[i % length_hash] % lenght_base]</code>.</p>
+<p>Now we have a good understanding of the encryption algorithm, we can take a look at what exactly the <code>id</code> printed right before the pin input is. The function that generates the <code>id</code> is <code>libsafe_get_userid</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">libsafe_get_userid</span><span class="p">(</span><span class="n">_DWORD</span> <span class="o">*</span><span class="n">id</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span> <span class="c1">// [rsp+1Ch] [rbp-34h]
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">buf</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span> <span class="c1">// [rsp+20h] [rbp-30h] BYREF
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v4</span><span class="p">;</span> <span class="c1">// [rsp+48h] [rbp-8h]
+</span><span class="c1"></span>
+  <span class="n">v4</span> <span class="o">=</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+  <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">&#34;.safe_db&#34;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">fd</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1LL</span><span class="p">;</span>
+  <span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="mh">0x24uLL</span><span class="p">);</span>
+  <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+  <span class="o">*</span><span class="n">id</span> <span class="o">=</span> <span class="n">buf</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+  <span class="k">return</span> <span class="mi">0LL</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>The function is very basic, it opens the <code>.safe_db</code> file and initializes the <code>id</code> to the first four bytes of the file which is the first value of rand as seen in the previous functions.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="cracking-the-seed">
+        Cracking the seed
+        <a data-clipboard-text="https://nasm.re/posts/safe/#cracking-the-seed" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Cracking the seed" href="#cracking-the-seed">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>To recover the pin, we have to know what hash the hash of the pin will be compared to. To do so, we have to recover the random buffer, hash it, give it to the &ldquo;core&rdquo; encryption layer and hash what it outputs. That will be the final hash which will be compared to the hash of the pin we send. The main part of the challenge is so to recover the <code>rand</code> values, more specifically the seed given to <code>srand</code> to initialize the PRNG. We know the seed in the program is <code>time(NULL)</code>. Which means that this is a timestamp that can be bruteforced in a reasonable amount of time (the 2020 edition of the CTF was cancelled because of COVID so we took as range the date of the software update until today). The bruteforce is very fast because given we know the <code>id</code> which is the value for the first call to <code>rand</code>, we have just to ensure the first value of <code>rand</code> for the seed we bruteforce is equal to the <code>id</code> value.</p>
+<p>Which gives:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">from</span> <span class="nn">ctypes</span> <span class="kn">import</span> <span class="n">CDLL</span>
+<span class="n">libc</span> <span class="o">=</span> <span class="n">CDLL</span><span class="p">(</span><span class="s2">&#34;libc.so.6&#34;</span><span class="p">)</span>
+
+<span class="n">h</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+
+<span class="n">START_TIME</span>   <span class="o">=</span> <span class="mi">1605052800</span> <span class="c1"># 2020-11-11 12:00:00 AM -&gt; known date for the software update</span>
+<span class="n">CURRENT_TIME</span> <span class="o">=</span> <span class="mi">1638633346</span> <span class="c1"># 2021-12-04  3:55:46 PM -&gt; current time</span>
+<span class="n">PINCODE</span>      <span class="o">=</span> <span class="mh">0x4b2e2a1c</span>
+
+<span class="n">CHARSET</span>      <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;1234567890ABCD&#34;</span>
+<span class="n">CHARLEN</span>      <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CHARSET</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">CURRENT_TIME</span> <span class="o">-</span> <span class="n">START_TIME</span><span class="p">)):</span>
+    <span class="n">t</span> <span class="o">+=</span> <span class="n">START_TIME</span>
+
+    <span class="n">libc</span><span class="o">.</span><span class="n">srand</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">PINCODE</span> <span class="o">==</span> <span class="n">libc</span><span class="o">.</span><span class="n">rand</span><span class="p">():</span>
+
+        <span class="n">v8</span> <span class="o">=</span> <span class="p">[</span><span class="n">libc</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&amp;</span> <span class="mh">0xff</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1024</span><span class="p">)]</span>
+        <span class="n">v8</span> <span class="o">=</span> <span class="n">h</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">v8</span><span class="p">))</span>
+
+        <span class="n">v6</span> <span class="o">=</span> <span class="p">[</span><span class="n">CHARSET</span><span class="p">[</span><span class="n">v8</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="mi">32</span><span class="p">]</span> <span class="o">%</span> <span class="n">CHARLEN</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)]</span>
+        <span class="n">v6</span> <span class="o">=</span> <span class="n">h</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">v6</span><span class="p">))</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Timestamp: </span><span class="si">{</span><span class="n">t</span><span class="si">=}</span><span class="s2">, hash: </span><span class="si">{</span><span class="n">v6</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</code></pre></div><p>And when we found the right seed, we just have to generate, hash, cipher and hash again the right random buffer to get the right hash to which the hash of the pin will be compared to.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ python3 solve.py 
+ 94%<span class="p">|</span>██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▏       <span class="p">|</span> 31691218/33580546 <span class="o">[</span>01:29&lt;00:05, 351593.81it/s<span class="o">]</span>
+Timestamp: <span class="nv">t</span><span class="o">=</span>1636749762, hash: 88c71c0cc0950acfe3835a009f8931cee0f12ab7410538f96d058184a4c90e11
+100%<span class="p">|</span>██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████<span class="p">|</span> 33580546/33580546 <span class="o">[</span>01:34&lt;00:00, 356533.87it/s<span class="o">]</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h2 id="hashcat--profit">
+        Hashcat + PROFIT
+        <a data-clipboard-text="https://nasm.re/posts/safe/#hashcat--profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Hashcat &#43; PROFIT" href="#hashcat--profit">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Now we know the final hash to which the hash of the pin is compared to, we can just run a mask attack using hashcat with a mask of 8 hexadecimal characters in uppercase (we tried for every length up to the right size: 8).</p>
+<pre tabindex="0"><code>$ hashcat -a 3 -m 1400 pincode.hash ?H?H?H?H?H?H?H?H
+[skip]
+88c71c0cc0950acfe3835a009f8931cee0f12ab7410538f96d058184a4c90e11:4233246D
+
+Session..........: hashcat
+Status...........: Cracked
+Hash.Type........: SHA2-256
+Hash.Target......: 88c71c0cc0950acfe3835a009f8931cee0f12ab7410538f96d0...c90e11
+Time.Started.....: Sat Dec  5 16:52:37 2021 (7 mins, 22 secs)
+Time.Estimated...: Sat Dec  5 16:59:59 2021 (0 secs)
+Guess.Mask.......: ?H?H?H?H?H?H?H?H [8]
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:  7884.8 kH/s (7.30ms) @ Accel:256 Loops:64 Thr:1 Vec:8
+Recovered........: 1/1 (100.00%) Digests, 1/1 (100.00%) Salts
+Progress.........: 3342925824/4294967296 (77.83%)
+Rejected.........: 0/3342925824 (0.00%)
+Restore.Point....: 816128/1048576 (77.83%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-64 Iteration:0-64
+Candidates.#1....: 1234515D -&gt; EBCF585D
+</code></pre><p>The challenge was pretty funny because of the IRL part, and because we solved it together (<a
+  class="gblog-markdown__link"
+  href="https://github.com/n4sm"
+  
+  >nasm</a
+> and <a
+  class="gblog-markdown__link"
+  href="https://twitter.com/yarienkiva"
+  
+  >Alol</a
+>).</p>
+<p>Authors: <a
+  class="gblog-markdown__link"
+  href="https://github.com/n4sm"
+  
+  >nasm</a
+> and <a
+  class="gblog-markdown__link"
+  href="https://twitter.com/yarienkiva"
+  
+  >Alol</a
+>.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="annexes">
+        Annexes
+        <a data-clipboard-text="https://nasm.re/posts/safe/#annexes" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Annexes" href="#annexes">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p><img
+  src="https://ret2school.github.io/images/coffre.jpg"
+  alt="The safe"
+  
+/></p>
+]]></content>
+            
+                 
+                    
+                 
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
+                             
+                                <category scheme="https://nasm.re/tags/ret2school" term="ret2school" label="ret2school" />
+                             
+                                <category scheme="https://nasm.re/tags/TRACS-2021" term="TRACS-2021" label="TRACS 2021" />
+                             
+                                <category scheme="https://nasm.re/tags/TRACS" term="TRACS" label="TRACS" />
+                             
+                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
+                             
+                                <category scheme="https://nasm.re/tags/Alol" term="Alol" label="Alol" />
+                             
+                                <category scheme="https://nasm.re/tags/reverse" term="reverse" label="reverse" />
+                             
+                                <category scheme="https://nasm.re/tags/RE" term="RE" label="RE" />
+                             
+                                <category scheme="https://nasm.re/tags/IRL" term="IRL" label="IRL" />
+                             
+                                <category scheme="https://nasm.re/tags/rand" term="rand" label="rand" />
+                             
+                                <category scheme="https://nasm.re/tags/2021" term="2021" label="2021" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
+</feed>

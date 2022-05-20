@@ -14,8 +14,8 @@
 
 
 
-  <meta name="description" content="Intro     phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system. You can find the related files there.
-The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s information 2. Edit information 3. Call someone 4. Unfriend someone 5." />
+  <meta name="description" content="Intro     phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system.
+The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s information 2. Edit information 3. Call someone 4. Unfriend someone 5. Add the hidden_note &gt; We can create an entity and then initialize: a name, a numero and a function pointer." />
 
 
   <meta name="keywords" content="pwn,binary exploitation,cryptography,Reverse engineering,hypervisor" />
@@ -67,8 +67,8 @@ The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s informa
   property="og:description"
   content="
     
-      Intro     phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system. You can find the related files there.
-The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s information 2. Edit information 3. Call someone 4. Unfriend someone 5.
+      Intro     phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system.
+The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s information 2. Edit information 3. Call someone 4. Unfriend someone 5. Add the hidden_note &gt; We can create an entity and then initialize: a name, a numero and a function pointer.
     
   "
 />
@@ -97,8 +97,8 @@ The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s informa
   name="twitter:description"
   content="
     
-      Intro     phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system. You can find the related files there.
-The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s information 2. Edit information 3. Call someone 4. Unfriend someone 5.
+      Intro     phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system.
+The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s information 2. Edit information 3. Call someone 4. Unfriend someone 5. Add the hidden_note &gt; We can create an entity and then initialize: a name, a numero and a function pointer.
     
   "
 />
@@ -191,7 +191,7 @@ The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s informa
     "name": "[DCTF 2022 - pwn] phonebook",
     "headline": "[DCTF 2022 - pwn] phonebook",
     "alternativeHeadline": "",
-    "description": "Intro     phonebook is a basic heap challenge I did during the dctf event. It\u0026rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system. You can find the related files there.\nThe bug     $ .\/phonebook Choose an option: [1-5] 1. Store someone\u0027s information 2. Edit information 3. Call someone 4. Unfriend someone 5.",
+    "description": "Intro     phonebook is a basic heap challenge I did during the dctf event. It\u0026rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system.\nThe bug     $ .\/phonebook Choose an option: [1-5] 1. Store someone\u0027s information 2. Edit information 3. Call someone 4. Unfriend someone 5. Add the hidden_note \u0026gt; We can create an entity and then initialize: a name, a numero and a function pointer.",
     "inLanguage": "en",
     "isFamilyFriendly": "true",
     "mainEntityOfPage": {
@@ -221,8 +221,8 @@ The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s informa
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/phonebook\/",
-    "wordCount" : "709",
-    "genre" : [ "ctf" , "ret2school" , "DCTF" , "nasm" , "pwn" , "2022" ]
+    "wordCount" : "694",
+    "genre" : [ "pwn" , "heap" , "dctf" ]
 }
 </script>
 
@@ -398,10 +398,10 @@ The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s informa
   <span class="gblog-post__tag gblog-button gblog-button--regular">
     <a
       class="gblog-button__link"
-      href="/tags/ctf/"
-      title="All posts tagged with 'ctf'"
+      href="/tags/dctf/"
+      title="All posts tagged with 'dctf'"
     >
-      ctf
+      dctf
     </a>
   </span>
 
@@ -417,28 +417,10 @@ The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s informa
   <span class="gblog-post__tag gblog-button gblog-button--regular">
     <a
       class="gblog-button__link"
-      href="/tags/DCTF/"
-      title="All posts tagged with 'DCTF'"
+      href="/tags/heap/"
+      title="All posts tagged with 'heap'"
     >
-      DCTF
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/nasm/"
-      title="All posts tagged with 'nasm'"
-    >
-      nasm
+      heap
     </a>
   </span>
 
@@ -464,42 +446,6 @@ The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s informa
     
     
   
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ret2school/"
-      title="All posts tagged with 'ret2school'"
-    >
-      ret2school
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/2022/"
-      title="All posts tagged with '2022'"
-    >
-      2022
-    </a>
-  </span>
-
-      
-    
-    
-  
 
 
 
@@ -518,12 +464,7 @@ The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s informa
         </a>
     </h2>
 </div>
-<p>phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system. You can find the related files <a
-  class="gblog-markdown__link"
-  href="https://github.com/ret2school/ctf/tree/master/2022/dctf/pwn/phonebook"
-  
-  >there</a
->.</p>
+<p>phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system.</p>
 <div class="gblog-post__anchorwrap">
     <h2 id="the-bug">
         The bug
@@ -540,7 +481,7 @@ Choose an option: [1-5]
 4. Unfriend someone
 5. Add the hidden_note
 &gt; 
-</code></pre><p>We can create an entity and then initialize: a name, a phone number and a function pointer.</p>
+</code></pre><p>We can create an entity and then initialize: a name, a numero and a function pointer.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__fastcall</span> <span class="nf">create</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// eax
@@ -558,7 +499,7 @@ Choose an option: [1-5]
   <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">;</span>
   <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre></div><p>The bug lies in the <code>edit_name</code> function:</p>
+</code></pre></div><p>The bug lies <code>edit_name</code> function:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_name</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">n</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-18h] BYREF
@@ -582,7 +523,7 @@ Choose an option: [1-5]
   <span class="n">v4</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
   <span class="k">return</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">)</span> <span class="o">^</span> <span class="n">v5</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre></div><p>We can give it a new lentgh and if that&rsquo;s not equal to the current size field it frees the current name pointer and allocates a new name pointer <strong>without</strong> updating the size field. Which means if we edit the name pointer with a smaller size, the name pointer will be smaller compared to the size field, then we just have to edit again to make the size equal to <code>v4-&gt;name_size</code> to trigger a heap overflow through the <code>v4-&gt;name</code> pointer.</p>
+</code></pre></div><p>We can give it a new lentgh and if that&rsquo;s not equal to the current size field it frees the current name pointer and allocates a new name pointer <strong>without</strong> updating the size field. Which means if we edit the name pointer with a smaller size, the name pointer will be smaller compared to the size field, then we just have to edit again the size field to make it equal to <code>v4-&gt;name_size</code> to trigger a heap overflow through the <code>v4-&gt;name</code> pointer.</p>
 <div class="gblog-post__anchorwrap">
     <h2 id="leak-libc">
         Leak libc
@@ -628,7 +569,7 @@ Choose an option: [1-5]
 <span class="p">}</span>
 </code></pre></div><p>To summarise:</p>
 <ul>
-<li>leak binary base address by overwriting the null byte (<code>edit_phone_number</code>) and then print the phone number.</li>
+<li>leak binary base address by overwriting the null byte (<code>edit_phone_number</code>) and then print the phone numer.</li>
 <li>leak libc base address by overwriting the name field of the second entity with the got entry of <code>puts</code></li>
 </ul>
 <div class="gblog-post__anchorwrap">
@@ -639,7 +580,7 @@ Choose an option: [1-5]
         </a>
     </h2>
 </div>
-<p>Then we just have to overwrite the function pointer with the address of <code>system</code> which takes as first argument a pointer to the entity structure. Then we edit the phone number of the entity we wanna use because that&rsquo;s stored in the first field of the structure which means we make it equivalent the call to <code>v4-&gt;func</code> to a <code>system(&quot;/bin/sh&quot;)</code>.</p>
+<p>Then we just have to overwrite the function pointer with the address of <code>system</code> which takes as first argument a pointer to the entity structure of edit the phone number of the entity we wanna use because that&rsquo;s the first field of the structure which means we make it equivalent to a <code>system(&quot;/bin/sh&quot;)</code>.</p>
 <pre tabindex="0"><code>00000000 entity          struc ; (sizeof=0x20, mappedto_8)
 00000000 num             dq ?
 00000008 func            dq ?

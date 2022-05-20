@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/Breizh-CTF/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/Breizh-CTF/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-14T22:28:25+02:00</updated>
+    <updated>2022-05-20T02:20:23+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -138,36 +138,36 @@
   <span class="k">return</span> <span class="n">fflush</span><span class="p">(</span><span class="n">stdout</span><span class="p">);</span>
 <span class="p">}</span>
 </code></pre></div><p>Which gives us:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">nasm@off:~/ctf/bzhCTF/pwn$ ./FTM
-Vous n<span class="s1">&#39;êtes pas connecté (anonyme)
-</span><span class="s1">1. Modifier les paramètres de connexion
-</span><span class="s1">2. Restaurer la configutation d&#39;</span>usine
+<pre tabindex="0"><code>nasm@off:~/ctf/bzhCTF/pwn$ ./FTM
+Vous n'êtes pas connecté (anonyme)
+1. Modifier les paramètres de connexion
+2. Restaurer la configutation d'usine
 3. Tester la configuration
 4. Voir la configuration courante
-5. Quitter <span class="o">(</span>au revoir !<span class="o">)</span>
-&gt;&gt;&gt;&gt; <span class="m">1</span>
+5. Quitter (au revoir !)
+&gt;&gt;&gt;&gt; 1
 New hostname : dumb
 
 New host : dumb
-Vous n<span class="s1">&#39;êtes pas connecté (anonyme)
-</span><span class="s1">1. Modifier les paramètres de connexion
-</span><span class="s1">2. Restaurer la configutation d&#39;</span>usine
+Vous n'êtes pas connecté (anonyme)
+1. Modifier les paramètres de connexion
+2. Restaurer la configutation d'usine
 3. Tester la configuration
 4. Voir la configuration courante
-5. Quitter <span class="o">(</span>au revoir !<span class="o">)</span>
-&gt;&gt;&gt;&gt; <span class="m">1</span>
+5. Quitter (au revoir !)
+&gt;&gt;&gt;&gt; 1
 New hostname : 
 
 New host : 
-Vous n<span class="s1">&#39;êtes pas connecté (anonyme)
-</span><span class="s1">1. Modifier les paramètres de connexion
-</span><span class="s1">2. Restaurer la configutation d&#39;</span>usine
+Vous n'êtes pas connecté (anonyme)
+1. Modifier les paramètres de connexion
+2. Restaurer la configutation d'usine
 3. Tester la configuration
 4. Voir la configuration courante
-5. Quitter <span class="o">(</span>au revoir !<span class="o">)</span>
-&gt;&gt;&gt;&gt; <span class="m">3</span>
-BZHCTF<span class="o">{</span>9024b719d4449bc9827478e50f0279427ccb542cc3ecdec21fce38c52b29561c<span class="o">}</span>
-</code></pre></div>]]></content>
+5. Quitter (au revoir !)
+&gt;&gt;&gt;&gt; 3
+BZHCTF{9024b719d4449bc9827478e50f0279427ccb542cc3ecdec21fce38c52b29561c}
+</code></pre>]]></content>
             
                  
                     

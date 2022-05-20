@@ -2,44 +2,38 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://nasm.re/tags/2022/</loc>
-    <lastmod>2022-05-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/posts/bookwriter/</loc>
-    <lastmod>2022-05-12T00:00:00+00:00</lastmod>
+    <loc>https://nasm.re/posts/onceforall/</loc>
+    <lastmod>2022-05-19T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/tags/ctf/</loc>
-    <lastmod>2022-05-12T00:00:00+00:00</lastmod>
+    <lastmod>2022-05-19T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://nasm.re/tags/nasm/</loc>
-    <lastmod>2022-05-12T00:00:00+00:00</lastmod>
+    <loc>https://nasm.re/tags/HackTheBox/</loc>
+    <lastmod>2022-05-19T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/posts/</loc>
-    <lastmod>2022-05-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/tags/pwn/</loc>
-    <lastmod>2022-05-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/tags/pwnable/</loc>
-    <lastmod>2022-05-12T00:00:00+00:00</lastmod>
+    <lastmod>2022-05-19T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/</loc>
-    <lastmod>2022-05-12T00:00:00+00:00</lastmod>
+    <lastmod>2022-05-19T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/tags/</loc>
-    <lastmod>2022-05-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/phonebook/</loc>
-    <lastmod>2022-04-17T00:00:00+00:00</lastmod>
+    <lastmod>2022-05-19T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/posts/phonebook/</loc>
     <lastmod>2022-04-17T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://nasm.re/tags/DCTF/</loc>
+    <loc>https://nasm.re/tags/dctf/</loc>
     <lastmod>2022-04-17T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://nasm.re/tags/ret2school/</loc>
+    <loc>https://nasm.re/tags/heap/</loc>
     <lastmod>2022-04-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/pwn/</loc>
+    <lastmod>2022-04-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/2022/</loc>
+    <lastmod>2022-03-04T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/posts/ftm/</loc>
     <lastmod>2022-03-04T00:00:00+00:00</lastmod>
@@ -47,8 +41,38 @@
     <loc>https://nasm.re/tags/Breizh-CTF/</loc>
     <lastmod>2022-03-04T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://nasm.re/tags/nasm/</loc>
+    <lastmod>2022-03-04T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/ret2school/</loc>
+    <lastmod>2022-03-04T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://nasm.re/tags/2021/</loc>
-    <lastmod>2021-11-07T00:00:00+00:00</lastmod>
+    <lastmod>2021-12-05T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/posts/safe/</loc>
+    <lastmod>2021-12-05T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/Alol/</loc>
+    <lastmod>2021-12-05T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/IRL/</loc>
+    <lastmod>2021-12-05T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/rand/</loc>
+    <lastmod>2021-12-05T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/RE/</loc>
+    <lastmod>2021-12-05T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/reverse/</loc>
+    <lastmod>2021-12-05T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/TRACS/</loc>
+    <lastmod>2021-12-05T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/TRACS-2021/</loc>
+    <lastmod>2021-12-05T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/posts/cloudinspect/</loc>
     <lastmod>2021-11-07T00:00:00+00:00</lastmod>
@@ -60,9 +84,6 @@
     <lastmod>2021-11-07T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/tags/hack.lu/</loc>
-    <lastmod>2021-11-07T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/tags/heap/</loc>
     <lastmod>2021-11-07T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/tags/hypervisor/</loc>
