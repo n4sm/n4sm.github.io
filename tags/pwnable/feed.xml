@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/pwnable/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/pwnable/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-05-14T22:28:25+02:00</updated>
+    <updated>2022-07-18T22:45:46+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -19,32 +19,15 @@
     <id>https://nasm.re/tags/pwnable/</id>
         
         <entry>
-            <title type="html"><![CDATA[[pwnable.tw - pwn] Bookwriter]]></title>
+            <title type="html"><![CDATA[[pwnable - pwn] Bookwriter]]></title>
             <link href="https://nasm.re/posts/bookwriter/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/bookwriter/</id>
             
-            <published>2022-05-12T00:00:00+00:00</published>
-            <updated>2022-05-12T00:00:00+00:00</updated>
+            <published>2022-04-19T00:00:00+00:00</published>
+            <updated>2022-04-19T00:00:00+00:00</updated>
             
             
-            <content type="html"><![CDATA[<p>Bookwriter is a heap challenge I did on the <a
-  class="gblog-markdown__link"
-  href="https://pwnable.tw/"
-  
-  >pwnable.tw</a
-> platform. This is a classic house of Orange challenge. Most of this write-up is based on <a
-  class="gblog-markdown__link"
-  href="https://1ce0ear.github.io/2017/11/26/study-house-of-orange/"
-  
-  >this</a
-> awesome article about house of Orange.</p>
-<p>DISLAIMER: This write-up is about a challenge on the <a
-  class="gblog-markdown__link"
-  href="https://pwnable.tw/"
-  
-  >pwnable.tw</a
-> platform, if you&rsquo;re currently doing it and you wanna succeed to pwn it, keep going and do not read my write-up.</p>
-<div class="gblog-post__anchorwrap">
+            <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
     <h2 id="what-we-can-do">
         What we can do
         <a data-clipboard-text="https://nasm.re/posts/bookwriter/#what-we-can-do" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What we can do" href="#what-we-can-do">
@@ -809,12 +792,6 @@ $ id
                                 <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
                              
                                 <category scheme="https://nasm.re/tags/pwnable" term="pwnable" label="pwnable" />
-                             
-                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
-                             
-                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
-                             
-                                <category scheme="https://nasm.re/tags/2022" term="2022" label="2022" />
                             
                         
                     

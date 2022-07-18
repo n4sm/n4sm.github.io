@@ -2,7 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://nasm.re/posts/onceandforall/</loc>
+    <loc>https://nasm.re/posts/lowlevelnotes/</loc>
+    <lastmod>2022-07-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/posts/</loc>
+    <lastmod>2022-07-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/</loc>
+    <lastmod>2022-07-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/posts/onceforall/</loc>
     <lastmod>2022-05-19T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/tags/ctf/</loc>
@@ -11,14 +20,14 @@
     <loc>https://nasm.re/tags/HackTheBox/</loc>
     <lastmod>2022-05-19T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://nasm.re/posts/</loc>
-    <lastmod>2022-05-19T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/</loc>
-    <lastmod>2022-05-19T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://nasm.re/tags/</loc>
     <lastmod>2022-05-19T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/posts/bookwriter/</loc>
+    <lastmod>2022-04-19T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/pwnable/</loc>
+    <lastmod>2022-04-19T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/posts/phonebook/</loc>
     <lastmod>2022-04-17T00:00:00+00:00</lastmod>

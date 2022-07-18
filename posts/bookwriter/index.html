@@ -14,9 +14,7 @@
 
 
 
-  <meta name="description" content="Bookwriter is a heap challenge I did on the pwnable.twplatform. This is a classic house of Orange challenge. Most of this write-up is based on thisawesome article about house of Orange.
-DISLAIMER: This write-up is about a challenge on the pwnable.twplatform, if you&rsquo;re currently doing it and you wanna succeed to pwn it, keep going and do not read my write-up.
-What we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte." />
+  <meta name="description" content="What we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte. In the alloc handler, it iterates once too may times through the alloc array, which means it can overlap on the first entry of the size array with a huge size which would be a chunk address, then we can easily trigger large heap overflow." />
 
 
   <meta name="keywords" content="pwn,binary exploitation,cryptography,Reverse engineering,hypervisor" />
@@ -37,7 +35,7 @@ What we can do      In the edit feature, we can overwrite the bytes right after 
 
     <title>
       
-        [pwnable.tw - pwn] Bookwriter | 
+        [pwnable - pwn] Bookwriter | 
       repr
     </title>
 
@@ -63,14 +61,12 @@ What we can do      In the edit feature, we can overwrite the bytes right after 
 
     
 
-    <meta property="og:title" content="[pwnable.tw - pwn] Bookwriter" />
+    <meta property="og:title" content="[pwnable - pwn] Bookwriter" />
 <meta
   property="og:description"
   content="
     
-      Bookwriter is a heap challenge I did on the pwnable.twplatform. This is a classic house of Orange challenge. Most of this write-up is based on thisawesome article about house of Orange.
-DISLAIMER: This write-up is about a challenge on the pwnable.twplatform, if you&rsquo;re currently doing it and you wanna succeed to pwn it, keep going and do not read my write-up.
-What we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte.
+      What we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte. In the alloc handler, it iterates once too may times through the alloc array, which means it can overlap on the first entry of the size array with a huge size which would be a chunk address, then we can easily trigger large heap overflow.
     
   "
 />
@@ -81,27 +77,25 @@ What we can do      In the edit feature, we can overwrite the bytes right after 
   
     <meta
       property="article:published_time"
-      content="2022-05-12T00:00:00+00:00"
+      content="2022-04-19T00:00:00+00:00"
     />
   
   
     <meta
       property="article:modified_time"
-      content="2022-05-12T00:00:00+00:00"
+      content="2022-04-19T00:00:00+00:00"
     />
   
 
 <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:image" content="https://nasm.re/risa.png" />
     
-<meta name="twitter:title" content="[pwnable.tw - pwn] Bookwriter" />
+<meta name="twitter:title" content="[pwnable - pwn] Bookwriter" />
 <meta
   name="twitter:description"
   content="
     
-      Bookwriter is a heap challenge I did on the pwnable.twplatform. This is a classic house of Orange challenge. Most of this write-up is based on thisawesome article about house of Orange.
-DISLAIMER: This write-up is about a challenge on the pwnable.twplatform, if you&rsquo;re currently doing it and you wanna succeed to pwn it, keep going and do not read my write-up.
-What we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte.
+      What we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte. In the alloc handler, it iterates once too may times through the alloc array, which means it can overlap on the first entry of the size array with a huge size which would be a chunk address, then we can easily trigger large heap overflow.
     
   "
 />
@@ -191,10 +185,10 @@ What we can do      In the edit feature, we can overwrite the bytes right after 
     "@context": "http://schema.org",
     "@type": "BlogPosting",
     "articleSection": "posts",
-    "name": "[pwnable.tw - pwn] Bookwriter",
-    "headline": "[pwnable.tw - pwn] Bookwriter",
+    "name": "[pwnable - pwn] Bookwriter",
+    "headline": "[pwnable - pwn] Bookwriter",
     "alternativeHeadline": "",
-    "description": "Bookwriter is a heap challenge I did on the pwnable.twplatform. This is a classic house of Orange challenge. Most of this write-up is based on thisawesome article about house of Orange.\nDISLAIMER: This write-up is about a challenge on the pwnable.twplatform, if you\u0026rsquo;re currently doing it and you wanna succeed to pwn it, keep going and do not read my write-up.\nWhat we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte.",
+    "description": "What we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte. In the alloc handler, it iterates once too may times through the alloc array, which means it can overlap on the first entry of the size array with a huge size which would be a chunk address, then we can easily trigger large heap overflow.",
     "inLanguage": "en",
     "isFamilyFriendly": "true",
     "mainEntityOfPage": {
@@ -209,9 +203,9 @@ What we can do      In the edit feature, we can overwrite the bytes right after 
     ],
     "copyrightHolder" : "repr",
     "copyrightYear" : "2022",
-    "dateCreated": "2022-05-12T00:00:00.00Z",
-    "datePublished": "2022-05-12T00:00:00.00Z",
-    "dateModified": "2022-05-12T00:00:00.00Z",
+    "dateCreated": "2022-04-19T00:00:00.00Z",
+    "datePublished": "2022-04-19T00:00:00.00Z",
+    "dateModified": "2022-04-19T00:00:00.00Z",
     "publisher":{
         "@type":"Organization",
         "name": "repr",
@@ -224,8 +218,8 @@ What we can do      In the edit feature, we can overwrite the bytes right after 
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/bookwriter\/",
-    "wordCount" : "2842",
-    "genre" : [ "ctf" , "pwnable" , "nasm" , "pwn" , "2022" ]
+    "wordCount" : "2781",
+    "genre" : [ "ctf" , "pwnable" ]
 }
 </script>
 
@@ -365,16 +359,16 @@ What we can do      In the edit feature, we can overwrite the bytes right after 
       
 
 
-      <h1 class="gblog-post__title">[pwnable.tw - pwn] Bookwriter</h1>
+      <h1 class="gblog-post__title">[pwnable - pwn] Bookwriter</h1>
 
       
         <div class="flex flex-wrap align-center gblog-post__meta gblog-post__meta--head">
           <span class="flex align-center no-wrap">
   <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
   <span class="gblog-post__tag">
-    <time datetime="2022-05-12T00:00:00Z">
+    <time datetime="2022-04-19T00:00:00Z">
       
-      May 12, 2022
+      Apr 19, 2022
     </time>
   </span>
 </span>
@@ -420,64 +414,10 @@ What we can do      In the edit feature, we can overwrite the bytes right after 
   <span class="gblog-post__tag gblog-button gblog-button--regular">
     <a
       class="gblog-button__link"
-      href="/tags/nasm/"
-      title="All posts tagged with 'nasm'"
-    >
-      nasm
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/pwn/"
-      title="All posts tagged with 'pwn'"
-    >
-      pwn
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
       href="/tags/pwnable/"
       title="All posts tagged with 'pwnable'"
     >
       pwnable
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/2022/"
-      title="All posts tagged with '2022'"
-    >
-      2022
     </a>
   </span>
 
@@ -495,24 +435,7 @@ What we can do      In the edit feature, we can overwrite the bytes right after 
       
     </header>
     <section class="gblog-markdown">
-      <p>Bookwriter is a heap challenge I did on the <a
-  class="gblog-markdown__link"
-  href="https://pwnable.tw/"
-  
-  >pwnable.tw</a
-> platform. This is a classic house of Orange challenge. Most of this write-up is based on <a
-  class="gblog-markdown__link"
-  href="https://1ce0ear.github.io/2017/11/26/study-house-of-orange/"
-  
-  >this</a
-> awesome article about house of Orange.</p>
-<p>DISLAIMER: This write-up is about a challenge on the <a
-  class="gblog-markdown__link"
-  href="https://pwnable.tw/"
-  
-  >pwnable.tw</a
-> platform, if you&rsquo;re currently doing it and you wanna succeed to pwn it, keep going and do not read my write-up.</p>
-<div class="gblog-post__anchorwrap">
+      <div class="gblog-post__anchorwrap">
     <h2 id="what-we-can-do">
         What we can do
         <a data-clipboard-text="https://nasm.re/posts/bookwriter/#what-we-can-do" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What we can do" href="#what-we-can-do">
