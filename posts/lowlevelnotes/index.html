@@ -221,7 +221,7 @@ Kernel heap management (SLUB, SLAB, SLOB)     Same way as for userland, the kern
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/lowlevelnotes\/",
-    "wordCount" : "988",
+    "wordCount" : "1194",
     "genre" : [ ]
 }
 </script>
@@ -378,7 +378,7 @@ Kernel heap management (SLUB, SLAB, SLOB)     Same way as for userland, the kern
 
 <span class="flex align-center no-wrap">
   <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">5 min read</span>
+  <span class="gblog-post__tag">6 min read</span>
 </span>
 
 
@@ -482,7 +482,17 @@ There will be a lot of code for which I do not comment the whole part.</p>
   
   >here</a
 >):</p>
-<img align="center" width="100%" src="../../SLUB_schema.png">
+<img align="center" width="100%" src="../../SLUB_schema1.png">
+<p>To cover the whole allocation process, we will review the main structures to then take a look at the actual allocation algorithm.
+Given the complexity of such structures, each of these structures are treated in separate articles:</p>
+<ul>
+<li><a
+  class="gblog-markdown__link"
+  href="../kmem_cache"
+  
+  >kmem_cache</a
+></li>
+</ul>
 <p>Let&rsquo;s take a look at the source code of the <code>__kmalloc</code> SLUB implemementation:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L4399
 </span><span class="c1"></span><span class="kt">void</span> <span class="o">*</span><span class="nf">__kmalloc</span><span class="p">(</span><span class="n">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">gfp_t</span> <span class="n">flags</span><span class="p">)</span>
@@ -535,7 +545,7 @@ There will be a lot of code for which I do not comment the whole part.</p>
 	<span class="k">if</span> <span class="p">(</span><span class="n">likely</span><span class="p">(</span><span class="n">page</span><span class="p">))</span> <span class="p">{</span>
 		<span class="n">ret</span> <span class="o">=</span> <span class="n">page_address</span><span class="p">(</span><span class="n">page</span><span class="p">);</span>
 		<span class="n">mod_lruvec_page_state</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">NR_SLAB_UNRECLAIMABLE_B</span><span class="p">,</span>
-				      <span class="n">PAGE_SIZE</span> <span class="o">&lt;&lt;</span> <span class="n">order</span><span class="p">);</span>
+				<span class="n">PAGE_SIZE</span> <span class="o">&lt;&lt;</span> <span class="n">order</span><span class="p">);</span>
 	<span class="p">}</span>
 	<span class="n">ret</span> <span class="o">=</span> <span class="n">kasan_kmalloc_large</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
 	<span class="cm">/* As ret might get tagged, call kmemleak hook after KASAN. */</span>
@@ -584,11 +594,19 @@ There will be a lot of code for which I do not comment the whole part.</p>
 
 	<span class="k">return</span> <span class="n">kmalloc_caches</span><span class="p">[</span><span class="n">kmalloc_type</span><span class="p">(</span><span class="n">flags</span><span class="p">)][</span><span class="n">index</span><span class="p">];</span>
 <span class="p">}</span>
-</code></pre></div><p><code>kmalloc_slab</code> returns the <code>kmalloc_cache</code> entry that matchs the provided flags and size. Let&rsquo;s see how is initialized this array, the main initialization occurs in <code>kmem_cache_init</code>:</p>
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h2 id="kmem_cache_init">
+        kmem_cache_init
+        <a data-clipboard-text="https://nasm.re/posts/lowlevelnotes/#kmem_cache_init" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor kmem_cache_init" href="#kmem_cache_init">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p><code>kmalloc_slab</code> returns the <code>kmalloc_cache</code> entry that matchs the provided flags and size. Let&rsquo;s see how is initialized this array, the main initialization occurs in <code>kmem_cache_init</code>:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">void</span> <span class="n">__init</span> <span class="nf">kmem_cache_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
 	<span class="k">static</span> <span class="n">__initdata</span> <span class="k">struct</span> <span class="n">kmem_cache</span> <span class="n">boot_kmem_cache</span><span class="p">,</span>
-		<span class="n">boot_kmem_cache_node</span><span class="p">;</span>
+			  <span class="n">boot_kmem_cache_node</span><span class="p">;</span>
 	<span class="kt">int</span> <span class="n">node</span><span class="p">;</span>
 
 	<span class="k">if</span> <span class="p">(</span><span class="n">debug_guardpage_minorder</span><span class="p">())</span>
@@ -612,7 +630,45 @@ There will be a lot of code for which I do not comment the whole part.</p>
   href="https://0xax.gitbooks.io/linux-insides/content/DataStructures/linux-datastructures-3.html"
   
   >bitmap</a
-> representing the nodes used by the kernel. Given we&rsquo;re on x86-64 the cpu is NUMA but behaves for compatibility purposes like a UMA system. Which means there is only one node used, and in it one &ldquo;zone&rdquo;: <code>N_NORMAL_MEMORY</code>. This way only the <code>N_NORMAL_MEMORY</code> bit is set in <code>slab_nodes</code>.</p>
+> representing the nodes used by the kernel. Given we&rsquo;re on x86-64 the cpu is NUMA but behaves for compatibility purposes like a UMA system. Which means there is only one node used, and in it one &ldquo;zone&rdquo;: <code>N_NORMAL_MEMORY</code>. This way <code>for_each_node_state</code> loops only one time:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/nodemask.h#L482
+</span><span class="c1"></span><span class="cp">#define for_each_node_state(node, __state) \
+</span><span class="cp">	for ( (node) = 0; (node) == 0; (node) = 1)
+</span></code></pre></div><p>This way <code>slab_nodes</code> is initialized to <code>1</code>.</p>
+<p>Then the first two kmem_cache are created: <code>kmem_cache_node</code> and <code>kmem_cache</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">	<span class="c1">// https://elixir.bootlin.com/linux/latest/source/mm/slub.c#L4819
+</span><span class="c1"></span>	<span class="n">create_boot_cache</span><span class="p">(</span><span class="n">kmem_cache_node</span><span class="p">,</span> <span class="s">&#34;kmem_cache_node&#34;</span><span class="p">,</span>
+		<span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache_node</span><span class="p">),</span> <span class="n">SLAB_HWCACHE_ALIGN</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+	<span class="n">register_hotmemory_notifier</span><span class="p">(</span><span class="o">&amp;</span><span class="n">slab_memory_callback_nb</span><span class="p">);</span>
+
+	<span class="cm">/* Able to allocate the per node structures */</span>
+	<span class="n">slab_state</span> <span class="o">=</span> <span class="n">PARTIAL</span><span class="p">;</span>
+
+	<span class="n">create_boot_cache</span><span class="p">(</span><span class="n">kmem_cache</span><span class="p">,</span> <span class="s">&#34;kmem_cache&#34;</span><span class="p">,</span>
+			<span class="n">offsetof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="o">+</span>
+				<span class="n">nr_node_ids</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache_node</span> <span class="o">*</span><span class="p">),</span>
+		       <span class="n">SLAB_HWCACHE_ALIGN</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+	<span class="n">kmem_cache</span> <span class="o">=</span> <span class="n">bootstrap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">boot_kmem_cache</span><span class="p">);</span>
+	<span class="n">kmem_cache_node</span> <span class="o">=</span> <span class="n">bootstrap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">boot_kmem_cache_node</span><span class="p">);</span>
+
+	<span class="cm">/* Now we can use the kmem_cache to allocate kmalloc slabs */</span>
+	<span class="n">setup_kmalloc_cache_index_table</span><span class="p">();</span>
+	<span class="n">create_kmalloc_caches</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+	<span class="cm">/* Setup random freelists for each cache */</span>
+	<span class="n">init_freelist_randomization</span><span class="p">();</span>
+
+	<span class="n">cpuhp_setup_state_nocalls</span><span class="p">(</span><span class="n">CPUHP_SLUB_DEAD</span><span class="p">,</span> <span class="s">&#34;slub:dead&#34;</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span>
+				  <span class="n">slub_cpu_dead</span><span class="p">);</span>
+
+	<span class="n">pr_info</span><span class="p">(</span><span class="s">&#34;SLUB: HWalign=%d, Order=%u-%u, MinObjects=%u, CPUs=%u, Nodes=%u</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span>
+		<span class="n">cache_line_size</span><span class="p">(),</span>
+		<span class="n">slub_min_order</span><span class="p">,</span> <span class="n">slub_max_order</span><span class="p">,</span> <span class="n">slub_min_objects</span><span class="p">,</span>
+		<span class="n">nr_cpu_ids</span><span class="p">,</span> <span class="n">nr_node_ids</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><p>Let&rsquo;s take a look at the main functions. But before that, let&rsquo;s review the internal layout of the <code>kmem_cache</code> structure.</p>
 <div class="gblog-post__anchorwrap">
     <h1 id="references">
         References
@@ -630,6 +686,12 @@ There will be a lot of code for which I do not comment the whole part.</p>
 ></li>
 <li><a
   class="gblog-markdown__link"
+  href="https://www.cnblogs.com/linhaostudy/p/9992639.html"
+  
+  >cdnblogs, Linux Memory Description of Memory Node Node - Linux Memory Management (II)</a
+></li>
+<li><a
+  class="gblog-markdown__link"
   href="https://programmersought.com/article/362810197389/"
   
   >programmerSought, Linux Memory Management SLUB Distributor 2 [Kmalloc_Cache Structure]</a
@@ -639,6 +701,30 @@ There will be a lot of code for which I do not comment the whole part.</p>
   href="https://www.dingmos.com/index.php/archives/23/"
   
   >dingmos, Linux kernel | Memory management - Slab allocator</a
+></li>
+<li><a
+  class="gblog-markdown__link"
+  href="https://wenqupro.com/?thread-20.htm"
+  
+  >wenqupro, Article about kmem_cache</a
+></li>
+<li><a
+  class="gblog-markdown__link"
+  href="https://blog.csdn.net/m0_37637511/article/details/124960015"
+  
+  >cdnblogs, Slub Allocator Learning Series Linux 5.10</a
+></li>
+<li><a
+  class="gblog-markdown__link"
+  href="https://zhuanlan.zhihu.com/p/458668727"
+  
+  >zhuanlan, Non-professional understanding slub</a
+></li>
+<li><a
+  class="gblog-markdown__link"
+  href="https://blog.birost.com/a?ID=01100-ba652270-a5d4-4038-91a9-e0c56bcc643b"
+  
+  >Birost, Analysis of linux slub allocator</a
 ></li>
 </ul>
 
