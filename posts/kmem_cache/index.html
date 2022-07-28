@@ -227,7 +227,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/kmem_cache\/",
-    "wordCount" : "1414",
+    "wordCount" : "1537",
     "genre" : [ ]
 }
 </script>
@@ -384,7 +384,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 
 <span class="flex align-center no-wrap">
   <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">7 min read</span>
+  <span class="gblog-post__tag">8 min read</span>
 </span>
 
 
@@ -689,6 +689,29 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
   >here</a
 >.</li>
 <li><code>ctor</code> stands for a constructor called at every object intitialization, it&rsquo;s called in <code>setup_object</code> which is itself called in <code>shuffle_freelist</code> and in <code>allocate_slab</code> at the slab allocation level so.</li>
+<li><code>inuse</code> stands for the offset of the first metadata, we can distinguish several cases:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L987
+</span><span class="c1"></span><span class="cm">/* object + s-&gt;inuse
+</span><span class="cm"> * 	Meta data starts here.
+</span><span class="cm"> *
+</span><span class="cm"> * 	A. Free pointer (if we cannot overwrite object on free)
+</span><span class="cm"> * 	B. Tracking data for SLAB_STORE_USER
+</span><span class="cm"> *	C. Padding to reach required alignment boundary or at minimum
+</span><span class="cm"> * 		one word if debugging is on to be able to detect writes
+</span><span class="cm"> * 		before the word boundary.
+</span><span class="cm"> *
+</span><span class="cm"> *	Padding is done using 0x5a (POISON_INUSE)
+</span><span class="cm">*/</span>
+</code></pre></div><ul>
+<li><code>align</code> alignement needed for each object.</li>
+<li><code>red_left_pad</code> stands for the left pad to prevent right out of bound write.</li>
+</ul>
+<img align="center" width="75%" src="../../left_pad.jpg">
+<ul>
+<li><code>name</code> stands for the cache name.</li>
+<li><code>list</code> stands for the doubly linked list that groups every <code>kmem_cache</code>, the <code>HEAD</code> is the <code>slab_caches</code> symbol.</li>
+<li></li>
 </ul>
 
     </section>

@@ -317,6 +317,230 @@
     <article class="gblog-post">
       <header class="gblog-post__header">
         <h1 class="gblog-post__title">
+          <a href="/posts/catastrophe/">[diceCTF 2022 - pwn] catastrophe</a>
+        </h1>
+      </header>
+
+      <section class="gblog-markdown">
+        Introduction      I just learned how to use malloc and free&hellip; am I doing this right?
+ catastrophe is a heap challenge I did during the diceCTF 2022. I did have a lot of issues with the libc and the dynamic linker, thus I did a first time the challenge with the libc that was in /lib/libc.so.6, then I figured out thanks to my teammate supersnailthat I was using the wrong libc.
+      </section>
+      <div class="gblog-post__readmore">
+        
+          <a
+            class="flex-inline align-center fake-link"
+            title="Read full post"
+            href="/posts/catastrophe/"
+          >
+            Read full post
+            <i class="gblog-icon">gblog_arrow_right</i>
+          </a>
+        
+      </div>
+
+      <footer class="gblog-post__footer">
+        <div class="flex flex-wrap align-center gblog-post__meta">
+          <span class="flex align-center no-wrap">
+  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
+  <span class="gblog-post__tag">
+    <time datetime="2022-07-28T00:00:00Z">
+      
+      Jul 28, 2022
+    </time>
+  </span>
+</span>
+
+<span class="flex align-center no-wrap">
+  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
+  <span class="gblog-post__tag">17 min read</span>
+</span>
+
+
+
+
+
+
+
+
+  
+    
+    
+      
+        <span class="flex align-center no-wrap">
+          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
+          
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/aaSSfxxx/"
+      title="All posts tagged with 'aaSSfxxx'"
+    >
+      aaSSfxxx
+    </a>
+  </span>
+
+        </span>
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/ctf/"
+      title="All posts tagged with 'ctf'"
+    >
+      ctf
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/diceCTF/"
+      title="All posts tagged with 'diceCTF'"
+    >
+      diceCTF
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/FSOP/"
+      title="All posts tagged with 'FSOP'"
+    >
+      FSOP
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/heap/"
+      title="All posts tagged with 'heap'"
+    >
+      heap
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/nasm/"
+      title="All posts tagged with 'nasm'"
+    >
+      nasm
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/pwn/"
+      title="All posts tagged with 'pwn'"
+    >
+      pwn
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/ret2school/"
+      title="All posts tagged with 'ret2school'"
+    >
+      ret2school
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/2022/"
+      title="All posts tagged with '2022'"
+    >
+      2022
+    </a>
+  </span>
+
+      
+    
+    
+  
+
+
+
+
+
+
+        </div>
+      </footer>
+    </article>
+  
+    <article class="gblog-post">
+      <header class="gblog-post__header">
+        <h1 class="gblog-post__title">
           <a href="/posts/kmem_cache/">[Linux kernel side notes - SLUB] kmem_cache</a>
         </h1>
       </header>
@@ -354,7 +578,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 
 <span class="flex align-center no-wrap">
   <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">7 min read</span>
+  <span class="gblog-post__tag">8 min read</span>
 </span>
 
 
@@ -1567,211 +1791,6 @@ justpwnit     justpwnit was a warmup pwn challenge. That&rsquo;s only a basic st
       title="All posts tagged with 'oob write'"
     >
       oob write
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/pwn/"
-      title="All posts tagged with 'pwn'"
-    >
-      pwn
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ret2school/"
-      title="All posts tagged with 'ret2school'"
-    >
-      ret2school
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/2021/"
-      title="All posts tagged with '2021'"
-    >
-      2021
-    </a>
-  </span>
-
-      
-    
-    
-  
-
-
-
-
-
-
-        </div>
-      </footer>
-    </article>
-  
-    <article class="gblog-post">
-      <header class="gblog-post__header">
-        <h1 class="gblog-post__title">
-          <a href="/posts/blindate/">[FCSC 2021 - pwn] Blind Date</a>
-        </h1>
-      </header>
-
-      <section class="gblog-markdown">
-        Blind Date (489 pts)      Une société souhaite créer un service en ligne protégeant les informations de ses clients. Pouvez-vous leur montrer qu&rsquo;elle n&rsquo;est pas sûre en lisant le fichier flag.txt sur leur serveur ? Les gérants de cette société n&rsquo;ont pas souhaité vous donner ni le code source de leur solution, ni le binaire compilé, mais ils vous proposent uniquement un accès distant à leur service.
-      </section>
-      <div class="gblog-post__readmore">
-        
-          <a
-            class="flex-inline align-center fake-link"
-            title="Read full post"
-            href="/posts/blindate/"
-          >
-            Read full post
-            <i class="gblog-icon">gblog_arrow_right</i>
-          </a>
-        
-      </div>
-
-      <footer class="gblog-post__footer">
-        <div class="flex flex-wrap align-center gblog-post__meta">
-          <span class="flex align-center no-wrap">
-  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
-  <span class="gblog-post__tag">
-    <time datetime="2021-05-03T00:00:00Z">
-      
-      May 3, 2021
-    </time>
-  </span>
-</span>
-
-<span class="flex align-center no-wrap">
-  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">17 min read</span>
-</span>
-
-
-
-
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/Blind-Date/"
-      title="All posts tagged with 'Blind Date'"
-    >
-      Blind Date
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ctf/"
-      title="All posts tagged with 'ctf'"
-    >
-      ctf
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/FCSC/"
-      title="All posts tagged with 'FCSC'"
-    >
-      FCSC
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/n4sm/"
-      title="All posts tagged with 'n4sm'"
-    >
-      n4sm
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/nasm/"
-      title="All posts tagged with 'nasm'"
-    >
-      nasm
     </a>
   </span>
 
