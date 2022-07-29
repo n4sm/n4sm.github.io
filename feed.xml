@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T03:00:47+02:00</updated>
+    <updated>2022-07-29T03:08:28+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -7053,30 +7053,22 @@ union<span class="o">{</span>baby_rarf_d0o_d00_do0_doo_do0_d0o<span class="o">}<
             <updated>0001-01-01T00:00:00+00:00</updated>
             
             
-            <content type="html"><![CDATA[<p>I&rsquo;m a french security enthusiast focused on low level stuff especially on binary obfuscation / analysis and on kernel stuff.</p>
+            <content type="html"><![CDATA[<p>I&rsquo;m a french security enthusiast focused on low level stuff especially on binary exploitation / analysis and on kernel stuff.
+If you have any questions about what I write on my blog, feel free to DM me on discord: <code>nasm#1307</code>.</p>
 <ul>
-<li>🔭 I’m currently working on DBI engine stuff.</li>
 <li>Doing CTF&rsquo;s for <a
   class="gblog-markdown__link"
   href="https://ret2school.github.io"
   
   >ret2school</a
 >, + pwn / RE / kernel.</li>
+<li>Engineering student at <a
+  class="gblog-markdown__link"
+  href="https://www.esiea.fr/"
+  
+  >ESIEA</a
+>.</li>
 </ul>
-<!--
-**n4sm/n4sm** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-
-Here are some ideas to get you started:
-
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
 ]]></content>
             
                  
