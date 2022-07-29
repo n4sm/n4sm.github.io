@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/oob-write/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/oob-write/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T03:28:33+02:00</updated>
+    <updated>2022-07-29T20:34:46+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -23,6 +23,9 @@
             <link href="https://nasm.re/posts/pwnasis/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/pwnasis/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-10-24T00:00:00+00:00</published>
             <updated>2021-10-24T00:00:00+00:00</updated>
             
@@ -632,6 +635,14 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
 </code></pre></div>]]></content>
             
                  
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
                     
                  
                     

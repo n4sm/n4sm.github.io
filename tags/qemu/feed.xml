@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/qemu/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/qemu/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T03:28:33+02:00</updated>
+    <updated>2022-07-29T20:34:46+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -23,6 +23,9 @@
             <link href="https://nasm.re/posts/cloudinspect/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/cloudinspect/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-11-07T00:00:00+00:00</published>
             <updated>2021-11-07T00:00:00+00:00</updated>
             
@@ -692,6 +695,14 @@ You can the final exploit <a
 ]]></content>
             
                  
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
                     
                  
                     

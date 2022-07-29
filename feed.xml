@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T03:28:33+02:00</updated>
+    <updated>2022-07-29T20:34:46+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -23,6 +23,9 @@
             <link href="https://nasm.re/posts/catastrophe/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/catastrophe/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-07-28T00:00:00+00:00</published>
             <updated>2022-07-28T00:00:00+00:00</updated>
             
@@ -816,6 +819,14 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -852,6 +863,9 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
             <link href="https://nasm.re/posts/kmem_cache/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/kmem_cache/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-07-18T00:00:00+00:00</published>
             <updated>2022-07-18T00:00:00+00:00</updated>
             
@@ -1170,6 +1184,14 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                 
@@ -1182,6 +1204,9 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
             <link href="https://nasm.re/posts/lowlevelnotes/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/lowlevelnotes/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-07-18T00:00:00+00:00</published>
             <updated>2022-07-18T00:00:00+00:00</updated>
             
@@ -1526,6 +1551,14 @@ Given the complexity of such structures, each of these structures are treated in
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                 
@@ -1535,9 +1568,12 @@ Given the complexity of such structures, each of these structures are treated in
         
         <entry>
             <title type="html"><![CDATA[[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all]]></title>
-            <link href="https://nasm.re/posts/onceforall/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
-            <id>https://nasm.re/posts/onceforall/</id>
+            <link href="https://nasm.re/posts/onceandforall/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/onceandforall/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-05-19T00:00:00+00:00</published>
             <updated>2022-05-19T00:00:00+00:00</updated>
             
@@ -1557,7 +1593,7 @@ Find the tasks and the final exploit <a
 <div class="gblog-post__anchorwrap">
     <h1 id="reverse-engineering">
         Reverse engineering
-        <a data-clipboard-text="https://nasm.re/posts/onceforall/#reverse-engineering" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Reverse engineering" href="#reverse-engineering">
+        <a data-clipboard-text="https://nasm.re/posts/onceandforall/#reverse-engineering" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Reverse engineering" href="#reverse-engineering">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h1>
@@ -1728,7 +1764,7 @@ Find the tasks and the final exploit <a
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h1 id="exploitation">
         Exploitation
-        <a data-clipboard-text="https://nasm.re/posts/onceforall/#exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Exploitation" href="#exploitation">
+        <a data-clipboard-text="https://nasm.re/posts/onceandforall/#exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Exploitation" href="#exploitation">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h1>
@@ -1736,7 +1772,7 @@ Find the tasks and the final exploit <a
 <div class="gblog-post__anchorwrap">
     <h2 id="what-we-have">
         What we have
-        <a data-clipboard-text="https://nasm.re/posts/onceforall/#what-we-have" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What we have" href="#what-we-have">
+        <a data-clipboard-text="https://nasm.re/posts/onceandforall/#what-we-have" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What we have" href="#what-we-have">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -1749,7 +1785,7 @@ Find the tasks and the final exploit <a
 <div class="gblog-post__anchorwrap">
     <h2 id="restrictions">
         Restrictions
-        <a data-clipboard-text="https://nasm.re/posts/onceforall/#restrictions" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Restrictions" href="#restrictions">
+        <a data-clipboard-text="https://nasm.re/posts/onceandforall/#restrictions" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Restrictions" href="#restrictions">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -1774,7 +1810,7 @@ Find the tasks and the final exploit <a
 <div class="gblog-post__anchorwrap">
     <h2 id="how-to-leak-libc-">
         How to leak libc ?
-        <a data-clipboard-text="https://nasm.re/posts/onceforall/#how-to-leak-libc-" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor How to leak libc ?" href="#how-to-leak-libc-">
+        <a data-clipboard-text="https://nasm.re/posts/onceandforall/#how-to-leak-libc-" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor How to leak libc ?" href="#how-to-leak-libc-">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -1928,7 +1964,7 @@ Find the tasks and the final exploit <a
 <div class="gblog-post__anchorwrap">
     <h2 id="what-can-we-target-in-the-libc-">
         What can we target in the libc ?
-        <a data-clipboard-text="https://nasm.re/posts/onceforall/#what-can-we-target-in-the-libc-" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What can we target in the libc ?" href="#what-can-we-target-in-the-libc-">
+        <a data-clipboard-text="https://nasm.re/posts/onceandforall/#what-can-we-target-in-the-libc-" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What can we target in the libc ?" href="#what-can-we-target-in-the-libc-">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -2112,7 +2148,7 @@ $1 = {
 <div class="gblog-post__anchorwrap">
     <h2 id="unsorted-bin-attack-on-stdin-_io_buf_end">
         Unsorted bin attack on stdin-&gt;_IO_buf_end
-        <a data-clipboard-text="https://nasm.re/posts/onceforall/#unsorted-bin-attack-on-stdin-_io_buf_end" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Unsorted bin attack on stdin-&gt;_IO_buf_end" href="#unsorted-bin-attack-on-stdin-_io_buf_end">
+        <a data-clipboard-text="https://nasm.re/posts/onceandforall/#unsorted-bin-attack-on-stdin-_io_buf_end" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Unsorted bin attack on stdin-&gt;_IO_buf_end" href="#unsorted-bin-attack-on-stdin-_io_buf_end">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -2288,7 +2324,7 @@ $1 = {
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="fsop--profit">
         FSOP + PROFIT
-        <a data-clipboard-text="https://nasm.re/posts/onceforall/#fsop--profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor FSOP &#43; PROFIT" href="#fsop--profit">
+        <a data-clipboard-text="https://nasm.re/posts/onceandforall/#fsop--profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor FSOP &#43; PROFIT" href="#fsop--profit">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
     </h2>
@@ -2354,6 +2390,14 @@ HTB{m4y_th3_f0rc3_b3_w1th_B0Nn13!}
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -2376,6 +2420,9 @@ HTB{m4y_th3_f0rc3_b3_w1th_B0Nn13!}
             <link href="https://nasm.re/posts/bookwriter/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/bookwriter/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-04-19T00:00:00+00:00</published>
             <updated>2022-04-19T00:00:00+00:00</updated>
             
@@ -3136,6 +3183,14 @@ $ id
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -3158,6 +3213,9 @@ $ id
             <link href="https://nasm.re/posts/phonebook/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/phonebook/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-04-17T00:00:00+00:00</published>
             <updated>2022-04-17T00:00:00+00:00</updated>
             
@@ -3315,6 +3373,14 @@ DCTF{C4n_1_g3t_y0ur_numb3r?}
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -3339,6 +3405,9 @@ DCTF{C4n_1_g3t_y0ur_numb3r?}
             <link href="https://nasm.re/posts/ftm/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/ftm/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-03-04T00:00:00+00:00</published>
             <updated>2022-03-04T00:00:00+00:00</updated>
             
@@ -3487,6 +3556,14 @@ BZHCTF{9024b719d4449bc9827478e50f0279427ccb542cc3ecdec21fce38c52b29561c}
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -3517,6 +3594,9 @@ BZHCTF{9024b719d4449bc9827478e50f0279427ccb542cc3ecdec21fce38c52b29561c}
             <link href="https://nasm.re/posts/safe/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/safe/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-12-05T00:00:00+00:00</published>
             <updated>2021-12-05T00:00:00+00:00</updated>
             
@@ -3746,6 +3826,14 @@ Candidates.#1....: 1234515D -&gt; EBCF585D
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -3786,6 +3874,9 @@ Candidates.#1....: 1234515D -&gt; EBCF585D
             <link href="https://nasm.re/posts/cloudinspect/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/cloudinspect/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-11-07T00:00:00+00:00</published>
             <updated>2021-11-07T00:00:00+00:00</updated>
             
@@ -4456,6 +4547,14 @@ You can the final exploit <a
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -4496,6 +4595,9 @@ You can the final exploit <a
             <link href="https://nasm.re/posts/pwnasis/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/pwnasis/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-10-24T00:00:00+00:00</published>
             <updated>2021-10-24T00:00:00+00:00</updated>
             
@@ -5106,6 +5208,14 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -5140,6 +5250,9 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
             <link href="https://nasm.re/posts/blindate/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/blindate/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-05-03T00:00:00+00:00</published>
             <updated>2021-05-03T00:00:00+00:00</updated>
             
@@ -6005,6 +6118,14 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -6039,6 +6160,9 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
             <link href="https://nasm.re/posts/mipsy/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/mipsy/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-05-03T00:00:00+00:00</published>
             <updated>2021-05-03T00:00:00+00:00</updated>
             
@@ -6648,6 +6772,14 @@ This challenge was very cool because it&rsquo;s a &ldquo;real world&rdquo; scena
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -6684,6 +6816,9 @@ This challenge was very cool because it&rsquo;s a &ldquo;real world&rdquo; scena
             <link href="https://nasm.re/posts/babyrarf/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/babyrarf/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-02-21T00:00:00+00:00</published>
             <updated>2021-02-21T00:00:00+00:00</updated>
             
@@ -7015,6 +7150,14 @@ union<span class="o">{</span>baby_rarf_d0o_d00_do0_doo_do0_d0o<span class="o">}<
 ]]></content>
             
                  
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
                     
                  
                     

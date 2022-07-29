@@ -11,6 +11,9 @@
     <loc>https://nasm.re/tags/aaSSfxxx/</loc>
     <lastmod>2022-07-28T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://nasm.re/authors/</loc>
+    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://nasm.re/tags/ctf/</loc>
     <lastmod>2022-07-28T00:00:00+00:00</lastmod>
   </url><url>
@@ -24,6 +27,9 @@
     <lastmod>2022-07-28T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/tags/nasm/</loc>
+    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/authors/nasm/</loc>
     <lastmod>2022-07-28T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/posts/</loc>
@@ -47,7 +53,7 @@
     <loc>https://nasm.re/posts/lowlevelnotes/</loc>
     <lastmod>2022-07-18T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://nasm.re/posts/onceforall/</loc>
+    <loc>https://nasm.re/posts/onceandforall/</loc>
     <lastmod>2022-05-19T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/tags/HackTheBox/</loc>
@@ -156,9 +162,5 @@
     <lastmod>2021-02-21T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/posts/about/</loc>
-  </url><url>
-    <loc>https://nasm.re/authors/</loc>
-  </url><url>
-    <loc>https://nasm.re/authors/nasm/</loc>
   </url>
 </urlset>

@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/Breizh-CTF/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/Breizh-CTF/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T03:28:33+02:00</updated>
+    <updated>2022-07-29T20:34:46+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -23,6 +23,9 @@
             <link href="https://nasm.re/posts/ftm/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/ftm/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-03-04T00:00:00+00:00</published>
             <updated>2022-03-04T00:00:00+00:00</updated>
             
@@ -170,6 +173,14 @@ BZHCTF{9024b719d4449bc9827478e50f0279427ccb542cc3ecdec21fce38c52b29561c}
 </code></pre>]]></content>
             
                  
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
                     
                  
                     

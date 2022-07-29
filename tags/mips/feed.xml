@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/mips/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/mips/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T03:28:33+02:00</updated>
+    <updated>2022-07-29T20:34:46+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -23,6 +23,9 @@
             <link href="https://nasm.re/posts/mipsy/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/mipsy/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-05-03T00:00:00+00:00</published>
             <updated>2021-05-03T00:00:00+00:00</updated>
             
@@ -631,6 +634,14 @@ This challenge was very cool because it&rsquo;s a &ldquo;real world&rdquo; scena
 ]]></content>
             
                  
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
                     
                  
                     

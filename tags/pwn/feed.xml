@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/pwn/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/pwn/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T03:28:33+02:00</updated>
+    <updated>2022-07-29T20:34:46+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -23,6 +23,9 @@
             <link href="https://nasm.re/posts/catastrophe/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/catastrophe/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-07-28T00:00:00+00:00</published>
             <updated>2022-07-28T00:00:00+00:00</updated>
             
@@ -816,6 +819,14 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -852,6 +863,9 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
             <link href="https://nasm.re/posts/phonebook/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/phonebook/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-04-17T00:00:00+00:00</published>
             <updated>2022-04-17T00:00:00+00:00</updated>
             
@@ -1009,6 +1023,14 @@ DCTF{C4n_1_g3t_y0ur_numb3r?}
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -1033,6 +1055,9 @@ DCTF{C4n_1_g3t_y0ur_numb3r?}
             <link href="https://nasm.re/posts/ftm/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/ftm/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2022-03-04T00:00:00+00:00</published>
             <updated>2022-03-04T00:00:00+00:00</updated>
             
@@ -1181,6 +1206,14 @@ BZHCTF{9024b719d4449bc9827478e50f0279427ccb542cc3ecdec21fce38c52b29561c}
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -1211,6 +1244,9 @@ BZHCTF{9024b719d4449bc9827478e50f0279427ccb542cc3ecdec21fce38c52b29561c}
             <link href="https://nasm.re/posts/cloudinspect/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/cloudinspect/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-11-07T00:00:00+00:00</published>
             <updated>2021-11-07T00:00:00+00:00</updated>
             
@@ -1881,6 +1917,14 @@ You can the final exploit <a
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -1921,6 +1965,9 @@ You can the final exploit <a
             <link href="https://nasm.re/posts/pwnasis/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/pwnasis/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-10-24T00:00:00+00:00</published>
             <updated>2021-10-24T00:00:00+00:00</updated>
             
@@ -2531,6 +2578,14 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -2565,6 +2620,9 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
             <link href="https://nasm.re/posts/blindate/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/blindate/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-05-03T00:00:00+00:00</published>
             <updated>2021-05-03T00:00:00+00:00</updated>
             
@@ -3430,6 +3488,14 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -3464,6 +3530,9 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
             <link href="https://nasm.re/posts/mipsy/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/mipsy/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-05-03T00:00:00+00:00</published>
             <updated>2021-05-03T00:00:00+00:00</updated>
             
@@ -4073,6 +4142,14 @@ This challenge was very cool because it&rsquo;s a &ldquo;real world&rdquo; scena
             
                  
                     
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
                  
                     
                          
@@ -4109,6 +4186,9 @@ This challenge was very cool because it&rsquo;s a &ldquo;real world&rdquo; scena
             <link href="https://nasm.re/posts/babyrarf/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/babyrarf/</id>
             
+                    <author>
+                        <name>nasm</name>
+                    </author>
             <published>2021-02-21T00:00:00+00:00</published>
             <updated>2021-02-21T00:00:00+00:00</updated>
             
@@ -4440,6 +4520,14 @@ union<span class="o">{</span>baby_rarf_d0o_d00_do0_doo_do0_d0o<span class="o">}<
 ]]></content>
             
                  
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
                     
                  
                     
