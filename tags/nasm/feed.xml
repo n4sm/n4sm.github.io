@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/nasm/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/nasm/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T03:08:28+02:00</updated>
+    <updated>2022-07-29T03:28:33+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -333,7 +333,7 @@ $ checksec --file catastrophe
   
   >this one</a
 >.</p>
-<p>To understand the whole process I&rsquo;ll try to introduce you to FSOP. First of all the target structure is stdout, we wanna corrupt stdout because it&rsquo;s used ritght after the <code>fgets</code> that reads the input from the user by the <code>puts</code> function. Basically on linux &ldquo;everything is a file&rdquo; from the character device the any stream (error, input, output, opened file) we can interact with  a resource just by opening it and by getting a file descriptor on it, right ? This way each file descripor has an associated structure called <code>FILE</code> you may have used if you have already did some stuff with files on linux. Here is it definition:</p>
+<p>To understand the whole process I&rsquo;ll try to introduce you to FSOP. First of all the target structure is stdout, we wanna corrupt stdout because it&rsquo;s used ritght after the <code>fgets</code> that reads the input from the user by the <code>putchar</code> function. Basically on linux &ldquo;everything is a file&rdquo; from the character device the any stream (error, input, output, opened file) we can interact with  a resource just by opening it and by getting a file descriptor on it, right ? This way each file descripor has an associated structure called <code>FILE</code> you may have used if you have already done some stuff with files on linux. Here is its definition:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/bits/types/struct_FILE.h#L49
 </span><span class="c1"></span><span class="cm">/* The tag name of this struct is _IO_FILE to preserve historic
 </span><span class="cm">   C++ mangled names for functions taking FILE* arguments.
