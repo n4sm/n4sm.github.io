@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-08-01T03:38:53+02:00</updated>
+    <updated>2022-08-01T03:41:33+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -859,7 +859,7 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
     
         
         <entry>
-            <title type="html"><![CDATA[[Linux Internal] SLUB - kmem_cache]]></title>
+            <title type="html"><![CDATA[[Linux Internals] SLUB - kmem_cache]]></title>
             <link href="https://nasm.re/posts/kmem_cache/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
             <id>https://nasm.re/posts/kmem_cache/</id>
             
