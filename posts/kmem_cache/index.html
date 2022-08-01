@@ -227,7 +227,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/kmem_cache\/",
-    "wordCount" : "1537",
+    "wordCount" : "2632",
     "genre" : [ ]
 }
 </script>
@@ -384,7 +384,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 
 <span class="flex align-center no-wrap">
   <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">8 min read</span>
+  <span class="gblog-post__tag">13 min read</span>
 </span>
 
 
@@ -451,7 +451,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
     </h2>
 </div>
 <p>Here is the definition of the <code>kmem_cache</code> structure:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/slub_def.h#L90
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/slub_def.h#L90
 </span><span class="c1"></span><span class="cm">/*
 </span><span class="cm"> * Slab cache management.
 </span><span class="cm"> */</span>
@@ -514,7 +514,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 <li><code>cpu_slab</code> is a pointer to the <code>__percpu</code> <code>kmem_cache_cpu</code> structure. Each cpu has its own <code>kmem_cache_cpu</code> to easily and faster return objects without having to trigger the &ldquo;slowpath&rdquo; code path which will search through the partial list of the <code>kmem_cache_cpu</code> or by allocating one more slab.</li>
 <li><code>flags</code> are the internal flags used to describe the cache. The whole (I hope so) list would be:</li>
 </ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/slab.h#L27
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/slab.h#L27
 </span><span class="c1"></span><span class="cm">/*
 </span><span class="cm"> * Flags to pass to kmem_cache_create().
 </span><span class="cm"> * The ones marked DEBUG are only valid if CONFIG_DEBUG_SLAB is set.
@@ -623,7 +623,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 <li><code>object_size</code> stands for &ndash; according to the comment &ndash; The size of an object without metadata.</li>
 <li><code>reciprocal_size</code> is a <code>reciprocal_value</code> structure that stands for the reciprocal value of the <code>size</code>. It&rsquo;s basically a magic structure that allows linux to compute faster a division between an integer and a predefined constant (the <code>size</code> for our case). It allows linux to do a multiplication instead of a directly a division. Further informations below:</li>
 </ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/reciprocal_div.h#L23
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/reciprocal_div.h#L23
 </span><span class="c1"></span><span class="cm">/*
 </span><span class="cm"> * This algorithm is based on the paper &#34;Division by Invariant
 </span><span class="cm"> * Integers Using Multiplication&#34; by Torbjörn Granlund and Peter
@@ -650,7 +650,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 <li><code>cpu_partial_slabs</code> stands for the number of per cpu partial slabs to keep around.</li>
 <li><code>oo</code> stands for both the number of objects among a slab and the size of the whole slab. Here are the two functions that compute the conversion and the one that computes the <code>oo</code> from the order and the size of the object:</li>
 </ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/mm/slub.c#L407
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/mm/slub.c#L407
 </span><span class="c1"></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="nf">oo_order</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache_order_objects</span> <span class="n">x</span><span class="p">)</span>
 <span class="p">{</span>
 	<span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">x</span> <span class="o">&gt;&gt;</span> <span class="n">OO_SHIFT</span><span class="p">;</span>
@@ -680,7 +680,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 </code></pre></div><ul>
 <li><code>allocflags</code> GFP allocation flags. Here are most of them:</li>
 </ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/gfp.h#L340
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/gfp.h#L340
 </span><span class="c1"></span><span class="cp">#define GFP_ATOMIC	(__GFP_HIGH|__GFP_ATOMIC|__GFP_KSWAPD_RECLAIM)
 </span><span class="cp">#define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
 </span><span class="cp">#define GFP_KERNEL_ACCOUNT (GFP_KERNEL | __GFP_ACCOUNT)
@@ -710,7 +710,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 <li><code>ctor</code> stands for a constructor called at every object intitialization, it&rsquo;s called in <code>setup_object</code> which is itself called in <code>shuffle_freelist</code> and in <code>allocate_slab</code> at the slab allocation level so.</li>
 <li><code>inuse</code> stands for the offset of the first metadata, we can distinguish several cases:</li>
 </ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L987
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L987
 </span><span class="c1"></span><span class="cm">/* object + s-&gt;inuse
 </span><span class="cm"> * 	Meta data starts here.
 </span><span class="cm"> *
@@ -730,9 +730,265 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 <ul>
 <li><code>name</code> stands for the cache name.</li>
 <li><code>list</code> stands for the doubly linked list that groups every <code>kmem_cache</code>, the <code>HEAD</code> is the <code>slab_caches</code> symbol.</li>
-<li></li>
+<li><code>kobj</code> stands for the internal kobjets reference counter, see <a
+  class="gblog-markdown__link"
+  href="https://lwn.net/Articles/51437/"
+  
+  >this LWN article</a
+> for further informations.</li>
+<li><code>random</code> stands for the secret kept in each <code>kmem_cache</code> when the kernel is compiled with the <code>CONFIG_SLAB_FREELIST_HARDENED</code>. It&rsquo;s initialized in <code>kmem_cache_open</code> and used to decrypt the next free pointer of free chunks belonging to the cache:</li>
 </ul>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L4180
+</span><span class="c1"></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">kmem_cache_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="n">slab_flags_t</span> <span class="n">flags</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">s</span><span class="o">-&gt;</span><span class="n">flags</span> <span class="o">=</span> <span class="n">kmem_cache_flags</span><span class="p">(</span><span class="n">s</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">s</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+<span class="cp">#ifdef CONFIG_SLAB_FREELIST_HARDENED
+</span><span class="cp"></span>	<span class="n">s</span><span class="o">-&gt;</span><span class="n">random</span> <span class="o">=</span> <span class="n">get_random_long</span><span class="p">();</span>
 
+<span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L334
+</span><span class="c1"></span>
+<span class="cm">/*
+</span><span class="cm"> * Returns freelist pointer (ptr). With hardening, this is obfuscated
+</span><span class="cm"> * with an XOR of the address where the pointer is held and a per-cache
+</span><span class="cm"> * random number.
+</span><span class="cm"> */</span>
+<span class="k">static</span> <span class="kr">inline</span> <span class="kt">void</span> <span class="o">*</span><span class="n">freelist_ptr</span><span class="p">(</span><span class="k">const</span> <span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">ptr</span><span class="p">,</span>
+				 <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">ptr_addr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="cp">#ifdef CONFIG_SLAB_FREELIST_HARDENED
+</span><span class="cp"></span>	<span class="cm">/*
+</span><span class="cm">	 * When CONFIG_KASAN_SW/HW_TAGS is enabled, ptr_addr might be tagged.
+</span><span class="cm">	 * Normally, this doesn&#39;t cause any issues, as both set_freepointer()
+</span><span class="cm">	 * and get_freepointer() are called with a pointer with the same tag.
+</span><span class="cm">	 * However, there are some issues with CONFIG_SLUB_DEBUG code. For
+</span><span class="cm">	 * example, when __free_slub() iterates over objects in a cache, it
+</span><span class="cm">	 * passes untagged pointers to check_object(). check_object() in turns
+</span><span class="cm">	 * calls get_freepointer() with an untagged pointer, which causes the
+</span><span class="cm">	 * freepointer to be restored incorrectly.
+</span><span class="cm">	 */</span>
+	<span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)((</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">)</span><span class="n">ptr</span> <span class="o">^</span> <span class="n">s</span><span class="o">-&gt;</span><span class="n">random</span> <span class="o">^</span>
+			<span class="n">swab</span><span class="p">((</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">)</span><span class="n">kasan_reset_tag</span><span class="p">((</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">ptr_addr</span><span class="p">)));</span>
+<span class="cp">#else
+</span><span class="cp"></span>	<span class="k">return</span> <span class="n">ptr</span><span class="p">;</span>
+<span class="cp">#endif
+</span><span class="cp"></span><span class="p">}</span>
+</code></pre></div><ul>
+<li><code>remote_node_defrag_ratio</code> bigger the <code>remote_node_defrag_ratio</code> is, more the allocator returns objets that belong to remote nodes:</li>
+</ul>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L2200
+</span><span class="c1"></span>	<span class="cm">/*
+</span><span class="cm">	 * The defrag ratio allows a configuration of the tradeoffs between
+</span><span class="cm">	 * inter node defragmentation and node local allocations. A lower
+</span><span class="cm">	 * defrag_ratio increases the tendency to do local allocations
+</span><span class="cm">	 * instead of attempting to obtain partial slabs from other nodes.
+</span><span class="cm">	 *
+</span><span class="cm">	 * If the defrag_ratio is set to 0 then kmalloc() always
+</span><span class="cm">	 * returns node local objects. If the ratio is higher then kmalloc()
+</span><span class="cm">	 * may return off node objects because partial slabs are obtained
+</span><span class="cm">	 * from other nodes and filled up.
+</span><span class="cm">	 *
+</span><span class="cm">	 * If /sys/kernel/slab/xx/remote_node_defrag_ratio is set to 100
+</span><span class="cm">	 * (which makes defrag_ratio = 1000) then every (well almost)
+</span><span class="cm">	 * allocation will first attempt to defrag slab caches on other nodes.
+</span><span class="cm">	 * This means scanning over all nodes to look for partial slabs which
+</span><span class="cm">	 * may be expensive if we do it every time we are trying to find a slab
+</span><span class="cm">	 * with available objects.
+</span><span class="cm">	 */</span>
+</code></pre></div><ul>
+<li><code>random_seq</code> represents a shuffled array of offset of chunks that belong to a slab. Given the freelist stuff is done only on a slab, the offset should not exceed <code>page_limit</code> which is <code>nr_objects * size</code>.cDepends on <code>CONFIG_SLAB_FREELIST_RANDOM</code>. Here are some functions that use <code>random_seq</code>:</li>
+</ul>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L1855
+</span><span class="c1"></span>
+<span class="cm">/* Get the next entry on the pre-computed freelist randomized */</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="o">*</span><span class="nf">next_freelist_entry</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="k">struct</span> <span class="n">slab</span> <span class="o">*</span><span class="n">slab</span><span class="p">,</span>
+				<span class="kt">unsigned</span> <span class="kt">long</span> <span class="o">*</span><span class="n">pos</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">start</span><span class="p">,</span>
+				<span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">page_limit</span><span class="p">,</span>
+				<span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">freelist_count</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">idx</span><span class="p">;</span>
+
+	<span class="cm">/*
+</span><span class="cm">	 * If the target page allocation failed, the number of objects on the
+</span><span class="cm">	 * page might be smaller than the usual size defined by the cache.
+</span><span class="cm">	 */</span>
+	<span class="k">do</span> <span class="p">{</span>
+		<span class="n">idx</span> <span class="o">=</span> <span class="n">s</span><span class="o">-&gt;</span><span class="n">random_seq</span><span class="p">[</span><span class="o">*</span><span class="n">pos</span><span class="p">];</span>
+		<span class="o">*</span><span class="n">pos</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">pos</span> <span class="o">&gt;=</span> <span class="n">freelist_count</span><span class="p">)</span>
+			<span class="o">*</span><span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">idx</span> <span class="o">&gt;=</span> <span class="n">page_limit</span><span class="p">));</span>
+
+	<span class="k">return</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">start</span> <span class="o">+</span> <span class="n">idx</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L1843
+</span><span class="c1"></span>
+<span class="cm">/* Initialize each random sequence freelist per cache */</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="n">__init</span> <span class="nf">init_freelist_randomization</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">s</span><span class="p">;</span>
+
+	<span class="n">mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">slab_mutex</span><span class="p">);</span>
+
+	<span class="n">list_for_each_entry</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">slab_caches</span><span class="p">,</span> <span class="n">list</span><span class="p">)</span>
+		<span class="n">init_cache_random_seq</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+
+	<span class="n">mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">slab_mutex</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L1816
+</span><span class="c1"></span>
+<span class="k">static</span> <span class="kt">int</span> <span class="nf">init_cache_random_seq</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">s</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="n">oo_objects</span><span class="p">(</span><span class="n">s</span><span class="o">-&gt;</span><span class="n">oo</span><span class="p">);</span>
+	<span class="kt">int</span> <span class="n">err</span><span class="p">;</span>
+
+	<span class="cm">/* Bailout if already initialised */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="o">-&gt;</span><span class="n">random_seq</span><span class="p">)</span>
+		<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+	<span class="n">err</span> <span class="o">=</span> <span class="n">cache_random_seq_create</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">GFP_KERNEL</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">pr_err</span><span class="p">(</span><span class="s">&#34;SLUB: Unable to initialize free list for %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span>
+			<span class="n">s</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+		<span class="k">return</span> <span class="n">err</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="cm">/* Transform to an offset on the set of pages */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="o">-&gt;</span><span class="n">random_seq</span><span class="p">)</span> <span class="p">{</span>
+		<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+
+		<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">count</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+			<span class="n">s</span><span class="o">-&gt;</span><span class="n">random_seq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*=</span> <span class="n">s</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><ul>
+<li><code>kasan_info</code> is a cache used by the Kernel Address Sanizer (KASAN), it keeps track of freed chunks, especially by storing informations within the redzone. Here are some of the operations performed by KASAN:</li>
+</ul>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/kasan/common.c#L138
+</span><span class="c1"></span>
+<span class="kt">void</span> <span class="nf">__kasan_cache_create</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">cache</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="o">*</span><span class="n">size</span><span class="p">,</span>
+			  <span class="n">slab_flags_t</span> <span class="o">*</span><span class="n">flags</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">ok_size</span><span class="p">;</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">optimal_size</span><span class="p">;</span>
+
+	<span class="cm">/*
+</span><span class="cm">	 * SLAB_KASAN is used to mark caches as ones that are sanitized by
+</span><span class="cm">	 * KASAN. Currently this flag is used in two places:
+</span><span class="cm">	 * 1. In slab_ksize() when calculating the size of the accessible
+</span><span class="cm">	 *    memory within the object.
+</span><span class="cm">	 * 2. In slab_common.c to prevent merging of sanitized caches.
+</span><span class="cm">	 */</span>
+	<span class="o">*</span><span class="n">flags</span> <span class="o">|=</span> <span class="n">SLAB_KASAN</span><span class="p">;</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">kasan_stack_collection_enabled</span><span class="p">())</span>
+		<span class="k">return</span><span class="p">;</span>
+
+	<span class="n">ok_size</span> <span class="o">=</span> <span class="o">*</span><span class="n">size</span><span class="p">;</span>
+
+	<span class="cm">/* Add alloc meta into redzone. */</span>
+	<span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">alloc_meta_offset</span> <span class="o">=</span> <span class="o">*</span><span class="n">size</span><span class="p">;</span>
+	<span class="o">*</span><span class="n">size</span> <span class="o">+=</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kasan_alloc_meta</span><span class="p">);</span>
+
+	<span class="cm">/*
+</span><span class="cm">	 * If alloc meta doesn&#39;t fit, don&#39;t add it.
+</span><span class="cm">	 * This can only happen with SLAB, as it has KMALLOC_MAX_SIZE equal
+</span><span class="cm">	 * to KMALLOC_MAX_CACHE_SIZE and doesn&#39;t fall back to page_alloc for
+</span><span class="cm">	 * larger sizes.
+</span><span class="cm">	 */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">KMALLOC_MAX_SIZE</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">alloc_meta_offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+		<span class="o">*</span><span class="n">size</span> <span class="o">=</span> <span class="n">ok_size</span><span class="p">;</span>
+		<span class="cm">/* Continue, since free meta might still fit. */</span>
+	<span class="p">}</span>
+
+	<span class="cm">/* Only the generic mode uses free meta or flexible redzones. */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">IS_ENABLED</span><span class="p">(</span><span class="n">CONFIG_KASAN_GENERIC</span><span class="p">))</span> <span class="p">{</span>
+		<span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">free_meta_offset</span> <span class="o">=</span> <span class="n">KASAN_NO_FREE_META</span><span class="p">;</span>
+		<span class="k">return</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="cm">/*
+</span><span class="cm">	 * Add free meta into redzone when it&#39;s not possible to store
+</span><span class="cm">	 * it in the object. This is the case when:
+</span><span class="cm">	 * 1. Object is SLAB_TYPESAFE_BY_RCU, which means that it can
+</span><span class="cm">	 *    be touched after it was freed, or
+</span><span class="cm">	 * 2. Object has a constructor, which means it&#39;s expected to
+</span><span class="cm">	 *    retain its content until the next allocation, or
+</span><span class="cm">	 * 3. Object is too small.
+</span><span class="cm">	 * Otherwise cache-&gt;kasan_info.free_meta_offset = 0 is implied.
+</span><span class="cm">	 */</span>
+	<span class="k">if</span> <span class="p">((</span><span class="n">cache</span><span class="o">-&gt;</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">SLAB_TYPESAFE_BY_RCU</span><span class="p">)</span> <span class="o">||</span> <span class="n">cache</span><span class="o">-&gt;</span><span class="n">ctor</span> <span class="o">||</span>
+	    <span class="n">cache</span><span class="o">-&gt;</span><span class="n">object_size</span> <span class="o">&lt;</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kasan_free_meta</span><span class="p">))</span> <span class="p">{</span>
+		<span class="n">ok_size</span> <span class="o">=</span> <span class="o">*</span><span class="n">size</span><span class="p">;</span>
+
+		<span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">free_meta_offset</span> <span class="o">=</span> <span class="o">*</span><span class="n">size</span><span class="p">;</span>
+		<span class="o">*</span><span class="n">size</span> <span class="o">+=</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kasan_free_meta</span><span class="p">);</span>
+
+		<span class="cm">/* If free meta doesn&#39;t fit, don&#39;t add it. */</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">KMALLOC_MAX_SIZE</span><span class="p">)</span> <span class="p">{</span>
+			<span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">free_meta_offset</span> <span class="o">=</span> <span class="n">KASAN_NO_FREE_META</span><span class="p">;</span>
+			<span class="o">*</span><span class="n">size</span> <span class="o">=</span> <span class="n">ok_size</span><span class="p">;</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="cm">/* Calculate size with optimal redzone. */</span>
+	<span class="n">optimal_size</span> <span class="o">=</span> <span class="n">cache</span><span class="o">-&gt;</span><span class="n">object_size</span> <span class="o">+</span> <span class="n">optimal_redzone</span><span class="p">(</span><span class="n">cache</span><span class="o">-&gt;</span><span class="n">object_size</span><span class="p">);</span>
+	<span class="cm">/* Limit it with KMALLOC_MAX_SIZE (relevant for SLAB only). */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">optimal_size</span> <span class="o">&gt;</span> <span class="n">KMALLOC_MAX_SIZE</span><span class="p">)</span>
+		<span class="n">optimal_size</span> <span class="o">=</span> <span class="n">KMALLOC_MAX_SIZE</span><span class="p">;</span>
+	<span class="cm">/* Use optimal size if the size with added metas is not large enough. */</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">optimal_size</span><span class="p">)</span>
+		<span class="o">*</span><span class="n">size</span> <span class="o">=</span> <span class="n">optimal_size</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">__kasan_cache_create_kmalloc</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">cache</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">is_kmalloc</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">size_t</span> <span class="nf">__kasan_metadata_size</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">cache</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">kasan_stack_collection_enabled</span><span class="p">())</span>
+		<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">return</span> <span class="p">(</span><span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">alloc_meta_offset</span> <span class="o">?</span>
+		<span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kasan_alloc_meta</span><span class="p">)</span> <span class="o">:</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span>
+		<span class="p">(</span><span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">free_meta_offset</span> <span class="o">?</span>
+		<span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kasan_free_meta</span><span class="p">)</span> <span class="o">:</span> <span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">struct</span> <span class="n">kasan_alloc_meta</span> <span class="o">*</span><span class="nf">kasan_get_alloc_meta</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">cache</span><span class="p">,</span>
+					      <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">object</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">alloc_meta_offset</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+	<span class="k">return</span> <span class="n">kasan_reset_tag</span><span class="p">(</span><span class="n">object</span><span class="p">)</span> <span class="o">+</span> <span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">alloc_meta_offset</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#ifdef CONFIG_KASAN_GENERIC
+</span><span class="cp"></span><span class="k">struct</span> <span class="n">kasan_free_meta</span> <span class="o">*</span><span class="nf">kasan_get_free_meta</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">cache</span><span class="p">,</span>
+					    <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">object</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">BUILD_BUG_ON</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kasan_free_meta</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">32</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">free_meta_offset</span> <span class="o">==</span> <span class="n">KASAN_NO_FREE_META</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+	<span class="k">return</span> <span class="n">kasan_reset_tag</span><span class="p">(</span><span class="n">object</span><span class="p">)</span> <span class="o">+</span> <span class="n">cache</span><span class="o">-&gt;</span><span class="n">kasan_info</span><span class="p">.</span><span class="n">free_meta_offset</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cp">#endif
+</span><span class="cp"></span>
+<span class="kt">void</span> <span class="nf">__kasan_poison_slab</span><span class="p">(</span><span class="k">struct</span> <span class="n">slab</span> <span class="o">*</span><span class="n">slab</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">struct</span> <span class="n">page</span> <span class="o">*</span><span class="n">page</span> <span class="o">=</span> <span class="n">slab_page</span><span class="p">(</span><span class="n">slab</span><span class="p">);</span>
+	<span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">i</span><span class="p">;</span>
+
+	<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">compound_nr</span><span class="p">(</span><span class="n">page</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+		<span class="n">page_kasan_tag_reset</span><span class="p">(</span><span class="n">page</span> <span class="o">+</span> <span class="n">i</span><span class="p">);</span>
+	<span class="n">kasan_poison</span><span class="p">(</span><span class="n">page_address</span><span class="p">(</span><span class="n">page</span><span class="p">),</span> <span class="n">page_size</span><span class="p">(</span><span class="n">page</span><span class="p">),</span>
+		     <span class="n">KASAN_KMALLOC_REDZONE</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
     </section>
   </article>
 

