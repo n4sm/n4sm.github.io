@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/hypervisor/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/hypervisor/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-08-01T03:41:33+02:00</updated>
+    <updated>2022-08-02T13:40:56+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -64,9 +64,9 @@ The <code>flag</code> is located right next to the hypervisor. Go get it!</p>
     </h2>
 </div>
 <p>We got several files:</p>
-<pre><code>$ ls
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ ls
 build_qemu.sh  diff_chall.txt  flag  initramfs.cpio.gz  qemu-system-x86_64  run_chall.sh  vmlinuz-5.11.0-38-generic
-</code></pre><p>Apparently, according to the <code>diff_chall.txt</code> , the provided qemu binary is patched with some vulnerable code. Let&rsquo;s take a look at the diff file:</p>
+</code></pre></div><p>Apparently, according to the <code>diff_chall.txt</code> , the provided qemu binary is patched with some vulnerable code. Let&rsquo;s take a look at the diff file:</p>
 <div class="highlight"><pre class="chroma"><code class="language-diff" data-lang="diff"><span class="gh">diff --git a/hw/misc/cloudinspect.c b/hw/misc/cloudinspect.c
 </span><span class="gh"></span>new file mode 100644
 <span class="gh">index 0000000000..f1c3f84b2a
@@ -313,18 +313,18 @@ build_qemu.sh  diff_chall.txt  flag  initramfs.cpio.gz  qemu-system-x86_64  run_
 <p>Now we know a bit more about PCI devices, we can see that the patched code is a PCI interface between the linux guest operating system and .. <em>nothing</em>. That&rsquo;s just a vulnerable PCI device which allows us to read and write four I/O registers (<code>CNT</code>, <code>SRC</code>, <code>CMD</code> and <code>DST</code>). According to these registers, we can read and write at an arbitrary location. There is a check about the size we&rsquo;re requesting for read / write operations at a particular offset from the <code>dmabuf</code> base address, but since we control the offset it does not matter.</p>
 <p>To write these registers from userland, we need to <code>mmap</code> the right <code>resource</code> file corresponding to the PCI device. Then we just have to read or write the mapped file at an offset corresponding to the the register we want to read / write. Furthermore, the arbitrary read / write primitives provided by the device need to read to / from a memory area from its physical address the data we want to read / write.</p>
 <p>The resource file can be found by getting a shell on the machine to take a look at the output of the <code>lspci</code> command.</p>
-<pre><code>/ # lspci -v
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">/ <span class="c1"># lspci -v</span>
 00:01.0 Class 0601: 8086:7000
 00:00.0 Class 0600: 8086:1237
 00:01.3 Class 0680: 8086:7113
 00:01.1 Class 0101: 8086:7010
 00:02.0 Class 00ff: 1337:1337
-</code></pre><p>The output of the command is structured like this:</p>
-<pre><code>Field 1 : 00:02.0 : bus number (00), device number (02) and function (0)
-Field 2 : 00ff    : device class
-Field 3 : 1337    : vendor ID
-Field 4 : 1337    : device ID
-</code></pre><p>According to the source code of the PCI device, the vendor ID and the device ID are <code>0x1337</code>, the resource file corresponding to the device is so <code>/sys/devices/pci0000:00/0000:00:02.0/resource0</code>.</p>
+</code></pre></div><p>The output of the command is structured like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">Field <span class="m">1</span> : 00:02.0 : bus number <span class="o">(</span>00<span class="o">)</span>, device number <span class="o">(</span>02<span class="o">)</span> and <span class="k">function</span> <span class="o">(</span>0<span class="o">)</span>
+Field <span class="m">2</span> : 00ff    : device class
+Field <span class="m">3</span> : <span class="m">1337</span>    : vendor ID
+Field <span class="m">4</span> : <span class="m">1337</span>    : device ID
+</code></pre></div><p>According to the source code of the PCI device, the vendor ID and the device ID are <code>0x1337</code>, the resource file corresponding to the device is so <code>/sys/devices/pci0000:00/0000:00:02.0/resource0</code>.</p>
 <div class="gblog-post__anchorwrap">
     <h2 id="device-interactions">
         Device interactions
@@ -475,38 +475,38 @@ Field 4 : 1337    : device ID
     </h3>
 </div>
 <p>To see where we can find pointers to the rwx memory area, we can make use of the <code>search</code> command in <code>pwndbg</code>:</p>
-<pre><code>pwndbg&gt; vmmap                                                                                                                                                                              
-LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA                                                                                                                                            
-    0x559a884e1000     0x559a88791000 r--p   2b0000 0      /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">pwndbg&gt; vmmap                                                                                                                                                                              
+LEGEND: STACK <span class="p">|</span> HEAP <span class="p">|</span> CODE <span class="p">|</span> DATA <span class="p">|</span> RWX <span class="p">|</span> RODATA                                                                                                                                            
+    0x559a884e1000     0x559a88791000 r--p   2b0000 <span class="m">0</span>      /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a88791000     0x559a88c5d000 r-xp   4cc000 2b0000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a88c5d000     0x559a890ff000 r--p   4a2000 77c000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
-    0x559a89100000     0x559a89262000 r--p   162000 c1e000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
+    0x559a89100000     0x559a89262000 r--p   <span class="m">162000</span> c1e000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a89262000     0x559a89353000 rw-p    f1000 d80000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
-    0x559a89353000     0x559a89377000 rw-p    24000 0      [anon_559a89353]                                                                                                                    
-    0x559a8a059000     0x559a8b0e7000 rw-p  108e000 0      [heap]                                                                                                                              
-    0x7fc5f4000000     0x7fc5f4a37000 rw-p   a37000 0      [anon_7fc5f4000]                                                                                                              
-    0x7fc5f4a37000     0x7fc5f8000000 ---p  35c9000 0      [anon_7fc5f4a37]                                                                                                                    
-    0x7fc5fbe00000     0x7fc603e00000 rw-p  8000000 0      [anon_7fc5fbe00]                                                                                                                    
-    0x7fc603e00000     0x7fc603e01000 ---p     1000 0      [anon_7fc603e00]                                                                                                                    
-    0x7fc604000000     0x7fc643fff000 rwxp 3ffff000 0      [anon_7fc604000]                                                                                                                  
-    [SKIP]
+    0x559a89353000     0x559a89377000 rw-p    <span class="m">24000</span> <span class="m">0</span>      <span class="o">[</span>anon_559a89353<span class="o">]</span>                                                                                                                    
+    0x559a8a059000     0x559a8b0e7000 rw-p  108e000 <span class="m">0</span>      <span class="o">[</span>heap<span class="o">]</span>                                                                                                                              
+    0x7fc5f4000000     0x7fc5f4a37000 rw-p   a37000 <span class="m">0</span>      <span class="o">[</span>anon_7fc5f4000<span class="o">]</span>                                                                                                              
+    0x7fc5f4a37000     0x7fc5f8000000 ---p  35c9000 <span class="m">0</span>      <span class="o">[</span>anon_7fc5f4a37<span class="o">]</span>                                                                                                                    
+    0x7fc5fbe00000     0x7fc603e00000 rw-p  <span class="m">8000000</span> <span class="m">0</span>      <span class="o">[</span>anon_7fc5fbe00<span class="o">]</span>                                                                                                                    
+    0x7fc603e00000     0x7fc603e01000 ---p     <span class="m">1000</span> <span class="m">0</span>      <span class="o">[</span>anon_7fc603e00<span class="o">]</span>                                                                                                                    
+    0x7fc604000000     0x7fc643fff000 rwxp 3ffff000 <span class="m">0</span>      <span class="o">[</span>anon_7fc604000<span class="o">]</span>                                                                                                                  
+    <span class="o">[</span>SKIP<span class="o">]</span>
 pwndbg&gt; search -4 0x7fc60400 -w                                                                                                                                                                
-[anon_559a89353] 0x559a89359002 0x7fc60400                                                                                                                                                     
-[anon_559a89353] 0x559a8935904a 0x7fc60400                                                                                                                                                     
-[anon_559a89353] 0x559a89359052 0x1600007fc60400                                                                                                                                               
-[anon_559a89353] 0x559a8935905a 0x2d00007fc60400                                                                                                                                               
-[anon_559a89353] 0x559a89359062 0xffd300007fc60400                                                                                                                                             
-[anon_559a89353] 0x559a89359072 0x7fc60400                                                                                                                                                     
-[anon_559a89353] 0x559a89372b2a 0x10100007fc60400                                                                                                                                              
-[anon_559a89353] 0x559a89372bb2 0x100000007fc60400                                                                                                                                             
-[anon_559a89353] 0x559a89372bba 0xf00000007fc60400                                                                                                                                             
-[heap]          0x559a8a2dccf2 0x2d00007fc60400                                                                                                                                                
-[heap]          0x559a8a2dccfa 0x7fc60400                                                                                                                                                      
-[heap]          0x559a8a2dcd6a 0x7fc60400                                                                                                                                                      
-[heap]          0x559a8a2dcefa 0xffd300007fc60400                                                                                                                                              
-[heap]          0x559a8a2dcf18 0x7fc60400                                                                                                                                                      
-[SKIP]
-</code></pre><p>Given that we don&rsquo;t want to get the leak from heap because of the unreliability we can see that there are available leaks in a writable area of the binary in <code>anon_559a89353</code>, indeed the page address looks like a PIE based binary address or an heap address (but the address is not marked heap), and if we look more carefully, the page is contiguous to the last file mapped memory area. Now we can leak the rwx memory area, lets' find a way to leak object&rsquo;s address! I asked on the hack.lu discord a hint for this leak because didn&rsquo;t have any idea. And finally it&rsquo;s quite easy, we can just leak the <code>opaque</code> pointer in the <code>MemoryRegion</code> structure which points to the object&rsquo;s address.</p>
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359002 0x7fc60400                                                                                                                                                     
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a8935904a 0x7fc60400                                                                                                                                                     
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359052 0x1600007fc60400                                                                                                                                               
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a8935905a 0x2d00007fc60400                                                                                                                                               
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359062 0xffd300007fc60400                                                                                                                                             
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359072 0x7fc60400                                                                                                                                                     
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89372b2a 0x10100007fc60400                                                                                                                                              
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89372bb2 0x100000007fc60400                                                                                                                                             
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89372bba 0xf00000007fc60400                                                                                                                                             
+<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dccf2 0x2d00007fc60400                                                                                                                                                
+<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dccfa 0x7fc60400                                                                                                                                                      
+<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dcd6a 0x7fc60400                                                                                                                                                      
+<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dcefa 0xffd300007fc60400                                                                                                                                              
+<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dcf18 0x7fc60400                                                                                                                                                      
+<span class="o">[</span>SKIP<span class="o">]</span>
+</code></pre></div><p>Given that we don&rsquo;t want to get the leak from heap because of the unreliability we can see that there are available leaks in a writable area of the binary in <code>anon_559a89353</code>, indeed the page address looks like a PIE based binary address or an heap address (but the address is not marked heap), and if we look more carefully, the page is contiguous to the last file mapped memory area. Now we can leak the rwx memory area, lets' find a way to leak object&rsquo;s address! I asked on the hack.lu discord a hint for this leak because didn&rsquo;t have any idea. And finally it&rsquo;s quite easy, we can just leak the <code>opaque</code> pointer in the <code>MemoryRegion</code> structure which points to the object&rsquo;s address.</p>
 <p>If I summarize we have:</p>
 <ul>
 <li>A reliable leak of:
@@ -658,7 +658,7 @@ Then, next time we send a read request, the shellcode will be executed! And we w
 </span><span class="cm">flag: flag{cloudinspect_inspects_your_cloud_0107}
 </span><span class="cm">*/</span>
 </code></pre></div><p>Thanks for the organizers for this awesome event! The other pwn challenges look like very interesting as well!
-You can the final exploit <a
+You can take a look at the final exploit <a
   class="gblog-markdown__link"
   href="https://github.com/ret2school/ctf/blob/master/2021/hack.lu/pwn/cloudinspect/remote.c"
   

