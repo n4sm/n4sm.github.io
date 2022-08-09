@@ -38,7 +38,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 
     <title>
       
-        [Linux Internals] SLUB - kmem_cache | 
+        [Linux kernel side notes - SLUB] kmem_cache | 
       repr
     </title>
 
@@ -64,7 +64,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 
     
 
-    <meta property="og:title" content="[Linux Internals] SLUB - kmem_cache" />
+    <meta property="og:title" content="[Linux kernel side notes - SLUB] kmem_cache" />
 <meta
   property="og:description"
   content="
@@ -96,7 +96,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:image" content="https://nasm.re/risa.png" />
     
-<meta name="twitter:title" content="[Linux Internals] SLUB - kmem_cache" />
+<meta name="twitter:title" content="[Linux kernel side notes - SLUB] kmem_cache" />
 <meta
   name="twitter:description"
   content="
@@ -194,8 +194,8 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
     "@context": "http://schema.org",
     "@type": "BlogPosting",
     "articleSection": "posts",
-    "name": "[Linux Internals] SLUB - kmem_cache",
-    "headline": "[Linux Internals] SLUB - kmem_cache",
+    "name": "[Linux kernel side notes - SLUB] kmem_cache",
+    "headline": "[Linux kernel side notes - SLUB] kmem_cache",
     "alternativeHeadline": "",
     "description": "Introduction     The kmem_cache structure is one of the main structures of the SLUB algorithm. It contains pointers to other structures (cpu_slab, node array) and informations about the cache it describes (object_size, name). Every notes target linux kernel 5.18.12.\nOverview of its role among the allocation process:\nLet\u0026rsquo;s dig into     Here is the definition of the kmem_cache structure:\n\/\/ https:\/\/elixir.bootlin.com\/linux\/latest\/source\/include\/linux\/slub_def.h#L90 \/* * Slab cache management.",
     "inLanguage": "en",
@@ -368,7 +368,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
       
 
 
-      <h1 class="gblog-post__title">[Linux Internals] SLUB - kmem_cache</h1>
+      <h1 class="gblog-post__title">[Linux kernel side notes - SLUB] kmem_cache</h1>
 
       
         <div class="flex flex-wrap align-center gblog-post__meta gblog-post__meta--head">
@@ -451,7 +451,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
     </h2>
 </div>
 <p>Here is the definition of the <code>kmem_cache</code> structure:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/slub_def.h#L90
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/slub_def.h#L90
 </span><span class="c1"></span><span class="cm">/*
 </span><span class="cm"> * Slab cache management.
 </span><span class="cm"> */</span>
@@ -514,7 +514,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 <li><code>cpu_slab</code> is a pointer to the <code>__percpu</code> <code>kmem_cache_cpu</code> structure. Each cpu has its own <code>kmem_cache_cpu</code> to easily and faster return objects without having to trigger the &ldquo;slowpath&rdquo; code path which will search through the partial list of the <code>kmem_cache_cpu</code> or by allocating one more slab.</li>
 <li><code>flags</code> are the internal flags used to describe the cache. The whole (I hope so) list would be:</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/slab.h#L27
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/slab.h#L27
 </span><span class="c1"></span><span class="cm">/*
 </span><span class="cm"> * Flags to pass to kmem_cache_create().
 </span><span class="cm"> * The ones marked DEBUG are only valid if CONFIG_DEBUG_SLAB is set.
@@ -623,7 +623,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 <li><code>object_size</code> stands for &ndash; according to the comment &ndash; The size of an object without metadata.</li>
 <li><code>reciprocal_size</code> is a <code>reciprocal_value</code> structure that stands for the reciprocal value of the <code>size</code>. It&rsquo;s basically a magic structure that allows linux to compute faster a division between an integer and a predefined constant (the <code>size</code> for our case). It allows linux to do a multiplication instead of a directly a division. Further informations below:</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/reciprocal_div.h#L23
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/reciprocal_div.h#L23
 </span><span class="c1"></span><span class="cm">/*
 </span><span class="cm"> * This algorithm is based on the paper &#34;Division by Invariant
 </span><span class="cm"> * Integers Using Multiplication&#34; by Torbjörn Granlund and Peter
@@ -650,7 +650,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 <li><code>cpu_partial_slabs</code> stands for the number of per cpu partial slabs to keep around.</li>
 <li><code>oo</code> stands for both the number of objects among a slab and the size of the whole slab. Here are the two functions that compute the conversion and the one that computes the <code>oo</code> from the order and the size of the object:</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/mm/slub.c#L407
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/mm/slub.c#L407
 </span><span class="c1"></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="nf">oo_order</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache_order_objects</span> <span class="n">x</span><span class="p">)</span>
 <span class="p">{</span>
 	<span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="n">x</span> <span class="o">&gt;&gt;</span> <span class="n">OO_SHIFT</span><span class="p">;</span>
@@ -680,7 +680,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 </code></pre></div><ul>
 <li><code>allocflags</code> GFP allocation flags. Here are most of them:</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/gfp.h#L340
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/gfp.h#L340
 </span><span class="c1"></span><span class="cp">#define GFP_ATOMIC	(__GFP_HIGH|__GFP_ATOMIC|__GFP_KSWAPD_RECLAIM)
 </span><span class="cp">#define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
 </span><span class="cp">#define GFP_KERNEL_ACCOUNT (GFP_KERNEL | __GFP_ACCOUNT)
@@ -710,7 +710,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 <li><code>ctor</code> stands for a constructor called at every object intitialization, it&rsquo;s called in <code>setup_object</code> which is itself called in <code>shuffle_freelist</code> and in <code>allocate_slab</code> at the slab allocation level so.</li>
 <li><code>inuse</code> stands for the offset of the first metadata, we can distinguish several cases:</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L987
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L987
 </span><span class="c1"></span><span class="cm">/* object + s-&gt;inuse
 </span><span class="cm"> * 	Meta data starts here.
 </span><span class="cm"> *
@@ -738,7 +738,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 > for further informations.</li>
 <li><code>random</code> stands for the secret kept in each <code>kmem_cache</code> when the kernel is compiled with the <code>CONFIG_SLAB_FREELIST_HARDENED</code>. It&rsquo;s initialized in <code>kmem_cache_open</code> and used to decrypt the next free pointer of free chunks belonging to the cache:</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L4180
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L4180
 </span><span class="c1"></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">kmem_cache_open</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="n">slab_flags_t</span> <span class="n">flags</span><span class="p">)</span>
 <span class="p">{</span>
 	<span class="n">s</span><span class="o">-&gt;</span><span class="n">flags</span> <span class="o">=</span> <span class="n">kmem_cache_flags</span><span class="p">(</span><span class="n">s</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">s</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
@@ -775,7 +775,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 </code></pre></div><ul>
 <li><code>remote_node_defrag_ratio</code> bigger the <code>remote_node_defrag_ratio</code> is, more the allocator returns objets that belong to remote nodes:</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L2200
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L2200
 </span><span class="c1"></span>	<span class="cm">/*
 </span><span class="cm">	 * The defrag ratio allows a configuration of the tradeoffs between
 </span><span class="cm">	 * inter node defragmentation and node local allocations. A lower
@@ -797,7 +797,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 </code></pre></div><ul>
 <li><code>random_seq</code> represents a shuffled array of offset of chunks that belong to a slab. Given the freelist stuff is done only on a slab, the offset should not exceed <code>page_limit</code> which is <code>nr_objects * size</code>.cDepends on <code>CONFIG_SLAB_FREELIST_RANDOM</code>. Here are some functions that use <code>random_seq</code>:</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L1855
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L1855
 </span><span class="c1"></span>
 <span class="cm">/* Get the next entry on the pre-computed freelist randomized */</span>
 <span class="k">static</span> <span class="kt">void</span> <span class="o">*</span><span class="nf">next_freelist_entry</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="k">struct</span> <span class="n">slab</span> <span class="o">*</span><span class="n">slab</span><span class="p">,</span>
@@ -866,7 +866,7 @@ Let&rsquo;s dig into     Here is the definition of the kmem_cache structure:
 </code></pre></div><ul>
 <li><code>kasan_info</code> is a cache used by the Kernel Address Sanizer (KASAN), it keeps track of freed chunks, especially by storing informations within the redzone. Here are some of the operations performed by KASAN:</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/kasan/common.c#L138
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/kasan/common.c#L138
 </span><span class="c1"></span>
 <span class="kt">void</span> <span class="nf">__kasan_cache_create</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">cache</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="o">*</span><span class="n">size</span><span class="p">,</span>
 			  <span class="n">slab_flags_t</span> <span class="o">*</span><span class="n">flags</span><span class="p">)</span>

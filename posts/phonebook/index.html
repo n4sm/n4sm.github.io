@@ -492,7 +492,7 @@ The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone&#39;s informa
         </a>
     </h2>
 </div>
-<pre><code>$ ./phonebook
+<pre tabindex="0"><code>$ ./phonebook
 Choose an option: [1-5]
 1. Store someone's information
 2. Edit information
@@ -501,7 +501,7 @@ Choose an option: [1-5]
 5. Add the hidden_note
 &gt; 
 </code></pre><p>We can create an entity and then initialize: a name, a numero and a function pointer.</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__fastcall</span> <span class="nf">create</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__fastcall</span> <span class="nf">create</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// eax
 </span><span class="c1"></span>  <span class="k">struct</span> <span class="n">entity</span> <span class="o">*</span><span class="n">s</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-8h]
@@ -519,7 +519,7 @@ Choose an option: [1-5]
   <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>The bug lies <code>edit_name</code> function:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_name</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_name</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">n</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-18h] BYREF
 </span><span class="c1"></span>  <span class="kt">int</span> <span class="n">name_size</span><span class="p">;</span> <span class="c1">// [rsp+1Ch] [rbp-14h]
@@ -553,7 +553,7 @@ Choose an option: [1-5]
 </div>
 <p>Now we&rsquo;re able to overflow through the name pointer we have to find how the leak the libc, a nice way would be to leak it by using free&rsquo;d chunks in the unsortedbin. Or we can leak the <code>entity-&gt;func</code> function pointer which would give us a leak of the binary base address, then we would have to edit the name pointer with the got entry of <code>puts</code> to leak its address within the libc.</p>
 <p>To do so we can create another entity right after the name pointer:</p>
-<pre><code>0x559b0d4d16b0	0x0000000000000000	0x0000000000000031	........1.......
+<pre tabindex="0"><code>0x559b0d4d16b0	0x0000000000000000	0x0000000000000031	........1.......
 0x559b0d4d16c0	0x3131313131313131	0x0000559b0c84f2a1	11111111.....U..
 0x559b0d4d16d0	0x0000559b0d4d1800	0x00000000000000fe	..M..U..........
 0x559b0d4d16e0	0x0000000000000000	0x0000000000000111	................
@@ -581,7 +581,7 @@ Choose an option: [1-5]
 0x559b0d4d1840	0x0000559b0c851fa0	0x000000000000000a	.....U..........
 0x559b0d4d1850	0x0000000000000000	0x000000000001f7b1	................	 &lt;-- Top chunk
 </code></pre><p>The <code>edit_phone_number</code> overwrites the null byte:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_phone_number</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">edit_phone_number</span><span class="p">(</span><span class="kt">int</span> <span class="n">a1</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Enter new phone number: &#34;</span><span class="p">);</span>
   <span class="k">return</span> <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%8s&#34;</span><span class="p">,</span> <span class="n">people</span><span class="p">[</span><span class="n">a1</span><span class="p">]);</span>
@@ -600,14 +600,14 @@ Choose an option: [1-5]
     </h2>
 </div>
 <p>Then we just have to overwrite the function pointer with the address of <code>system</code> which takes as first argument a pointer to the entity structure of edit the phone number of the entity we wanna use because that&rsquo;s the first field of the structure which means we make it equivalent to a <code>system(&quot;/bin/sh&quot;)</code>.</p>
-<pre><code>00000000 entity          struc ; (sizeof=0x20, mappedto_8)
+<pre tabindex="0"><code>00000000 entity          struc ; (sizeof=0x20, mappedto_8)
 00000000 num             dq ?
 00000008 func            dq ?
 00000010 name            dq ?                    ; offset
 00000018 name_size       dq ?
 00000020 entity          ends
 </code></pre><p>Then here we are:</p>
-<pre><code>$ python3 exploit.py REMOTE HOST=51.124.222.205 PORT=13380
+<pre tabindex="0"><code>$ python3 exploit.py REMOTE HOST=51.124.222.205 PORT=13380
 [*] '/home/nasm/Documents/phonebook/chall/phonebook_patched_patched'
     Arch:     amd64-64-little
     RELRO:    Full RELRO

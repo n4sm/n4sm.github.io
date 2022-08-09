@@ -1,274 +1,178 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  
   <url>
     <loc>https://nasm.re/tags/2022/</loc>
-    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/posts/zigzag/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/authors/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/corCTF/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/ctf/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/heap/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/nasm/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/authors/nasm/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/posts/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/pwn/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/zig/</loc>
+    <lastmod>2022-08-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/posts/cshell2/</loc>
+    <lastmod>2022-08-07T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://nasm.re/posts/catastrophe/</loc>
     <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/aaSSfxxx/</loc>
     <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://nasm.re/authors/</loc>
-    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://nasm.re/tags/ctf/</loc>
-    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/diceCTF/</loc>
     <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/FSOP/</loc>
     <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://nasm.re/tags/heap/</loc>
-    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://nasm.re/tags/nasm/</loc>
-    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://nasm.re/authors/nasm/</loc>
-    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://nasm.re/posts/</loc>
-    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://nasm.re/tags/pwn/</loc>
-    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://nasm.re/</loc>
-    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/ret2school/</loc>
     <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://nasm.re/tags/</loc>
-    <lastmod>2022-07-28T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/kmem_cache/</loc>
     <lastmod>2022-07-18T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/lowlevelnotes/</loc>
     <lastmod>2022-07-18T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/onceandforall/</loc>
     <lastmod>2022-05-19T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/HackTheBox/</loc>
     <lastmod>2022-05-19T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/bookwriter/</loc>
     <lastmod>2022-04-19T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/pwnable/</loc>
     <lastmod>2022-04-19T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/phonebook/</loc>
     <lastmod>2022-04-17T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/dctf/</loc>
     <lastmod>2022-04-17T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/ftm/</loc>
     <lastmod>2022-03-04T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/Breizh-CTF/</loc>
     <lastmod>2022-03-04T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/2021/</loc>
     <lastmod>2021-12-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/safe/</loc>
     <lastmod>2021-12-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/Alol/</loc>
     <lastmod>2021-12-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/IRL/</loc>
     <lastmod>2021-12-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/rand/</loc>
     <lastmod>2021-12-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/RE/</loc>
     <lastmod>2021-12-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/reverse/</loc>
     <lastmod>2021-12-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/TRACS/</loc>
     <lastmod>2021-12-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/TRACS-2021/</loc>
     <lastmod>2021-12-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/cloudinspect/</loc>
     <lastmod>2021-11-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/arbitrary-read/</loc>
     <lastmod>2021-11-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/arbitrary-write/</loc>
     <lastmod>2021-11-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/hack.lu/</loc>
     <lastmod>2021-11-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/hypervisor/</loc>
     <lastmod>2021-11-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/qemu/</loc>
     <lastmod>2021-11-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/pwnasis/</loc>
     <lastmod>2021-10-24T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/ASIS-CTF/</loc>
     <lastmod>2021-10-24T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/oob-write/</loc>
     <lastmod>2021-10-24T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/blindate/</loc>
     <lastmod>2021-05-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/mipsy/</loc>
     <lastmod>2021-05-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/Blind-Date/</loc>
     <lastmod>2021-05-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/FCSC/</loc>
     <lastmod>2021-05-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/mips/</loc>
     <lastmod>2021-05-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/mipsy/</loc>
     <lastmod>2021-05-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/n4sm/</loc>
     <lastmod>2021-05-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/babyrarf/</loc>
     <lastmod>2021-02-21T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/buffer-overflow/</loc>
     <lastmod>2021-02-21T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/tags/unionCTF-2021/</loc>
     <lastmod>2021-02-21T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://nasm.re/posts/about/</loc>
   </url>
-  
 </urlset>

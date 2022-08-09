@@ -530,7 +530,7 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
     </header>
     <section class="gblog-markdown">
       <p>Faible Ty Réseau is a basic heap-like challenge, it allows us to create a configuration, edit it, call a function pointer on it and finally to free it:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__cdecl</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">envp</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__cdecl</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">envp</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">v4</span><span class="p">;</span> <span class="c1">// [rsp+4h] [rbp-Ch] BYREF
 </span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v5</span><span class="p">;</span> <span class="c1">// [rsp+8h] [rbp-8h]
@@ -570,7 +570,7 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
   <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div><p>They are many ways to pwn the challenge, I did it by taking advantage of the UAF in <code>create</code>:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="nf">create</span><span class="p">()</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="nf">create</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">v1</span><span class="p">;</span> <span class="c1">// [rsp+4h] [rbp-1Ch]
 </span><span class="c1"></span>  <span class="kt">int</span> <span class="n">v2</span><span class="p">;</span> <span class="c1">// [rsp+8h] [rbp-18h]
@@ -609,7 +609,7 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
   <span class="k">return</span> <span class="mi">0LL</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>As we can see, if ptr is not <code>NULL</code> and that we enter only one byte for each read (by sending only \n for example), then we will trigger a <code>realloc(ptr, 1 + 1 - 2)</code> which frees <code>ptr</code>, <code>ptr</code> being freed the freelist is pointing on <code>ptr</code>. Now let&rsquo;s take a look at the <code>alloc_admin</code> function:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="nf">alloc_admin</span><span class="p">()</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="nf">alloc_admin</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">char</span> <span class="o">*</span><span class="n">v1</span><span class="p">;</span> <span class="c1">// [rsp+0h] [rbp-10h]
 </span><span class="c1"></span>  <span class="kt">char</span> <span class="o">*</span><span class="n">v2</span><span class="p">;</span> <span class="c1">// [rsp+8h] [rbp-8h]
@@ -632,7 +632,7 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
   <span class="k">return</span> <span class="mi">0LL</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>By allocating <code>0x18</code> bytes, it gets the previous freed <code>ptr</code> and writes over a few fields like the function pointer. Then we just have to call the <code>exec</code> function which will call the win function:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">exec</span><span class="p">()</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">exec</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="k">if</span> <span class="p">(</span> <span class="n">ptr</span> <span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">ptr</span> <span class="o">+</span> <span class="mi">2</span><span class="p">))();</span>
@@ -640,7 +640,7 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
   <span class="k">return</span> <span class="n">fflush</span><span class="p">(</span><span class="n">stdout</span><span class="p">);</span>
 <span class="p">}</span>
 </code></pre></div><p>Which gives us:</p>
-<pre><code>nasm@off:~/ctf/bzhCTF/pwn$ ./FTM
+<pre tabindex="0"><code>nasm@off:~/ctf/bzhCTF/pwn$ ./FTM
 Vous n'êtes pas connecté (anonyme)
 1. Modifier les paramètres de connexion
 2. Restaurer la configutation d'usine

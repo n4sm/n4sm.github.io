@@ -642,7 +642,7 @@ En tant que stagiaire vous avez accès aux locaux de la NSB. Vous allez collecte
 </div>
 <p>The software update comes in the from of a <code>.maj</code> archive that we extracted to get two <code>libcrypto.so</code> libraries (one for x86, the other one for arm64 v7). We checked if the files were equivalent by looking at their code structure, and we finally choose to reverse the x86 library (even though the safe probably used the arm one) because it was easier.</p>
 <p>Firstly, we looked at how the pin was checked, more specifically at the <code>libsafe_test_passcode</code> in IDA:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">_BOOL8</span> <span class="kr">__fastcall</span> <span class="nf">libsafe_test_passcode</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">a1</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="n">_BOOL8</span> <span class="kr">__fastcall</span> <span class="nf">libsafe_test_passcode</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">a1</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">v2</span><span class="p">;</span> <span class="c1">// eax
 </span><span class="c1"></span>  <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span> <span class="c1">// [rsp+1Ch] [rbp-64h]
@@ -661,7 +661,7 @@ En tant que stagiaire vous avez accès aux locaux de la NSB. Vous allez collecte
   <span class="k">return</span> <span class="n">memcmp</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">buf</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="mh">0x20uLL</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div><p>We assume the argument is a pointer to the pin, for which we compute its <code>sha256sum</code>. And if it is equal to <code>buf[4:0x24]</code>, it means the pin correct! So we have to understand what <code>buf[4:0x24]</code> is, which is stored in the <code>.safe_db</code> file. To do so we look at the <code>libsafe_generate_new_passcode</code> function:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">libsafe_generate_new_passcode</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kr">__int8</span> <span class="o">*</span><span class="n">a1</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">libsafe_generate_new_passcode</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kr">__int8</span> <span class="o">*</span><span class="n">a1</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">v1</span><span class="p">;</span> <span class="c1">// eax
 </span><span class="c1"></span>  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-468h]
@@ -696,7 +696,7 @@ En tant que stagiaire vous avez accès aux locaux de la NSB. Vous allez collecte
 <li>The argument is hashed again and in the target file we write at <code>file_content[:4]</code> the first <code>rand</code> value and at <code>file_content[4:0x24]</code> the hash of the previous ciphered buffer.</li>
 </ul>
 <p>The core of the encryption algorithm is in the <code>build_passcode</code> function:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">build_passcode</span><span class="p">(</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">build_passcode</span><span class="p">(</span>
         <span class="kt">unsigned</span> <span class="kr">__int8</span> <span class="o">*</span><span class="n">hash_rand_buf</span><span class="p">,</span>
         <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">length_hash</span><span class="p">,</span>
         <span class="kt">unsigned</span> <span class="kr">__int8</span> <span class="o">*</span><span class="n">out</span><span class="p">,</span>
@@ -718,7 +718,7 @@ En tant que stagiaire vous avez accès aux locaux de la NSB. Vous allez collecte
 <span class="p">}</span>
 </code></pre></div><p>That&rsquo;s just basically filling out the <code>out</code> buffer with <code>base[hash_rand_buf[i % length_hash] % lenght_base]</code>.</p>
 <p>Now we have a good understanding of the encryption algorithm, we can take a look at what exactly the <code>id</code> printed right before the pin input is. The function that generates the <code>id</code> is <code>libsafe_get_userid</code>:</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">libsafe_get_userid</span><span class="p">(</span><span class="n">_DWORD</span> <span class="o">*</span><span class="n">id</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kr">__int64</span> <span class="kr">__fastcall</span> <span class="nf">libsafe_get_userid</span><span class="p">(</span><span class="n">_DWORD</span> <span class="o">*</span><span class="n">id</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span> <span class="c1">// [rsp+1Ch] [rbp-34h]
 </span><span class="c1"></span>  <span class="kt">int</span> <span class="n">buf</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span> <span class="c1">// [rsp+20h] [rbp-30h] BYREF
@@ -744,7 +744,7 @@ En tant que stagiaire vous avez accès aux locaux de la NSB. Vous allez collecte
 </div>
 <p>To recover the pin, we have to know what hash the hash of the pin will be compared to. To do so, we have to recover the random buffer, hash it, give it to the &ldquo;core&rdquo; encryption layer and hash what it outputs. That will be the final hash which will be compared to the hash of the pin we send. The main part of the challenge is so to recover the <code>rand</code> values, more specifically the seed given to <code>srand</code> to initialize the PRNG. We know the seed in the program is <code>time(NULL)</code>. Which means that this is a timestamp that can be bruteforced in a reasonable amount of time (the 2020 edition of the CTF was cancelled because of COVID so we took as range the date of the software update until today). The bruteforce is very fast because given we know the <code>id</code> which is the value for the first call to <code>rand</code>, we have just to ensure the first value of <code>rand</code> for the seed we bruteforce is equal to the <code>id</code> value.</p>
 <p>Which gives:</p>
-<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">from</span> <span class="nn">ctypes</span> <span class="kn">import</span> <span class="n">CDLL</span>
 <span class="n">libc</span> <span class="o">=</span> <span class="n">CDLL</span><span class="p">(</span><span class="s2">&#34;libc.so.6&#34;</span><span class="p">)</span>
@@ -771,9 +771,9 @@ En tant que stagiaire vous avez accès aux locaux de la NSB. Vous allez collecte
         <span class="n">v6</span> <span class="o">=</span> <span class="p">[</span><span class="n">CHARSET</span><span class="p">[</span><span class="n">v8</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="mi">32</span><span class="p">]</span> <span class="o">%</span> <span class="n">CHARLEN</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)]</span>
         <span class="n">v6</span> <span class="o">=</span> <span class="n">h</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">v6</span><span class="p">))</span>
 
-        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;Timestamp: {t=}, hash: {v6.hex()}&#34;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Timestamp: </span><span class="si">{</span><span class="n">t</span><span class="si">=}</span><span class="s2">, hash: </span><span class="si">{</span><span class="n">v6</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
 </code></pre></div><p>And when we found the right seed, we just have to generate, hash, cipher and hash again the right random buffer to get the right hash to which the hash of the pin will be compared to.</p>
-<div class="highlight"><pre class="chroma"><code class="language-Shell" data-lang="Shell">$ python3 solve.py 
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Shell" data-lang="Shell">$ python3 solve.py 
  94%<span class="p">|</span>██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▏       <span class="p">|</span> 31691218/33580546 <span class="o">[</span>01:29&lt;00:05, 351593.81it/s<span class="o">]</span>
 Timestamp: <span class="nv">t</span><span class="o">=</span>1636749762, hash: 88c71c0cc0950acfe3835a009f8931cee0f12ab7410538f96d058184a4c90e11
 100%<span class="p">|</span>██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████<span class="p">|</span> 33580546/33580546 <span class="o">[</span>01:34&lt;00:00, 356533.87it/s<span class="o">]</span>
@@ -786,7 +786,7 @@ Timestamp: <span class="nv">t</span><span class="o">=</span>1636749762, hash: 88
     </h2>
 </div>
 <p>Now we know the final hash to which the hash of the pin is compared to, we can just run a mask attack using hashcat with a mask of 8 hexadecimal characters in uppercase (we tried for every length up to the right size: 8).</p>
-<pre><code>$ hashcat -a 3 -m 1400 pincode.hash ?H?H?H?H?H?H?H?H
+<pre tabindex="0"><code>$ hashcat -a 3 -m 1400 pincode.hash ?H?H?H?H?H?H?H?H
 [skip]
 88c71c0cc0950acfe3835a009f8931cee0f12ab7410538f96d058184a4c90e11:4233246D
 
