@@ -224,7 +224,7 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/onceandforall\/",
-    "wordCount" : "3315",
+    "wordCount" : "3329",
     "genre" : [ "ctf" , "HackTheBox" ]
 }
 </script>
@@ -775,7 +775,7 @@ Find the tasks and the final exploit <a
 </span><span class="s2">0x40: 0x555555608560 —▸ 0x5555556085a0 ◂— 0x0
 </span><span class="s2">&#34;&#34;&#34;</span>
 
-</code></pre></div><p>We allocate 6 chunks, we do need of 6 chunks because of the fake size we write on <code>chunk_2</code> (<code>&amp;chunk_2</code> + <code>0xb0</code> = <code>0x555555608690</code>, in the last chunk near the top chunk). In the same way we craft a fake header in the body of the last chunk to avoid issues during the release of <code>chunk_2</code>. If you&rsquo;re not familiar with the security checks done by <code>malloc</code> and <code>free</code>, I would advise you to take a look at <a
+</code></pre></div><p>We allocate 6 chunks, we do need of 6 chunks because of the fake size we write on <code>chunk_2</code> (<code>&amp;chunk_2</code> + <code>0xb0</code> = <code>0x555555608690</code>, in the last chunk near to the top chunk). In the same way we craft a fake header in the body of the last chunk to avoid issues during the release of <code>chunk_2</code>. If you&rsquo;re not familiar with the security checks done by <code>malloc</code> and <code>free</code>, I would advise you to take a look at <a
   class="gblog-markdown__link"
   href="https://heap-exploitation.dhavalkapil.com/diving_into_glibc_heap/security_checks"
   
@@ -1046,7 +1046,7 @@ $1 = {
 <li>request the <strong>exact</strong> size of the last chunk in the unsorted bin</li>
 <li>It should write at <code>&amp;target</code> the address of the unsorted bin</li>
 </ul>
-<p>An essential thing to note is that if there is no chunks in your fastbin / smallbin and that you&rsquo;re requesting a fastbin/smallbin-sized chunk, the unsorted bin will be inspected and if the last chunk doesn&rsquo;t fit the request, the program will most of the time issues a <code>malloc(): memory corruption</code>. Anyway the best thing to do is to take a look at the <a
+<p>An essential thing to note is that if there is no chunks in your fastbin / smallbin and that you&rsquo;re requesting a fastbin/smallbin-sized chunk, the unsorted bin will be inspected and if the last chunk doesn&rsquo;t fit the request and that your unsortedbin is corrputed cause you ran an unsortedbin attack before, the program will most of the time issues a <code>malloc(): memory corruption</code>. Anyway the best thing to do is to take a look at the <a
   class="gblog-markdown__link"
   href="https://elixir.bootlin.com/glibc/glibc-2.27/source/malloc/malloc.c#L3519"
   
@@ -1141,7 +1141,7 @@ $1 = {
 
 	<span class="p">[...]</span>
 <span class="p">}</span>
-</code></pre></div><p>According to what I said earlier, the goal is to replace <code>stdin-&gt;_IO_buf_end</code> with <code>&amp;unsortedbin</code> which means we have to write to the backward pointer of the last chunk in the unsorted bin (chunk_2) <code>&amp;stdin-&gt;_IO_buf_end - 0x10</code>. To do so we can trigger a write after free primitive by taking back <code>chunk_2</code> from the unsorted bin to the fastbin:</p>
+</code></pre></div><p>According to what I said earlier, the goal is to replace <code>stdin-&gt;_IO_buf_end</code> with <code>&amp;unsortedbin</code> which means we have to write to the backward pointer of the last chunk in the unsorted bin (chunk_2) <code>&amp;stdin-&gt;_IO_buf_end - 0x10</code>. To do so we can trigger a write after free primitive by taking back <code>chunk_2</code> from the unsorted bin from the fastbin:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="s2">&#34;&#34;&#34;
 </span><span class="s2">Before:
 </span><span class="s2">0x30: 0x5555556085e0 —▸ 0x7ffff7dcfca0 (main_arena+96) ◂— 0x5555556085e0
@@ -1166,7 +1166,7 @@ $1 = {
 </span><span class="s2">FD: 0x5555556085e0 —▸ 0x7ffff7dcfca0 (main_arena+96) ◂— 0x5555556085e0
 </span><span class="s2">BK: 0x5555556085e0 —▸ 0x7ffff7dcfa30 (_IO_2_1_stdin_+48) ◂— 0x0
 </span><span class="s2">&#34;&#34;&#34;</span>
-</code></pre></div><p>As you can read right above, the <code>chunk_2</code> has its backward pointer set to <code>&amp;stdin-&gt;_IO_buf_end - 0x10</code>. To achieve the partial unlink we just have to request a <code>0x30</code> sized chunk with nothing in the fastbin freelists. That&rsquo;s the last step of the unsortedbin attack, clean out the fastbin:</p>
+</code></pre></div><p>As you can read right above, the <code>chunk_2</code> has its backward pointer set to <code>&amp;stdin-&gt;_IO_buf_end - 0x10</code>. To achieve the partial unlink we just have to request a <code>0x30</code> sized chunk with nothing in the fastbin freelist. That&rsquo;s the last step of the unsortedbin attack, clean out the fastbin:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="s2">&#34;&#34;&#34;
 </span><span class="s2">Before: same as above
 </span><span class="s2">&#34;&#34;&#34;</span>

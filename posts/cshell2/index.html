@@ -15,7 +15,7 @@
 
 
   <meta name="description" content="Introduction     cshell2 is a heap challenge I did during the corCTF 2022event. It was pretty classic so I will not describe a lot. If you begin with heap challenges, I advice you to read previous heap writeup.
-TL; DR      Fill tcache. Heap overflow in edit on the bio field which allows to leak the address of the unsortedbin. Leak heap and defeat safe-linking to get an arbitrary write through tcache poisoning." />
+TL; DR      Fill the tcache. Heap overflow in edit on the bio field which allows to leak the address of the unsortedbin. Leak heap and defeat safe-linking to get an arbitrary write through tcache poisoning." />
 
 
   <meta name="keywords" content="pwn,binary exploitation,cryptography,Reverse engineering,hypervisor" />
@@ -68,7 +68,7 @@ TL; DR      Fill tcache. Heap overflow in edit on the bio field which allows to 
   content="
     
       Introduction     cshell2 is a heap challenge I did during the corCTF 2022event. It was pretty classic so I will not describe a lot. If you begin with heap challenges, I advice you to read previous heap writeup.
-TL; DR      Fill tcache. Heap overflow in edit on the bio field which allows to leak the address of the unsortedbin. Leak heap and defeat safe-linking to get an arbitrary write through tcache poisoning.
+TL; DR      Fill the tcache. Heap overflow in edit on the bio field which allows to leak the address of the unsortedbin. Leak heap and defeat safe-linking to get an arbitrary write through tcache poisoning.
     
   "
 />
@@ -98,7 +98,7 @@ TL; DR      Fill tcache. Heap overflow in edit on the bio field which allows to 
   content="
     
       Introduction     cshell2 is a heap challenge I did during the corCTF 2022event. It was pretty classic so I will not describe a lot. If you begin with heap challenges, I advice you to read previous heap writeup.
-TL; DR      Fill tcache. Heap overflow in edit on the bio field which allows to leak the address of the unsortedbin. Leak heap and defeat safe-linking to get an arbitrary write through tcache poisoning.
+TL; DR      Fill the tcache. Heap overflow in edit on the bio field which allows to leak the address of the unsortedbin. Leak heap and defeat safe-linking to get an arbitrary write through tcache poisoning.
     
   "
 />
@@ -191,7 +191,7 @@ TL; DR      Fill tcache. Heap overflow in edit on the bio field which allows to 
     "name": "[corCTF 2022 - pwn] cshell2",
     "headline": "[corCTF 2022 - pwn] cshell2",
     "alternativeHeadline": "",
-    "description": "Introduction     cshell2 is a heap challenge I did during the corCTF 2022event. It was pretty classic so I will not describe a lot. If you begin with heap challenges, I advice you to read previous heap writeup.\nTL; DR      Fill tcache. Heap overflow in edit on the bio field which allows to leak the address of the unsortedbin. Leak heap and defeat safe-linking to get an arbitrary write through tcache poisoning.",
+    "description": "Introduction     cshell2 is a heap challenge I did during the corCTF 2022event. It was pretty classic so I will not describe a lot. If you begin with heap challenges, I advice you to read previous heap writeup.\nTL; DR      Fill the tcache. Heap overflow in edit on the bio field which allows to leak the address of the unsortedbin. Leak heap and defeat safe-linking to get an arbitrary write through tcache poisoning.",
     "inLanguage": "en",
     "isFamilyFriendly": "true",
     "mainEntityOfPage": {
@@ -221,7 +221,7 @@ TL; DR      Fill tcache. Heap overflow in edit on the bio field which allows to 
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/cshell2\/",
-    "wordCount" : "2467",
+    "wordCount" : "2466",
     "genre" : [ "ctf" , "corCTF" , "2022" , "heap" , "nasm" , "pwn" ]
 }
 </script>
@@ -558,7 +558,7 @@ If you begin with heap challenges, I advice you to read <a
     </h2>
 </div>
 <ul>
-<li>Fill tcache.</li>
+<li>Fill the tcache.</li>
 <li>Heap overflow in <code>edit</code> on the <code>bio</code> field which allows to leak the address of the unsortedbin.</li>
 <li>Leak heap and defeat safe-linking to get an arbitrary write through tcache poisoning.</li>
 <li>Hiijack GOT entry of <code>free</code> to <code>system</code>.</li>
@@ -673,7 +673,7 @@ Then the <code>delete</code> function:</p>
   <span class="k">return</span> <span class="n">v2</span> <span class="o">-</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
 <span class="p">}</span>
 </code></pre></div><p>Quite common <code>delete</code> handler, it prevents double free.
-The vulnerability is in the <code>edit</code> function:</p>
+The vulnerability lies into the <code>edit</code> function:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="nf">edit</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kr">__int8</span> <span class="n">idx</span><span class="p">;</span> <span class="c1">// [rsp+7h] [rbp-9h] BYREF
@@ -707,14 +707,14 @@ The vulnerability is in the <code>edit</code> function:</p>
         </a>
     </h2>
 </div>
-<p>There is no actual issue, we can allocate whatever chunk bigger than <code>0x407</code>, the only fancy thing we have to do would be to defeat safe-linking to get an arbitrary write with a tcache poisoning attack on the <code>0x410</code> tcache bin. Here is the attack I led against the challenge but that&rsquo;s not the most optimized.</p>
+<p>There is no actual issue, we can allocate whatever chunk bigger than <code>0x407</code>, the only fancy thing we have to do would be to defeat safe-linking to get an arbitrary write through a tcache poisoning attack on the <code>0x410</code> tcache bin. Here is the attack I led against the challenge but that&rsquo;s not the most optimized.</p>
 <p>The plan is to:</p>
 <ul>
 <li>Allocate two <code>0x408</code>-sized chunks : pivot and victim, in order to easily get later libc leak.</li>
 <li>Allocate 9 more chunks and then fill the <code>0x410</code> tcachebin with them (with only 7 of them).</li>
 <li>Delete <code>victim</code> and overflow pivot up to the next free pointer of <code>victim</code> to get a libc leak.</li>
 <li>Allocate a <code>0x408</code>-sized chunk to get the <code>8</code>-th chunk (within <code>chunk_array</code>) which is on the top of the bin.</li>
-<li>Leak the heap same way as for libc, but we have to defeat safe-linking.</li>
+<li>Leak the heap same way than for libc, but we have to defeat safe-linking.</li>
 <li>Delete the <code>9</code>-th chunk to put it in the tcachebin at the first position.</li>
 <li>Then we can simply <code>edit</code> chunk <code>8</code> and overflow over chunk <code>9</code> to poison its next <code>fp</code> to hiijack it toward the GOT entry of <code>free</code>.</li>
 <li>Pop chunk <code>9</code> from the freelist and then request another the target memory area : the GOT entry of <code>free</code>.</li>
@@ -932,7 +932,7 @@ The vulnerability is in the <code>edit</code> function:</p>
 </div>
 <p>We overflow the <code>8</code>-th chunk to overwrite the next freepointer of <code>chunk9</code> that is stored at the HEAD of the <code>0x410</code> tcachebin. Then we got an arbitrary write.
 We craft a nice header to be able to request it back from the tcache, and we encrypt the <code>next</code> with the location of the <code>chunk9</code> to pass safe-linking checks.</p>
-<p>Given we hiijack GOT we initialized properly some pointers around to avoid segfaults. We do not get a write into the GOT entry of <code>free</code> cause it is unaliagned and <code>malloc</code> needs <code>16</code> bytes aligned next free pointer.</p>
+<p>Given we hiijack GOT we initialized properly some pointers around to avoid segfaults. We do not get a write into the GOT entry of <code>free</code> cause it is misaligned and <code>malloc</code> needs <code>16</code> bytes aligned pointers.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">edit</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="mi">1337</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;X&#34;</span><span class="o">*</span><span class="p">(</span><span class="mi">1032</span> <span class="o">-</span> <span class="mi">64</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x411</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(((</span><span class="n">heap</span> <span class="o">+</span> <span class="mh">0x2730</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">^</span> <span class="p">(</span><span class="n">exe</span><span class="o">.</span><span class="n">got</span><span class="o">.</span><span class="n">free</span> <span class="o">-</span> <span class="mh">0x8</span><span class="p">)))</span>
 
 <span class="c1"># dumb</span>

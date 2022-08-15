@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/diceCTF/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/diceCTF/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-08-09T21:05:06+02:00</updated>
+    <updated>2022-08-16T00:48:47+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -156,7 +156,46 @@ $ checksec --file catastrophe
 <span class="p">}</span>
 </code></pre></div><p>Thus, the first time a chunk is inserted into a tcache list, <code>e-&gt;next</code> is initialized to <code>&amp;e-&gt;next &gt;&gt; 12</code> (heap base address) xor <code>tcache-&gt;entries[tc_idx]</code> which is equal to zero when the list for a given size is empty.</p>
 <p>Which means to leak the heap address we simply have to print a free&rsquo;d chunk once it has been inserted in the tcache.</p>
-<div class="gblog-post__anchorwrap">
+<p>BUT if we&rsquo;re not able to leak the next fp of a the first chunk linked into a tcachebin that&rsquo;s not major, let&rsquo;s see how we could do differently, here is a chunk linked into the tcache:</p>
+<pre tabindex="0"><code>0x5621147a06d0:	0x0000000000000000	0x0000000000000111
+0x5621147a06e0:	0x00005624766b4270	0x0d01c2bce1459652
+0x5621147a06f0:	0x0000000000000000	0x0000000000000000
+0x5621147a0700:	0x0000000000000000	0x0000000000000000
+0x5621147a0710:	0x0000000000000000	0x0000000000000000
+0x5621147a0720:	0x0000000000000000	0x0000000000000000
+0x5621147a0730:	0x0000000000000000	0x0000000000000000
+0x5621147a0740:	0x0000000000000000	0x0000000000000000
+0x5621147a0750:	0x0000000000000000	0x0000000000000000
+0x5621147a0760:	0x0000000000000000	0x0000000000000000
+0x5621147a0770:	0x0000000000000000	0x0000000000000000
+0x5621147a0780:	0x0000000000000000	0x0000000000000000
+0x5621147a0790:	0x0000000000000000	0x0000000000000000
+0x5621147a07a0:	0x0000000000000000	0x0000000000000000
+0x5621147a07b0:	0x0000000000000000	0x0000000000000000
+0x5621147a07c0:	0x0000000000000000	0x0000000000000000
+0x5621147a07d0:	0x0000000000000000	0x0000000000000000
+0x5621147a07e0:	0x0000000000000000	0x0000000000000111
+</code></pre><p>We clearly see the <code>chunk-&gt;next</code> pointer and right after the <code>chunk-&gt;key</code> field. If we decrypt the pointer, it gives: <code>(HeapPos &gt;&gt; 12) ^ encryptedPtr</code>, in our case =&gt; <code>(0x5621147a06e0 &gt;&gt; 12) ^ 0x00005624766b4270</code> = <code>0x5621147a05d0</code>. You should note that between the chunk&rsquo;s location and the the encrypted, the most significant byte plus the nibble right after are the same, here is the reason: when a pointer is encrypted, given the chunk&rsquo;s location is shifted of 12 bits the 12 most significant bits of the pointer are not encrypted at all, which allows us to recover the most significant part of the pointer.</p>
+<p>But what can we do with only the 12 most significant bits ? We can recover the whole original pointer. Given we know this part of the pointer, it gives a part of the chunk&rsquo;s location, whith this part we can recover the 12 bits encrypted right after the leaked part, and then we can do it again for the whole pointer.</p>
+<p>That is done thanks to the properties of the xor operation, even if the length of the heap addresses grow up the weakness stays the same: by using the base address of the heap and by xor-ing it to another heap address you leave it to being exposed to such attacks and weaknesses.</p>
+<p>It ends up to this function (code does not come from me but from <a
+  class="gblog-markdown__link"
+  href="https://github.com/AeroCTF/aero-ctf-2022/blob/main/tasks/pwn/heap-2022/solution/sploit.py"
+  
+  >this writeup about a heap challenge from the aeroCTF</a
+>):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">decrypt_pointer</span><span class="p">(</span><span class="n">leak</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">leak</span> <span class="o">&gt;&gt;</span> <span class="mi">36</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">36</span><span class="p">)</span>
+    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">((((</span><span class="n">leak</span> <span class="o">&gt;&gt;</span> <span class="mi">24</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFFF</span><span class="p">)</span> <span class="o">^</span> <span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">36</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="mi">24</span><span class="p">)</span>
+    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">((((</span><span class="n">leak</span> <span class="o">&gt;&gt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFFF</span><span class="p">)</span> <span class="o">^</span> <span class="p">((</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">24</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFFF</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">|</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">|</span> <span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">decrypt_pointer</span><span class="p">(</span><span class="mh">0x00005624766b4270</span><span class="p">)))</span>
+<span class="c1"># =&gt; 0x5621147a0000</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
     <h2 id="house-of-botcake">
         House of botcake
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#house-of-botcake" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor House of botcake" href="#house-of-botcake">
@@ -194,8 +233,8 @@ $ checksec --file catastrophe
   href="https://github.com/shellphish/how2heap/blob/master/glibc_2.35/house_of_botcake.c"
   
   >House of botcake</a
->, we need to get both heap and libc leak. To leak libc that&rsquo;s pretty easily we just need to print out a free&rsquo;d chunk stored into the unsortedbin, it&rsquo;s forward pointer is not encrypted with safe-linking.</p>
-<p>As seen previously, to bypass safe-linking we have to print a free&rsquo;d chunk once it has been inserted in the tcache. It would give us the base address of the heap. When we got it, we just have to initialize the location we wanna write to <code>location ^ ((heap_base + chunk_offset) &gt;&gt; 12)</code> to encrypt properly the pointer, this way the primitive is efficient.</p>
+>, we need to get both heap and libc leak. To leak libc that&rsquo;s pretty easy, we just need to print out a free&rsquo;d chunk stored into the unsortedbin, its forward pointer is not encrypted with safe-linking.</p>
+<p>As seen previously, to bypass safe-linking we have to print a free&rsquo;d chunk once it has been inserted into the tcache. It should give us the base address of the heap. When we got it, we just have to initialize the location we wanna write to <code>location ^ ((heap_base + chunk_offset) &gt;&gt; 12)</code> to encrypt properly the pointer, this way the primitive is efficient.</p>
 <p>Implmentation of the <a
   class="gblog-markdown__link"
   href="https://github.com/shellphish/how2heap/blob/master/glibc_2.35/house_of_botcake.c"
@@ -318,13 +357,13 @@ $ checksec --file catastrophe
         </a>
     </h2>
 </div>
-<p>I didn&rsquo;t see first that only <code>PARTIAL RELRO</code> was enabled on the libc, so the technique I show you here was thought to face a <code>2.35</code> libc with <code>FULL RELRO</code> enabled that the reason why I didn&rsquo;t just hiijack some GOT pointers within the libc.</p>
+<p>I didn&rsquo;t see first that only <code>PARTIAL RELRO</code> was enabled on the libc, so the technique I show you here was thought to face a <code>2.35</code> libc with <code>FULL RELRO</code> enabled that the reason why I didn&rsquo;t just hiijack some GOT pointers within the libc (like <code>strlen</code> for example).</p>
 <p>A pretty convenient way to gain code execution when the hooks (<code>__malloc_hook</code>, <code>__free_hook</code>) are not present (since <code>2.32</code> cf <a
   class="gblog-markdown__link"
   href="https://sourceware.org/pipermail/libc-alpha/2021-August/129718.html"
   
   >this for 2.34</a
->) is to leak the address of the stack to then write a ROPchain on it. To leak a stack address we can make use of the <code>environ</code> symbol stored in the dynamic linker, it contains a pointer toward <code>**envp</code>.</p>
+>) is to leak the address of the stack to then write a ROPchain on it. To leak a stack address we can make use of the <code>environ</code> symbol stored in the dynamic linker, it contains a pointer toward <code>envp</code>.</p>
 <p>To read this pointer we need a read what where primitive! Which can be achieved through a file stream oriented programming (FSOP) attack on <code>stdout</code> for example. To dig more FSOP I advise you to read <a
   class="gblog-markdown__link"
   href="https://nasm.re/posts/onceforall/"
@@ -336,7 +375,7 @@ $ checksec --file catastrophe
   
   >this one</a
 >.</p>
-<p>To understand the whole process I&rsquo;ll try to introduce you to FSOP. First of all the target structure is stdout, we wanna corrupt stdout because it&rsquo;s used ritght after the <code>fgets</code> that reads the input from the user by the <code>putchar</code> function. Basically on linux &ldquo;everything is a file&rdquo; from the character device the any stream (error, input, output, opened file) we can interact with  a resource just by opening it and by getting a file descriptor on it, right ? This way each file descripor has an associated structure called <code>FILE</code> you may have used if you have already done some stuff with files on linux. Here is its definition:</p>
+<p>To understand the whole process I&rsquo;ll try to introduce you to FSOP. First of all the target structure is stdout, we wanna corrupt stdout because it&rsquo;s used right after the <code>fgets</code> that reads the input from the user by using the <code>putchar</code> function. Basically on linux &ldquo;everything is a file&rdquo; from the character device the any stream (error, input, output, opened file) we can interact with a resource by just by opening it and getting a file descriptor on it, right ? This way each file descripor has an associated structure called <code>FILE</code> you may have used if you have already done some stuff with files on linux. Here is its definition:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/bits/types/struct_FILE.h#L49
 </span><span class="c1"></span><span class="cm">/* The tag name of this struct is _IO_FILE to preserve historic
 </span><span class="cm">   C++ mangled names for functions taking FILE* arguments.
@@ -600,7 +639,7 @@ So first condition:</p>
         </a>
     </h2>
 </div>
-<p>Now we leaked the stack address we finally just need to achieve another arbitrary write to craft the ROPchain onto the <code>op_malloc</code> function that writes the user input into the requested chunk.</p>
+<p>Now we leaked the stack address we finally just need to achieve another arbitrary write to craft the ROPchain onto the <code>op_malloc</code> function&rsquo;s stackframe that writes the user input into the requested chunk.</p>
 <p>To get the arbitrary write we just have to use the same overlapping chunks technique than last time, let&rsquo;s say we wanna write to <code>target</code> and we have <code>prev</code> that overlaps <code>victim</code>:</p>
 <ul>
 <li><code>free(prev)</code> ends up in the tcachebin (0x140), it has already been consolidated, it <em>already</em> overlaps <code>victim</code>.</li>

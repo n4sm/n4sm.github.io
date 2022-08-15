@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/zig/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/zig/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-08-09T21:05:06+02:00</updated>
+    <updated>2022-08-16T00:48:47+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -238,7 +238,7 @@
   href="https://github.com/ziglang/zig/"
   
   >zig</a
-> source is quite readable so let&rsquo;s take a look at the internals of the GeneralPurposeAllocator allocator.
+> source code is quite readable so let&rsquo;s take a look at the internals of the GeneralPurposeAllocator allocator.
 The GeneralPurposeAllocator is implemented <a
   class="gblog-markdown__link"
   href="https://github.com/ziglang/zig/blob/master/lib/std/heap/general_purpose_allocator.zig"
@@ -371,7 +371,7 @@ The header of the source code file gives the basic design of the allocator:</p>
 </span><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">bucket</span><span class="p">.</span><span class="n">page</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">slot_index</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">size_class</span><span class="p">;</span><span class="w">
 </span><span class="w"></span><span class="p">}</span><span class="w">
 </span></code></pre></div><p><code>allocSlot</code> will check if the current bucket is able to allocate one more object, else it will iterate through the doubly linked list to look for a not full bucket.
-And if it does nto find one, it creates a new bucket. When the bucket is allocated, it returns the available objet at <code>bucket.page + slot_index * size_class</code>.</p>
+And if it does not find one, it creates a new bucket. When the bucket is allocated, it returns the available objet at <code>bucket.page + slot_index * size_class</code>.</p>
 <p>As you can see, the <code>BucketHeader</code> is structured like below in the <code>createBucket</code> function:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="nf">createBucket</span><span class="p">(</span><span class="bp">self</span>: <span class="o">*</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">size_class</span>: <span class="kt">usize</span><span class="p">,</span><span class="w"> </span><span class="n">bucket_index</span>: <span class="kt">usize</span><span class="p">)</span><span class="w"> </span><span class="n">Error</span><span class="o">!*</span><span class="n">BucketHeader</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">try</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">backing_allocator</span><span class="p">.</span><span class="n">allocAdvanced</span><span class="p">(</span><span class="kt">u8</span><span class="p">,</span><span class="w"> </span><span class="n">page_size</span><span class="p">,</span><span class="w"> </span><span class="n">page_size</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">exact</span><span class="p">);</span><span class="w">
@@ -396,7 +396,7 @@ And if it does nto find one, it creates a new bucket. When the bucket is allocat
 <p>Let&rsquo;s quickly decribe each field of the <code>BucketHeader</code>:</p>
 <ul>
 <li><code>.prev</code> and <code>.next</code> keep track of the doubly linked list that links buckets of same size.</li>
-<li><code>.page</code> contains the base address of the page that contains the objects that belong to the bucket.</li>
+<li><code>.page</code> contains the base address of the page that contains the objects that belongs to the bucket.</li>
 <li><code>alloc_cursor</code> contains the number of allocated objects.</li>
 <li><code>used_count</code> contains the number of currently used objects.</li>
 </ul>
@@ -439,7 +439,7 @@ This way the next allocation that will request <code>0x400</code> bytes, which w
         </a>
     </h2>
 </div>
-<p>To leak the stack I leaked the <code>argv</code> variable that contains a pointer toward arguments given to the program, stored on the stack. That&rsquo;s a reliable leak given it&rsquo;s a known and fixed location, which can base used as a base compared with function&rsquo;s stackframes.</p>
+<p>To leak the stack I leaked the <code>argv</code> variable that contains a pointer toward arguments given to the program, stored on the stack. That&rsquo;s a reliable leak given it&rsquo;s a known and fixed location, which can be used as a base compared with function&rsquo;s stackframes.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">alloc</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;A&#34;</span><span class="p">)</span> <span class="c1"># get chunk into target location (0x208000)</span>
 <span class="n">show</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mh">0x100</span><span class="p">)</span> <span class="c1"># argv is located at 0x208000 + 0x100</span>
@@ -454,7 +454,7 @@ This way the next allocation that will request <code>0x400</code> bytes, which w
         </a>
     </h2>
 </div>
-<p>Now we&rsquo;re able to overwrite whatever function&rsquo;s stackframe, we have to find one that returns from context of <code>std.fs.file.File.read</code> that reads the user input to the chunk. But unlucky functions like <code>add</code>, <code>edit</code> are inlined in the <code>main</code> function. Moreover we cannot overwrite the return address of the <code>main</code> function given that the exit handler call directly exit. Which means we have to corrput the stackframe of the <code>std.fs.file.File.read</code> function called in the <code>edit</code> function.
+<p>Now we&rsquo;re able to overwrite whatever function&rsquo;s stackframe, we have to find one that returns from context of <code>std.fs.file.File.read</code> that reads the user input to the chunk. But unlucky functions like <code>add</code>, <code>edit</code> are inlined in the <code>main</code> function. Moreover we cannot overwrite the return address of the <code>main</code> function given that the exit handler calls directly exit. Which means we have to corrupt the stackframe of the <code>std.fs.file.File.read</code> function called in the <code>edit</code> function.
 But the issue is that between the call to <code>SYS_read</code> within <code>std.fs.file.File.read</code> and the end of the function, variables that belong to the calling function&rsquo;s stackframe are edited, corrupting the ROPchain. So what I did is using this gadget to reach a part of the stack that will not be corrupted:</p>
 <pre tabindex="0"><code>0x0000000000203715 : add rsp, 0x68 ; pop rbx ; pop r14 ; ret
 </code></pre><p>With the use of this gadget I&rsquo;m able to pop a few QWORD from the stack to reach another area of the stack where I write my ROPchain.
