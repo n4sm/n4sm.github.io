@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/ctf/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/ctf/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-08-16T01:21:31+02:00</updated>
+    <updated>2022-09-26T09:53:14+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -17,6 +17,566 @@
             </author>
         
     <id>https://nasm.re/tags/ctf/</id>
+        
+        <entry>
+            <title type="html"><![CDATA[Linux file stream internals for fun and profit]]></title>
+            <link href="https://nasm.re/posts/filestream/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/filestream/</id>
+            
+                    <author>
+                        <name>nasm</name>
+                    </author>
+            <published>2022-08-19T00:00:00+00:00</published>
+            <updated>2022-08-19T00:00:00+00:00</updated>
+            
+            
+            <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
+    <h2 id="introduction">
+        Introduction
+        <a data-clipboard-text="https://nasm.re/posts/filestream/#introduction" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Introduction" href="#introduction">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>File streams are now a very common attack surface, here is a high level introduction that should make you understand the design of known attacks beyond the code reading for a particular function. I already talked about FSOP <a
+  class="gblog-markdown__link"
+  href="../catastrophe/#fsop-on-stdout-to-leak-environ"
+  
+  >here</a
+>. This article reviews <a
+  class="gblog-markdown__link"
+  href="https://elixir.bootlin.com/glibc/glibc-2.36/source"
+  
+  >glibc 2.36</a
+>. Most of this article comes from <a
+  class="gblog-markdown__link"
+  href="https://ray-cp.github.io/archivers/IO_FILE_arbitrary_read_write"
+  
+  >this</a
+> awesome series of articles about the <code>_IO_FILE</code> strcuture.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="global-design">
+        Global design
+        <a data-clipboard-text="https://nasm.re/posts/filestream/#global-design" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Global design" href="#global-design">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>As said in my previous writeup:</p>
+<blockquote>
+<p>Basically on linux “everything is a file” from the character device to any file stream (error, input, output, opened file) we can interact with. To do so, we open it to get a file descriptor on it, right ? This way each file descripor has an associated structure called <code>FILE</code> or <code>_IO_FILE</code> you may have used if you have already done some stuff with files on linux.</p>
+</blockquote>
+<p>The <code>struct _IO_FILE</code> is defined as follows:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cm">/* The tag name of this struct is _IO_FILE to preserve historic
+</span><span class="cm">   C++ mangled names for functions taking FILE* arguments.
+</span><span class="cm">   That name should not be used in new code.  */</span>
+<span class="k">struct</span> <span class="n">_IO_FILE</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">_flags</span><span class="p">;</span>		<span class="cm">/* High-order word is _IO_MAGIC; rest is flags. */</span>
+
+  <span class="cm">/* The following pointers correspond to the C++ streambuf protocol. */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_read_ptr</span><span class="p">;</span>	<span class="cm">/* Current read pointer */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_read_end</span><span class="p">;</span>	<span class="cm">/* End of get area. */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_read_base</span><span class="p">;</span>	<span class="cm">/* Start of putback+get area. */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_write_base</span><span class="p">;</span>	<span class="cm">/* Start of put area. */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_write_ptr</span><span class="p">;</span>	<span class="cm">/* Current put pointer. */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_write_end</span><span class="p">;</span>	<span class="cm">/* End of put area. */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_buf_base</span><span class="p">;</span>	<span class="cm">/* Start of reserve area. */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_buf_end</span><span class="p">;</span>	<span class="cm">/* End of reserve area. */</span>
+
+  <span class="cm">/* The following fields are used to support backing up and undo. */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_save_base</span><span class="p">;</span> <span class="cm">/* Pointer to start of non-current get area. */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_backup_base</span><span class="p">;</span>  <span class="cm">/* Pointer to first valid character of backup area */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">_IO_save_end</span><span class="p">;</span> <span class="cm">/* Pointer to end of non-current get area. */</span>
+
+  <span class="k">struct</span> <span class="n">_IO_marker</span> <span class="o">*</span><span class="n">_markers</span><span class="p">;</span>
+
+  <span class="k">struct</span> <span class="n">_IO_FILE</span> <span class="o">*</span><span class="n">_chain</span><span class="p">;</span>
+
+  <span class="kt">int</span> <span class="n">_fileno</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">_flags2</span><span class="p">;</span>
+  <span class="n">__off_t</span> <span class="n">_old_offset</span><span class="p">;</span> <span class="cm">/* This used to be _offset but it&#39;s too small.  */</span>
+
+  <span class="cm">/* 1+column number of pbase(); 0 is unknown. */</span>
+  <span class="kt">unsigned</span> <span class="kt">short</span> <span class="n">_cur_column</span><span class="p">;</span>
+  <span class="kt">signed</span> <span class="kt">char</span> <span class="n">_vtable_offset</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">_shortbuf</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+  <span class="n">_IO_lock_t</span> <span class="o">*</span><span class="n">_lock</span><span class="p">;</span>
+<span class="cp">#ifdef _IO_USE_OLD_IO_FILE
+</span><span class="cp"></span><span class="p">};</span>
+
+<span class="k">struct</span> <span class="n">_IO_FILE_complete</span>
+<span class="p">{</span>
+  <span class="k">struct</span> <span class="n">_IO_FILE</span> <span class="n">_file</span><span class="p">;</span>
+<span class="cp">#endif
+</span><span class="cp"></span>  <span class="n">__off64_t</span> <span class="n">_offset</span><span class="p">;</span>
+  <span class="cm">/* Wide character stream stuff.  */</span>
+  <span class="k">struct</span> <span class="n">_IO_codecvt</span> <span class="o">*</span><span class="n">_codecvt</span><span class="p">;</span>
+  <span class="k">struct</span> <span class="n">_IO_wide_data</span> <span class="o">*</span><span class="n">_wide_data</span><span class="p">;</span>
+  <span class="k">struct</span> <span class="n">_IO_FILE</span> <span class="o">*</span><span class="n">_freeres_list</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="o">*</span><span class="n">_freeres_buf</span><span class="p">;</span>
+  <span class="n">size_t</span> <span class="n">__pad5</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">_mode</span><span class="p">;</span>
+  <span class="cm">/* Make sure we don&#39;t get into trouble again.  */</span>
+  <span class="kt">char</span> <span class="n">_unused2</span><span class="p">[</span><span class="mi">15</span> <span class="o">*</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">*</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span> <span class="o">-</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">size_t</span><span class="p">)];</span>
+<span class="p">};</span>
+</code></pre></div><p>Before starting to describe each field of the structure, you have to understand that according to the behaviour of the function that uses a file stream, only a small part of the <code>_IO_FILE</code> structure is used. For example if the file stream is byte oriented, <code>_IO_wide_data</code> related operations are not used.</p>
+<p>Let&rsquo;s review the fields of the structure:</p>
+<ul>
+<li><code>_flags</code>: High-order word is <code>_IO_MAGIC</code>, rest is flags.</li>
+<li><code>_IO_read_ptr</code> address of input within the input buffer that has been already used.</li>
+<li><code>_IO_read_end</code> end address of the input buffer.</li>
+<li><code>_IO_read_base</code> base address of the input buffer.</li>
+<li><code>_IO_write_base</code> base address of the ouput buffer.</li>
+<li><code>_IO_write_ptr</code> points to the character that hasn’t been printed yet.</li>
+<li><code>_IO_write_end</code> end address of the output buffer.</li>
+<li><code>_IO_buf_base</code> base address for both input and output buffer.</li>
+<li><code>_IO_buf_end</code> end address for both input and output buffer.</li>
+<li><code>_chain</code> stands for the single linked list that links of all file streams.</li>
+<li><code>_fileno</code> stands for the file descriptor associated to the file.</li>
+<li><code>_vtable_offset</code> stands for the offset of the vtable we have to use.</li>
+<li><code>_offset</code> stands for the current offset within the file.</li>
+</ul>
+<div class="gblog-post__anchorwrap">
+    <h1 id="fopen">
+        fopen
+        <a data-clipboard-text="https://nasm.re/posts/filestream/#fopen" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor fopen" href="#fopen">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+<p>Let&rsquo;s review the opening process of a file and how the <code>_IO_FILE</code> structure is intitialized. <code>fopen</code> is implemented in <code>libio/iofopen.c</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/iofopen.c#L83
+</span><span class="c1"></span><span class="n">FILE</span> <span class="o">*</span>
+<span class="nf">_IO_new_fopen</span> <span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">mode</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">__fopen_internal</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">strong_alias</span> <span class="p">(</span><span class="n">_IO_new_fopen</span><span class="p">,</span> <span class="n">__new_fopen</span><span class="p">)</span>
+<span class="n">versioned_symbol</span> <span class="p">(</span><span class="n">libc</span><span class="p">,</span> <span class="n">_IO_new_fopen</span><span class="p">,</span> <span class="n">_IO_fopen</span><span class="p">,</span> <span class="n">GLIBC_2_1</span><span class="p">);</span>
+<span class="n">versioned_symbol</span> <span class="p">(</span><span class="n">libc</span><span class="p">,</span> <span class="n">__new_fopen</span><span class="p">,</span> <span class="n">fopen</span><span class="p">,</span> <span class="n">GLIBC_2_1</span><span class="p">);</span>
+
+<span class="cp"># if !defined O_LARGEFILE || O_LARGEFILE == 0
+</span><span class="cp"></span><span class="n">weak_alias</span> <span class="p">(</span><span class="n">_IO_new_fopen</span><span class="p">,</span> <span class="n">_IO_fopen64</span><span class="p">)</span>
+<span class="n">weak_alias</span> <span class="p">(</span><span class="n">_IO_new_fopen</span><span class="p">,</span> <span class="n">fopen64</span><span class="p">)</span>
+<span class="cp"># endif
+</span></code></pre></div><p>Then it calls <code>__fopen_internal</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/iofopen.c#L56
+</span><span class="c1"></span><span class="n">FILE</span> <span class="o">*</span>
+<span class="nf">__fopen_internal</span> <span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">mode</span><span class="p">,</span> <span class="kt">int</span> <span class="n">is32</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">struct</span> <span class="n">locked_FILE</span>
+  <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">_IO_FILE_plus</span> <span class="n">fp</span><span class="p">;</span>
+<span class="cp">#ifdef _IO_MTSAFE_IO
+</span><span class="cp"></span>    <span class="n">_IO_lock_t</span> <span class="n">lock</span><span class="p">;</span>
+<span class="cp">#endif
+</span><span class="cp"></span>    <span class="k">struct</span> <span class="n">_IO_wide_data</span> <span class="n">wd</span><span class="p">;</span>
+  <span class="p">}</span> <span class="o">*</span><span class="n">new_f</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">locked_FILE</span> <span class="o">*</span><span class="p">)</span> <span class="n">malloc</span> <span class="p">(</span><span class="k">sizeof</span> <span class="p">(</span><span class="k">struct</span> <span class="n">locked_FILE</span><span class="p">));</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">new_f</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="cp">#ifdef _IO_MTSAFE_IO
+</span><span class="cp"></span>  <span class="n">new_f</span><span class="o">-&gt;</span><span class="n">fp</span><span class="p">.</span><span class="n">file</span><span class="p">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">new_f</span><span class="o">-&gt;</span><span class="n">lock</span><span class="p">;</span>
+<span class="cp">#endif
+</span><span class="cp"></span>  <span class="n">_IO_no_init</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">new_f</span><span class="o">-&gt;</span><span class="n">fp</span><span class="p">.</span><span class="n">file</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">new_f</span><span class="o">-&gt;</span><span class="n">wd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">_IO_wfile_jumps</span><span class="p">);</span>
+  <span class="n">_IO_JUMPS</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">new_f</span><span class="o">-&gt;</span><span class="n">fp</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_file_jumps</span><span class="p">;</span>
+  <span class="n">_IO_new_file_init_internal</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">new_f</span><span class="o">-&gt;</span><span class="n">fp</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">_IO_file_fopen</span> <span class="p">((</span><span class="n">FILE</span> <span class="o">*</span><span class="p">)</span> <span class="n">new_f</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">is32</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">__fopen_maybe_mmap</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">new_f</span><span class="o">-&gt;</span><span class="n">fp</span><span class="p">.</span><span class="n">file</span><span class="p">);</span>
+
+  <span class="n">_IO_un_link</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">new_f</span><span class="o">-&gt;</span><span class="n">fp</span><span class="p">);</span>
+  <span class="n">free</span> <span class="p">(</span><span class="n">new_f</span><span class="p">);</span>
+  <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>First, a <code>struct locked_FILE</code> is allocated on the heap. <code>_IO_no_init</code> &ndash; and <code>_IO_old_init</code> within it &ndash; null out the structure:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/genops.c#L561
+</span><span class="c1"></span><span class="kt">void</span>
+<span class="nf">_IO_no_init</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">,</span> <span class="kt">int</span> <span class="n">orientation</span><span class="p">,</span>
+	     <span class="k">struct</span> <span class="n">_IO_wide_data</span> <span class="o">*</span><span class="n">wd</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">_IO_jump_t</span> <span class="o">*</span><span class="n">jmp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">_IO_old_init</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">orientation</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">orientation</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span> <span class="o">=</span> <span class="n">wd</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_write_end</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_save_base</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_backup_base</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_save_end</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_wide_vtable</span> <span class="o">=</span> <span class="n">jmp</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="k">else</span>
+    <span class="cm">/* Cause predictable crash when a wide function is called on a byte
+</span><span class="cm">       stream.  */</span>
+    <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">_IO_wide_data</span> <span class="o">*</span><span class="p">)</span> <span class="o">-</span><span class="mi">1L</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_freeres_list</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/genops.c#L530
+</span><span class="c1"></span>
+<span class="kt">void</span>
+<span class="nf">_IO_old_init</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">=</span> <span class="n">_IO_MAGIC</span><span class="o">|</span><span class="n">flags</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags2</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">stdio_needs_locking</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags2</span> <span class="o">|=</span> <span class="n">_IO_FLAGS2_NEED_LOCK</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_end</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_chain</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span> <span class="cm">/* Not necessary. */</span>
+
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_save_base</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_backup_base</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_save_end</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_markers</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_cur_column</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="cp">#if _IO_JUMPS_OFFSET
+</span><span class="cp"></span>  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_vtable_offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="cp">#endif
+</span><span class="cp">#ifdef _IO_MTSAFE_IO
+</span><span class="cp"></span>  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_lock</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+    <span class="n">_IO_lock_init</span> <span class="p">(</span><span class="o">*</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_lock</span><span class="p">);</span>
+<span class="cp">#endif
+</span><span class="cp"></span><span class="p">}</span>
+</code></pre></div><p>Then it initializes the vtable field field to <code>&amp;_IO_file_jumps</code> initialized in <code>/source/libio/fileops.c#L1432</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// /source/libio/fileops.c#L1432
+</span><span class="c1"></span>
+
+<span class="k">const</span> <span class="k">struct</span> <span class="n">_IO_jump_t</span> <span class="n">_IO_file_jumps</span> <span class="n">libio_vtable</span> <span class="o">=</span>
+<span class="p">{</span>
+  <span class="n">JUMP_INIT_DUMMY</span><span class="p">,</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">finish</span><span class="p">,</span> <span class="n">_IO_file_finish</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">overflow</span><span class="p">,</span> <span class="n">_IO_file_overflow</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">underflow</span><span class="p">,</span> <span class="n">_IO_file_underflow</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">uflow</span><span class="p">,</span> <span class="n">_IO_default_uflow</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">pbackfail</span><span class="p">,</span> <span class="n">_IO_default_pbackfail</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">xsputn</span><span class="p">,</span> <span class="n">_IO_file_xsputn</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">xsgetn</span><span class="p">,</span> <span class="n">_IO_file_xsgetn</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seekoff</span><span class="p">,</span> <span class="n">_IO_new_file_seekoff</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seekpos</span><span class="p">,</span> <span class="n">_IO_default_seekpos</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">setbuf</span><span class="p">,</span> <span class="n">_IO_new_file_setbuf</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">sync</span><span class="p">,</span> <span class="n">_IO_new_file_sync</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">doallocate</span><span class="p">,</span> <span class="n">_IO_file_doallocate</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">_IO_file_read</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">write</span><span class="p">,</span> <span class="n">_IO_new_file_write</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seek</span><span class="p">,</span> <span class="n">_IO_file_seek</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="n">_IO_file_close</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">stat</span><span class="p">,</span> <span class="n">_IO_file_stat</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">showmanyc</span><span class="p">,</span> <span class="n">_IO_default_showmanyc</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">imbue</span><span class="p">,</span> <span class="n">_IO_default_imbue</span><span class="p">)</span>
+<span class="p">};</span>
+<span class="n">libc_hidden_data_def</span> <span class="p">(</span><span class="n">_IO_file_jumps</span><span class="p">)</span>
+</code></pre></div><p>Most of the intialization stuff stands in the <code>_IO_new_file_init_internal</code> function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/fileops.c#L105
+</span><span class="c1"></span>
+<span class="kt">void</span>
+<span class="nf">_IO_new_file_init_internal</span> <span class="p">(</span><span class="k">struct</span> <span class="n">_IO_FILE_plus</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* POSIX.1 allows another file handle to be used to change the position
+</span><span class="cm">     of our file descriptor.  Hence we actually don&#39;t know the actual
+</span><span class="cm">     position before we do the first fseek (and until a following fflush). */</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">file</span><span class="p">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">_IO_pos_BAD</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">file</span><span class="p">.</span><span class="n">_flags</span> <span class="o">|=</span> <span class="n">CLOSED_FILEBUF_FLAGS</span><span class="p">;</span>
+
+  <span class="n">_IO_link_in</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">file</span><span class="p">.</span><span class="n">_fileno</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p><code>fp-&gt;file._flags</code> is initialized to <code>CLOSED_FILEBUF_FLAGS</code> which means according to its definition:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/fileops.c#L100
+</span><span class="c1"></span>
+<span class="cp">#define CLOSED_FILEBUF_FLAGS \
+</span><span class="cp">  (_IO_IS_FILEBUF+_IO_NO_READS+_IO_NO_WRITES+_IO_TIED_PUT_GET)
+</span><span class="cp"></span>
+<span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/libio.h#L78
+</span><span class="c1"></span><span class="cp">#define _IO_TIED_PUT_GET      0x0400 </span><span class="cm">/* Put and get pointer move in unison.  */</span><span class="cp">
+</span></code></pre></div><p>Then the <code>fp</code> (the file pointer) is linked into the single linked list that keeps track of every file stream, for which the HEAD is <code>_IO_list_all</code>.
+<code>_IO_link_in</code> is defined like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/genops.c#L86
+</span><span class="c1"></span>
+<span class="kt">void</span>
+<span class="nf">_IO_link_in</span> <span class="p">(</span><span class="k">struct</span> <span class="n">_IO_FILE_plus</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">file</span><span class="p">.</span><span class="n">_flags</span> <span class="o">&amp;</span> <span class="n">_IO_LINKED</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">file</span><span class="p">.</span><span class="n">_flags</span> <span class="o">|=</span> <span class="n">_IO_LINKED</span><span class="p">;</span>
+<span class="cp">#ifdef _IO_MTSAFE_IO
+</span><span class="cp"></span>      <span class="n">_IO_cleanup_region_start_noarg</span> <span class="p">(</span><span class="n">flush_cleanup</span><span class="p">);</span>
+      <span class="n">_IO_lock_lock</span> <span class="p">(</span><span class="n">list_all_lock</span><span class="p">);</span>
+      <span class="n">run_fp</span> <span class="o">=</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="p">)</span> <span class="n">fp</span><span class="p">;</span>
+      <span class="n">_IO_flockfile</span> <span class="p">((</span><span class="n">FILE</span> <span class="o">*</span><span class="p">)</span> <span class="n">fp</span><span class="p">);</span>
+<span class="cp">#endif
+</span><span class="cp"></span>      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">file</span><span class="p">.</span><span class="n">_chain</span> <span class="o">=</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="p">)</span> <span class="n">_IO_list_all</span><span class="p">;</span>
+      <span class="n">_IO_list_all</span> <span class="o">=</span> <span class="n">fp</span><span class="p">;</span>
+<span class="cp">#ifdef _IO_MTSAFE_IO
+</span><span class="cp"></span>      <span class="n">_IO_funlockfile</span> <span class="p">((</span><span class="n">FILE</span> <span class="o">*</span><span class="p">)</span> <span class="n">fp</span><span class="p">);</span>
+      <span class="n">run_fp</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">_IO_lock_unlock</span> <span class="p">(</span><span class="n">list_all_lock</span><span class="p">);</span>
+      <span class="n">_IO_cleanup_region_end</span> <span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="cp">#endif
+</span><span class="cp"></span>    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_def</span> <span class="p">(</span><span class="n">_IO_link_in</span><span class="p">)</span>
+</code></pre></div><p>Once it has been initialized, <code>_IO_file_fopen</code> is called to open the file with the right file and mode. Here is its definition:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/fileops.c#L211
+</span><span class="c1"></span>
+<span class="n">FILE</span> <span class="o">*</span>
+<span class="nf">_IO_new_file_fopen</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">mode</span><span class="p">,</span>
+		    <span class="kt">int</span> <span class="n">is32not64</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">oflags</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">omode</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">read_write</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">oprot</span> <span class="o">=</span> <span class="mo">0666</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+  <span class="n">FILE</span> <span class="o">*</span><span class="n">result</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">cs</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">last_recognized</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">_IO_file_is_open</span> <span class="p">(</span><span class="n">fp</span><span class="p">))</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="o">*</span><span class="n">mode</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="k">case</span> <span class="sc">&#39;r&#39;</span><span class="o">:</span>
+      <span class="n">omode</span> <span class="o">=</span> <span class="n">O_RDONLY</span><span class="p">;</span>
+      <span class="n">read_write</span> <span class="o">=</span> <span class="n">_IO_NO_WRITES</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="sc">&#39;w&#39;</span><span class="o">:</span>
+      <span class="n">omode</span> <span class="o">=</span> <span class="n">O_WRONLY</span><span class="p">;</span>
+      <span class="n">oflags</span> <span class="o">=</span> <span class="n">O_CREAT</span><span class="o">|</span><span class="n">O_TRUNC</span><span class="p">;</span>
+      <span class="n">read_write</span> <span class="o">=</span> <span class="n">_IO_NO_READS</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="sc">&#39;a&#39;</span><span class="o">:</span>
+      <span class="n">omode</span> <span class="o">=</span> <span class="n">O_WRONLY</span><span class="p">;</span>
+      <span class="n">oflags</span> <span class="o">=</span> <span class="n">O_CREAT</span><span class="o">|</span><span class="n">O_APPEND</span><span class="p">;</span>
+      <span class="n">read_write</span> <span class="o">=</span> <span class="n">_IO_NO_READS</span><span class="o">|</span><span class="n">_IO_IS_APPENDING</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">default</span><span class="o">:</span>
+      <span class="n">__set_errno</span> <span class="p">(</span><span class="n">EINVAL</span><span class="p">);</span>
+      <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="n">last_recognized</span> <span class="o">=</span> <span class="n">mode</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">7</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="k">switch</span> <span class="p">(</span><span class="o">*++</span><span class="n">mode</span><span class="p">)</span>
+	<span class="p">{</span>
+	<span class="k">case</span> <span class="sc">&#39;\0&#39;</span><span class="o">:</span>
+	  <span class="k">break</span><span class="p">;</span>
+	<span class="k">case</span> <span class="sc">&#39;+&#39;</span><span class="o">:</span>
+	  <span class="n">omode</span> <span class="o">=</span> <span class="n">O_RDWR</span><span class="p">;</span>
+	  <span class="n">read_write</span> <span class="o">&amp;=</span> <span class="n">_IO_IS_APPENDING</span><span class="p">;</span>
+	  <span class="n">last_recognized</span> <span class="o">=</span> <span class="n">mode</span><span class="p">;</span>
+	  <span class="k">continue</span><span class="p">;</span>
+	<span class="k">case</span> <span class="sc">&#39;x&#39;</span><span class="o">:</span>
+	  <span class="n">oflags</span> <span class="o">|=</span> <span class="n">O_EXCL</span><span class="p">;</span>
+	  <span class="n">last_recognized</span> <span class="o">=</span> <span class="n">mode</span><span class="p">;</span>
+	  <span class="k">continue</span><span class="p">;</span>
+	<span class="k">case</span> <span class="sc">&#39;b&#39;</span><span class="o">:</span>
+	  <span class="n">last_recognized</span> <span class="o">=</span> <span class="n">mode</span><span class="p">;</span>
+	  <span class="k">continue</span><span class="p">;</span>
+	<span class="k">case</span> <span class="sc">&#39;m&#39;</span><span class="o">:</span>
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags2</span> <span class="o">|=</span> <span class="n">_IO_FLAGS2_MMAP</span><span class="p">;</span>
+	  <span class="k">continue</span><span class="p">;</span>
+	<span class="k">case</span> <span class="sc">&#39;c&#39;</span><span class="o">:</span>
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags2</span> <span class="o">|=</span> <span class="n">_IO_FLAGS2_NOTCANCEL</span><span class="p">;</span>
+	  <span class="k">continue</span><span class="p">;</span>
+	<span class="k">case</span> <span class="sc">&#39;e&#39;</span><span class="o">:</span>
+	  <span class="n">oflags</span> <span class="o">|=</span> <span class="n">O_CLOEXEC</span><span class="p">;</span>
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags2</span> <span class="o">|=</span> <span class="n">_IO_FLAGS2_CLOEXEC</span><span class="p">;</span>
+	  <span class="k">continue</span><span class="p">;</span>
+	<span class="k">default</span><span class="o">:</span>
+	  <span class="cm">/* Ignore.  */</span>
+	  <span class="k">continue</span><span class="p">;</span>
+	<span class="p">}</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+
+  <span class="n">result</span> <span class="o">=</span> <span class="n">_IO_file_open</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">omode</span><span class="o">|</span><span class="n">oflags</span><span class="p">,</span> <span class="n">oprot</span><span class="p">,</span> <span class="n">read_write</span><span class="p">,</span>
+			  <span class="n">is32not64</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="cm">/* Test whether the mode string specifies the conversion.  */</span>
+      <span class="n">cs</span> <span class="o">=</span> <span class="n">strstr</span> <span class="p">(</span><span class="n">last_recognized</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#34;,ccs=&#34;</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">cs</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+	<span class="p">{</span>
+	  <span class="cm">/* Yep.  Load the appropriate conversions and set the orientation
+</span><span class="cm">	     to wide.  */</span>
+	  <span class="k">struct</span> <span class="n">gconv_fcts</span> <span class="n">fcts</span><span class="p">;</span>
+	  <span class="k">struct</span> <span class="n">_IO_codecvt</span> <span class="o">*</span><span class="n">cc</span><span class="p">;</span>
+	  <span class="kt">char</span> <span class="o">*</span><span class="n">endp</span> <span class="o">=</span> <span class="n">__strchrnul</span> <span class="p">(</span><span class="n">cs</span> <span class="o">+</span> <span class="mi">5</span><span class="p">,</span> <span class="sc">&#39;,&#39;</span><span class="p">);</span>
+	  <span class="kt">char</span> <span class="o">*</span><span class="n">ccs</span> <span class="o">=</span> <span class="n">malloc</span> <span class="p">(</span><span class="n">endp</span> <span class="o">-</span> <span class="p">(</span><span class="n">cs</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span><span class="p">);</span>
+
+	  <span class="k">if</span> <span class="p">(</span><span class="n">ccs</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+	    <span class="p">{</span>
+	      <span class="kt">int</span> <span class="n">malloc_err</span> <span class="o">=</span> <span class="n">errno</span><span class="p">;</span>  <span class="cm">/* Whatever malloc failed with.  */</span>
+	      <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">_IO_file_close_it</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+	      <span class="n">__set_errno</span> <span class="p">(</span><span class="n">malloc_err</span><span class="p">);</span>
+	      <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+	    <span class="p">}</span>
+
+	  <span class="o">*</span><span class="p">((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">__mempcpy</span> <span class="p">(</span><span class="n">ccs</span><span class="p">,</span> <span class="n">cs</span> <span class="o">+</span> <span class="mi">5</span><span class="p">,</span> <span class="n">endp</span> <span class="o">-</span> <span class="p">(</span><span class="n">cs</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)))</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+	  <span class="n">strip</span> <span class="p">(</span><span class="n">ccs</span><span class="p">,</span> <span class="n">ccs</span><span class="p">);</span>
+
+	  <span class="k">if</span> <span class="p">(</span><span class="n">__wcsmbs_named_conv</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">fcts</span><span class="p">,</span> <span class="n">ccs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span>
+				   <span class="o">?</span> <span class="n">upstr</span> <span class="p">(</span><span class="n">ccs</span><span class="p">,</span> <span class="n">cs</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span> <span class="o">:</span> <span class="n">ccs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+	    <span class="p">{</span>
+	      <span class="cm">/* Something went wrong, we cannot load the conversion modules.
+</span><span class="cm">		 This means we cannot proceed since the user explicitly asked
+</span><span class="cm">		 for these.  */</span>
+	      <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">_IO_file_close_it</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+	      <span class="n">free</span> <span class="p">(</span><span class="n">ccs</span><span class="p">);</span>
+	      <span class="n">__set_errno</span> <span class="p">(</span><span class="n">EINVAL</span><span class="p">);</span>
+	      <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+	    <span class="p">}</span>
+
+	  <span class="n">free</span> <span class="p">(</span><span class="n">ccs</span><span class="p">);</span>
+
+	  <span class="n">assert</span> <span class="p">(</span><span class="n">fcts</span><span class="p">.</span><span class="n">towc_nsteps</span> <span class="o">==</span> <span class="mi">1</span><span class="p">);</span>
+	  <span class="n">assert</span> <span class="p">(</span><span class="n">fcts</span><span class="p">.</span><span class="n">tomb_nsteps</span> <span class="o">==</span> <span class="mi">1</span><span class="p">);</span>
+
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span><span class="p">;</span>
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span><span class="p">;</span>
+
+	  <span class="cm">/* Clear the state.  We start all over again.  */</span>
+	  <span class="n">memset</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_state</span><span class="p">,</span> <span class="sc">&#39;\0&#39;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">__mbstate_t</span><span class="p">));</span>
+	  <span class="n">memset</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_last_state</span><span class="p">,</span> <span class="sc">&#39;\0&#39;</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">__mbstate_t</span><span class="p">));</span>
+
+	  <span class="n">cc</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_codecvt</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_codecvt</span><span class="p">;</span>
+
+	  <span class="n">cc</span><span class="o">-&gt;</span><span class="n">__cd_in</span><span class="p">.</span><span class="n">step</span> <span class="o">=</span> <span class="n">fcts</span><span class="p">.</span><span class="n">towc</span><span class="p">;</span>
+
+	  <span class="n">cc</span><span class="o">-&gt;</span><span class="n">__cd_in</span><span class="p">.</span><span class="n">step_data</span><span class="p">.</span><span class="n">__invocation_counter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	  <span class="n">cc</span><span class="o">-&gt;</span><span class="n">__cd_in</span><span class="p">.</span><span class="n">step_data</span><span class="p">.</span><span class="n">__internal_use</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+	  <span class="n">cc</span><span class="o">-&gt;</span><span class="n">__cd_in</span><span class="p">.</span><span class="n">step_data</span><span class="p">.</span><span class="n">__flags</span> <span class="o">=</span> <span class="n">__GCONV_IS_LAST</span><span class="p">;</span>
+	  <span class="n">cc</span><span class="o">-&gt;</span><span class="n">__cd_in</span><span class="p">.</span><span class="n">step_data</span><span class="p">.</span><span class="n">__statep</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">result</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_state</span><span class="p">;</span>
+
+	  <span class="n">cc</span><span class="o">-&gt;</span><span class="n">__cd_out</span><span class="p">.</span><span class="n">step</span> <span class="o">=</span> <span class="n">fcts</span><span class="p">.</span><span class="n">tomb</span><span class="p">;</span>
+
+	  <span class="n">cc</span><span class="o">-&gt;</span><span class="n">__cd_out</span><span class="p">.</span><span class="n">step_data</span><span class="p">.</span><span class="n">__invocation_counter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	  <span class="n">cc</span><span class="o">-&gt;</span><span class="n">__cd_out</span><span class="p">.</span><span class="n">step_data</span><span class="p">.</span><span class="n">__internal_use</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+	  <span class="n">cc</span><span class="o">-&gt;</span><span class="n">__cd_out</span><span class="p">.</span><span class="n">step_data</span><span class="p">.</span><span class="n">__flags</span> <span class="o">=</span> <span class="n">__GCONV_IS_LAST</span> <span class="o">|</span> <span class="n">__GCONV_TRANSLIT</span><span class="p">;</span>
+	  <span class="n">cc</span><span class="o">-&gt;</span><span class="n">__cd_out</span><span class="p">.</span><span class="n">step_data</span><span class="p">.</span><span class="n">__statep</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">result</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_IO_state</span><span class="p">;</span>
+
+	  <span class="cm">/* From now on use the wide character callback functions.  */</span>
+	  <span class="n">_IO_JUMPS_FILE_plus</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_wide_vtable</span><span class="p">;</span>
+
+	  <span class="cm">/* Set the mode now.  */</span>
+	  <span class="n">result</span><span class="o">-&gt;</span><span class="n">_mode</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+	<span class="p">}</span>
+    <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_ver</span> <span class="p">(</span><span class="n">_IO_new_file_fopen</span><span class="p">,</span> <span class="n">_IO_file_fopen</span><span class="p">)</span>
+</code></pre></div><p>That&rsquo;s a pretty huge function but most of it is just parsing and handling of a specific encoding for the file. First it checks if the file is already open then it parses the mode and once it&rsquo;s done it calls <code>_IO_file_open</code> with the right flags. Then is the file requires a specific encoding it intitializes <code>_wide_data</code> and so on to properly handle it. Let&rsquo;s take a look at the  <code>_IO_file_open</code> function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/fileops.c#L180
+</span><span class="c1"></span>
+<span class="n">FILE</span> <span class="o">*</span>
+<span class="nf">_IO_file_open</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span><span class="p">,</span> <span class="kt">int</span> <span class="n">posix_mode</span><span class="p">,</span> <span class="kt">int</span> <span class="n">prot</span><span class="p">,</span>
+	       <span class="kt">int</span> <span class="n">read_write</span><span class="p">,</span> <span class="kt">int</span> <span class="n">is32not64</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">fdesc</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">__glibc_unlikely</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags2</span> <span class="o">&amp;</span> <span class="n">_IO_FLAGS2_NOTCANCEL</span><span class="p">))</span>
+    <span class="n">fdesc</span> <span class="o">=</span> <span class="n">__open_nocancel</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span>
+			     <span class="n">posix_mode</span> <span class="o">|</span> <span class="p">(</span><span class="n">is32not64</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">O_LARGEFILE</span><span class="p">),</span> <span class="n">prot</span><span class="p">);</span>
+  <span class="k">else</span>
+    <span class="n">fdesc</span> <span class="o">=</span> <span class="n">__open</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">posix_mode</span> <span class="o">|</span> <span class="p">(</span><span class="n">is32not64</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">O_LARGEFILE</span><span class="p">),</span> <span class="n">prot</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fdesc</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_fileno</span> <span class="o">=</span> <span class="n">fdesc</span><span class="p">;</span>
+  <span class="n">_IO_mask_flags</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">read_write</span><span class="p">,</span><span class="n">_IO_NO_READS</span><span class="o">+</span><span class="n">_IO_NO_WRITES</span><span class="o">+</span><span class="n">_IO_IS_APPENDING</span><span class="p">);</span>
+  <span class="cm">/* For append mode, send the file offset to the end of the file.  Don&#39;t
+</span><span class="cm">     update the offset cache though, since the file handle is not active.  */</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">read_write</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">_IO_IS_APPENDING</span> <span class="o">|</span> <span class="n">_IO_NO_READS</span><span class="p">))</span>
+      <span class="o">==</span> <span class="p">(</span><span class="n">_IO_IS_APPENDING</span> <span class="o">|</span> <span class="n">_IO_NO_READS</span><span class="p">))</span>
+    <span class="p">{</span>
+      <span class="n">off64_t</span> <span class="n">new_pos</span> <span class="o">=</span> <span class="n">_IO_SYSSEEK</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">_IO_seek_end</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">new_pos</span> <span class="o">==</span> <span class="n">_IO_pos_BAD</span> <span class="o">&amp;&amp;</span> <span class="n">errno</span> <span class="o">!=</span> <span class="n">ESPIPE</span><span class="p">)</span>
+	<span class="p">{</span>
+	  <span class="n">__close_nocancel</span> <span class="p">(</span><span class="n">fdesc</span><span class="p">);</span>
+	  <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+	<span class="p">}</span>
+    <span class="p">}</span>
+  <span class="n">_IO_link_in</span> <span class="p">((</span><span class="k">struct</span> <span class="n">_IO_FILE_plus</span> <span class="o">*</span><span class="p">)</span> <span class="n">fp</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">fp</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_def</span> <span class="p">(</span><span class="n">_IO_file_open</span><span class="p">)</span>
+</code></pre></div><p>If the mode doesn&rsquo;t allow the open process to be a cancellation point it calls <code>__open_nocancel</code>, else it calls <code>__open</code>. When the file is open, it initializes flags, file descriptor (fileno) and links the actual file pointer to the single linked list that stores every file stream (if that&rsquo;s not already the case).</p>
+<p>Then we&rsquo;re back into <code>__fopen_internal</code> to call <code>__fopen_maybe_mmap</code> on the newly open file:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/iofopen.c#L34
+</span><span class="c1"></span>
+<span class="n">FILE</span> <span class="o">*</span>
+<span class="nf">__fopen_maybe_mmap</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="cp">#if _G_HAVE_MMAP
+</span><span class="cp"></span>  <span class="k">if</span> <span class="p">((</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags2</span> <span class="o">&amp;</span> <span class="n">_IO_FLAGS2_MMAP</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">&amp;</span> <span class="n">_IO_NO_WRITES</span><span class="p">))</span>
+    <span class="p">{</span>
+      <span class="cm">/* Since this is read-only, we might be able to mmap the contents
+</span><span class="cm">	 directly.  We delay the decision until the first read attempt by
+</span><span class="cm">	 giving it a jump table containing functions that choose mmap or
+</span><span class="cm">	 vanilla file operations and reset the jump table accordingly.  */</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_mode</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+	<span class="n">_IO_JUMPS_FILE_plus</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_file_jumps_maybe_mmap</span><span class="p">;</span>
+      <span class="k">else</span>
+	<span class="n">_IO_JUMPS_FILE_plus</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_wfile_jumps_maybe_mmap</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_wide_vtable</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_wfile_jumps_maybe_mmap</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="cp">#endif
+</span><span class="cp"></span>  <span class="k">return</span> <span class="n">fp</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>I think the comment is enough explicit, once <code>__fopen_maybe_mmap</code> is called the <code>fp</code> is returned given the file descriptor has properly been allocated, initialized and that the file is open. Else it means that there are some errors, then the <code>fp</code> is unlinked from the single linked that stores every file stream, and the <code>locked_FILE</code> is freed, returning <code>NULL</code> indicating an error.</p>
+<p>That&rsquo;s basically how <code>fopen</code> works !</p>
+]]></content>
+            
+                 
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/authors/nasm" term="nasm" label="nasm" />
+                            
+                        
+                    
+                 
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
+                             
+                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
+                             
+                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
+                             
+                                <category scheme="https://nasm.re/tags/linux" term="linux" label="linux" />
+                             
+                                <category scheme="https://nasm.re/tags/file-stream" term="file-stream" label="file stream" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
         
         <entry>
             <title type="html"><![CDATA[[corCTF 2022 - pwn] zigzag]]></title>
