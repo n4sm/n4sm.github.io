@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/file-stream/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/file-stream/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-09-26T09:53:14+02:00</updated>
+    <updated>2022-09-28T14:30:04+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -541,7 +541,7 @@
 <span class="cp">#endif
 </span><span class="cp"></span>  <span class="k">return</span> <span class="n">fp</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre></div><p>I think the comment is enough explicit, once <code>__fopen_maybe_mmap</code> is called the <code>fp</code> is returned given the file descriptor has properly been allocated, initialized and that the file is open. Else it means that there are some errors, then the <code>fp</code> is unlinked from the single linked that stores every file stream, and the <code>locked_FILE</code> is freed, returning <code>NULL</code> indicating an error.</p>
+</code></pre></div><p>I think the comment is explicit enough, once <code>__fopen_maybe_mmap</code> is called the <code>fp</code> is returned given the file descriptor has properly been allocated, initialized and that the file is open. Else it means that there are some errors, then the <code>fp</code> is unlinked from the single linked list that stores every file stream, and the <code>locked_FILE</code> is freed, returning <code>NULL</code> indicating an error.</p>
 <p>That&rsquo;s basically how <code>fopen</code> works !</p>
 ]]></content>
             
