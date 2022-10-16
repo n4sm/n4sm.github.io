@@ -221,7 +221,7 @@
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/filestream\/",
-    "wordCount" : "3746",
+    "wordCount" : "3747",
     "genre" : [ "ctf" , "nasm" , "pwn" , "linux" , "file stream" ]
 }
 </script>
@@ -1461,7 +1461,8 @@
       <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
     <span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div><p>First is computed the amount of bytes that contains the read buffer (<code>have</code>). If we do not have the right amount of bytes within the read buffer we first try to copy data from the read buffer. Then we check we are mappng the whole file (and not only a part of it) with the use of <code>mmap_remap_check</code> (to avoid useless code I put it directly after the implementation of <code>_IO_file_xsgetn_mmap</code>), if it fails the file is unmapped and the vanilla file operations is used to read data from the file.</p>
+</code></pre></div><p>x
+First is computed the amount of bytes that contains the read buffer (<code>have</code>). If we do not have the right amount of bytes within the read buffer we first try to copy data from the read buffer. Then we check we are mappng the whole file (and not only a part of it) with the use of <code>mmap_remap_check</code> (to avoid useless code I put it directly after the implementation of <code>_IO_file_xsgetn_mmap</code>), if it fails the file is unmapped and the vanilla file operations is used to read data from the file.</p>
 
     </section>
   </article>
