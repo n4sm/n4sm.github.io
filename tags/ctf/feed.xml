@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/ctf/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/ctf/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-11-19T02:39:54+01:00</updated>
+    <updated>2022-11-19T23:28:38+01:00</updated>
     
         <author>
             <name>nasm</name>
@@ -225,7 +225,7 @@
         </a>
     </h2>
 </div>
-<p>To get a libc leak we have to write on stdout a certain amount of bytes that leak a libc address. To do so we&rsquo;re looking for a way to make interesting pointers appear as the base buffer to then initialize both input and output buffer to the base buffer and then do a partial overwrite on these fields to point to an area that contains libc pointers. To get heap addresses within the base buffer we can misalign the vtable such a way that <code>fp-&gt;vtable-&gt;sync()</code> calls <code>_IO_default_doallocate</code>. Then <code>_IO_default_doallocate</code> is called and does some operations:</p>
+<p>To get a libc leak we have to write on stdout a certain amount of bytes that leak a libc address. To do so we&rsquo;re looking for a way to make interesting pointers appear as the base buffer to then initialize both input and output buffer to the base buffer and then do a partial overwrite on these fields to point to an area that contains libc pointers. To get heap addresses within the base buffer we can misalign the vtable in such a way that <code>fp-&gt;vtable-&gt;sync()</code> calls <code>_IO_default_doallocate</code>. Then <code>_IO_default_doallocate</code> is called and does some operations:</p>
 <p>The initial state of the file stream looks like this:</p>
 <pre tabindex="0"><code>0x5649e80772a0: 0x00000000fbad2488      0x0000000000000000
 0x5649e80772b0: 0x0000000000000000      0x0000000000000000
@@ -576,7 +576,7 @@ Given the input / output buffer are <code>NULL</code> and that <code>fp-&gt;flag
   href="../catastrophe"
   
   >this article</a
->. The way we will get a leak is almost the same, first we need to trigger the first condition in <code>_IO_new_file_sync</code> in such a way that <code>fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base</code> which will trigger <code>_IO_do_flush(fp)</code>. Then <code>_IO_do_flush</code> triggers the classic code path I dump right below. I will not comment all of it, the only thing you have to remind is that given most of the buffers are already initialized to a valid heap address beyond the target we do not have to rewrite them, this way we will significantly reduce the amount of partial overwrite.</p>
+>. The way we will get a leak is almost the same, first we need to trigger the first condition in <code>_IO_new_file_sync</code> in such a way that <code>fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base</code> will trigger <code>_IO_do_flush(fp)</code>. Then <code>_IO_do_flush</code> triggers the classic code path I dump right below. I will not comment all of it, the only thing you have to remind is that given most of the buffers are already initialized to a valid heap address beyond the target we do not have to rewrite them, this way we will significantly reduce the amount of partial overwrite.</p>
 
 <div class="gblog-expand">
   <label class="gblog-expand__head flex justify-between" for="f7d5a6cb-13">
@@ -696,7 +696,7 @@ Given the input / output buffer are <code>NULL</code> and that <code>fp-&gt;flag
         </a>
     </h2>
 </div>
-<p>To use the <code>_IO_obstack_jumps</code> technique, we have to craft a custom <code>obstack</code> structure on the heap (right on our filestream in fact) and thus we need to leak the heap to be able reference it. But given we already have a libc leak that very easy, within the <code>main_arena</code> are stored some heap pointers, which means we just have to use the same <code>_IO_fflush</code> trick to flush the filestream and then leak a heap pointer stored in the <code>main_arena</code>. I wrote a function that leaks directly the right pointer from a given address:</p>
+<p>To use the <code>_IO_obstack_jumps</code> technique, we have to craft a custom <code>obstack</code> structure on the heap (right on our filestream in fact) and thus we need to leak the heap to be able reference it. But given we already have a libc leak that&rsquo;s very easy, within the <code>main_arena</code> are stored some heap pointers, which means we just have to use the same <code>_IO_fflush</code> trick to flush the filestream and then leak a heap pointer stored in the <code>main_arena</code>. I wrote a function that leaks directly the right pointer from a given address:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">leak_ptr</span><span class="p">(</span><span class="n">ptr</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="s2">&#34;&#34;&#34;
 </span><span class="s2">    We assume flags are right
