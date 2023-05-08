@@ -302,6 +302,197 @@
     <article class="gblog-post">
       <header class="gblog-post__header">
         <h1 class="gblog-post__title">
+          <a href="/posts/chip8/">[pwnme 2023] chip8</a>
+        </h1>
+      </header>
+
+      <section class="gblog-markdown">
+        chip8      Solves: 24 Easy
+I just found a repo of a chip-8 emulator, it may be vulnerable but I didn&rsquo;t had enough time to report the vulnerability with a working PoC. You must find a way to get the flag in memory on the remote service !
+Author: Express#8049
+Remote service at : nc 51.254.39.184 1337
+ chip8 is a emulator-pwn challenge I did during the pwnme CTF.
+      </section>
+      <div class="gblog-post__readmore">
+        
+          <a
+            class="flex-inline align-center fake-link"
+            title="Read full post"
+            href="/posts/chip8/"
+          >
+            Read full post
+            <i class="gblog-icon">gblog_arrow_right</i>
+          </a>
+        
+      </div>
+
+      <footer class="gblog-post__footer">
+        <div class="flex flex-wrap align-center gblog-post__meta">
+          <span class="flex align-center no-wrap">
+  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
+  <span class="gblog-post__tag">
+    <time datetime="2023-05-08T00:00:00Z">
+      
+      May 8, 2023
+    </time>
+  </span>
+</span>
+
+<span class="flex align-center no-wrap">
+  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
+  <span class="gblog-post__tag">8 min read</span>
+</span>
+
+
+
+
+
+
+
+
+  
+    
+    
+      
+        <span class="flex align-center no-wrap">
+          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
+          
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/chip8/"
+      title="All posts tagged with 'chip8'"
+    >
+      chip8
+    </a>
+  </span>
+
+        </span>
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/ctf/"
+      title="All posts tagged with 'ctf'"
+    >
+      ctf
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/emulator/"
+      title="All posts tagged with 'emulator'"
+    >
+      emulator
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/linux/"
+      title="All posts tagged with 'linux'"
+    >
+      linux
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/nasm/"
+      title="All posts tagged with 'nasm'"
+    >
+      nasm
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/pwn/"
+      title="All posts tagged with 'pwn'"
+    >
+      pwn
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/pwnme/"
+      title="All posts tagged with 'pwnme'"
+    >
+      pwnme
+    </a>
+  </span>
+
+      
+    
+    
+  
+
+
+
+
+
+
+        </div>
+      </footer>
+    </article>
+  
+    <article class="gblog-post">
+      <header class="gblog-post__header">
+        <h1 class="gblog-post__title">
           <a href="/posts/heaphop/">[pwnme 2023] Heap-hop</a>
         </h1>
       </header>
@@ -1725,122 +1916,6 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
       title="All posts tagged with 'HackTheBox'"
     >
       HackTheBox
-    </a>
-  </span>
-
-      
-    
-    
-  
-
-
-
-
-
-
-        </div>
-      </footer>
-    </article>
-  
-    <article class="gblog-post">
-      <header class="gblog-post__header">
-        <h1 class="gblog-post__title">
-          <a href="/posts/bookwriter/">[pwnable - pwn] Bookwriter</a>
-        </h1>
-      </header>
-
-      <section class="gblog-markdown">
-        What we can do      In the edit feature, we can overwrite the bytes right after any chunk up to the NULL byte. In the alloc handler, it iterates once too may times through the alloc array, which means it can overlap on the first entry of the size array with a huge size which would be a chunk address, then we can easily trigger large heap overflow.
-      </section>
-      <div class="gblog-post__readmore">
-        
-          <a
-            class="flex-inline align-center fake-link"
-            title="Read full post"
-            href="/posts/bookwriter/"
-          >
-            Read full post
-            <i class="gblog-icon">gblog_arrow_right</i>
-          </a>
-        
-      </div>
-
-      <footer class="gblog-post__footer">
-        <div class="flex flex-wrap align-center gblog-post__meta">
-          <span class="flex align-center no-wrap">
-  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
-  <span class="gblog-post__tag">
-    <time datetime="2022-04-19T00:00:00Z">
-      
-      Apr 19, 2022
-    </time>
-  </span>
-</span>
-
-<span class="flex align-center no-wrap">
-  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">14 min read</span>
-</span>
-
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a class="gblog-button__link" href="/authors/nasm/" title="All posts of this author">
-      nasm
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ctf/"
-      title="All posts tagged with 'ctf'"
-    >
-      ctf
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/pwnable/"
-      title="All posts tagged with 'pwnable'"
-    >
-      pwnable
     </a>
   </span>
 

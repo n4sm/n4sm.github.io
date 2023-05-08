@@ -2,34 +2,43 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://nasm.re/posts/chip8/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/chip8/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/ctf/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/emulator/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/linux/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/nasm/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/posts/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/pwn/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/pwnme/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nasm.re/tags/</loc>
+    <lastmod>2023-05-08T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://nasm.re/posts/heaphop/</loc>
     <lastmod>2023-05-07T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://nasm.re/tags/ctf/</loc>
-    <lastmod>2023-05-07T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://nasm.re/tags/heap/</loc>
-    <lastmod>2023-05-07T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/tags/linux/</loc>
-    <lastmod>2023-05-07T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/tags/nasm/</loc>
-    <lastmod>2023-05-07T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/posts/</loc>
-    <lastmod>2023-05-07T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/tags/pwn/</loc>
-    <lastmod>2023-05-07T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/tags/pwnme/</loc>
-    <lastmod>2023-05-07T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/</loc>
-    <lastmod>2023-05-07T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://nasm.re/tags/</loc>
     <lastmod>2023-05-07T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nasm.re/tags/tcache/</loc>
