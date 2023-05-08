@@ -302,6 +302,198 @@
     <article class="gblog-post">
       <header class="gblog-post__header">
         <h1 class="gblog-post__title">
+          <a href="/posts/heaphop/">[pwnme 2023] Heap-hop</a>
+        </h1>
+      </header>
+
+      <section class="gblog-markdown">
+        Heap-Hop      Solves: 31 Medium
+Heap exploitation is cool, and the best is when no free is used. &gt;Try to pwn the challenge and get the flag remotely.
+Note:
+ You must spawn an instance to solve this challenge. You can connect to it with netcat: nc IP PORT  Author: Express#8049
+Remote service at : nc 51.254.39.184 1336
+ Heap-hop is a heap exploitation challenge I did during the pwnme CTF.
+      </section>
+      <div class="gblog-post__readmore">
+        
+          <a
+            class="flex-inline align-center fake-link"
+            title="Read full post"
+            href="/posts/heaphop/"
+          >
+            Read full post
+            <i class="gblog-icon">gblog_arrow_right</i>
+          </a>
+        
+      </div>
+
+      <footer class="gblog-post__footer">
+        <div class="flex flex-wrap align-center gblog-post__meta">
+          <span class="flex align-center no-wrap">
+  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
+  <span class="gblog-post__tag">
+    <time datetime="2023-05-07T00:00:00Z">
+      
+      May 7, 2023
+    </time>
+  </span>
+</span>
+
+<span class="flex align-center no-wrap">
+  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
+  <span class="gblog-post__tag">12 min read</span>
+</span>
+
+
+
+
+
+
+
+
+  
+    
+    
+      
+        <span class="flex align-center no-wrap">
+          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
+          
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/ctf/"
+      title="All posts tagged with 'ctf'"
+    >
+      ctf
+    </a>
+  </span>
+
+        </span>
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/heap/"
+      title="All posts tagged with 'heap'"
+    >
+      heap
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/linux/"
+      title="All posts tagged with 'linux'"
+    >
+      linux
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/nasm/"
+      title="All posts tagged with 'nasm'"
+    >
+      nasm
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/pwn/"
+      title="All posts tagged with 'pwn'"
+    >
+      pwn
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/pwnme/"
+      title="All posts tagged with 'pwnme'"
+    >
+      pwnme
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/tcache/"
+      title="All posts tagged with 'tcache'"
+    >
+      tcache
+    </a>
+  </span>
+
+      
+    
+    
+  
+
+
+
+
+
+
+        </div>
+      </footer>
+    </article>
+  
+    <article class="gblog-post">
+      <header class="gblog-post__header">
+        <h1 class="gblog-post__title">
           <a href="/posts/babyfile/">[SECCON CTF 2022 Quals] babyfile</a>
         </h1>
       </header>
@@ -1649,141 +1841,6 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
       title="All posts tagged with 'pwnable'"
     >
       pwnable
-    </a>
-  </span>
-
-      
-    
-    
-  
-
-
-
-
-
-
-        </div>
-      </footer>
-    </article>
-  
-    <article class="gblog-post">
-      <header class="gblog-post__header">
-        <h1 class="gblog-post__title">
-          <a href="/posts/phonebook/">[DCTF 2022 - pwn] phonebook</a>
-        </h1>
-      </header>
-
-      <section class="gblog-markdown">
-        Intro     phonebook is a basic heap challenge I did during the dctf event. It&rsquo;s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system.
-The bug     $ ./phonebook Choose an option: [1-5] 1. Store someone's information 2. Edit information 3. Call someone 4. Unfriend someone 5. Add the hidden_note &gt; We can create an entity and then initialize: a name, a numero and a function pointer.
-      </section>
-      <div class="gblog-post__readmore">
-        
-          <a
-            class="flex-inline align-center fake-link"
-            title="Read full post"
-            href="/posts/phonebook/"
-          >
-            Read full post
-            <i class="gblog-icon">gblog_arrow_right</i>
-          </a>
-        
-      </div>
-
-      <footer class="gblog-post__footer">
-        <div class="flex flex-wrap align-center gblog-post__meta">
-          <span class="flex align-center no-wrap">
-  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
-  <span class="gblog-post__tag">
-    <time datetime="2022-04-17T00:00:00Z">
-      
-      Apr 17, 2022
-    </time>
-  </span>
-</span>
-
-<span class="flex align-center no-wrap">
-  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">4 min read</span>
-</span>
-
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a class="gblog-button__link" href="/authors/nasm/" title="All posts of this author">
-      nasm
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/dctf/"
-      title="All posts tagged with 'dctf'"
-    >
-      dctf
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/heap/"
-      title="All posts tagged with 'heap'"
-    >
-      heap
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/pwn/"
-      title="All posts tagged with 'pwn'"
-    >
-      pwn
     </a>
   </span>
 
