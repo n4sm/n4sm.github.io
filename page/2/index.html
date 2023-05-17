@@ -317,6 +317,124 @@
     <article class="gblog-post">
       <header class="gblog-post__header">
         <h1 class="gblog-post__title">
+          <a href="/posts/onceandforall/">[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all</a>
+        </h1>
+      </header>
+
+      <section class="gblog-markdown">
+        Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.
+Reverse engineering     All the snippets of pseudo-code are issued by IDA freeware:
+int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [rsp+18h] [rbp-8h] BYREF  int i; // [rsp+1Ch] [rbp-4h]  for ( i = 0; i &lt;= 49; ++i ) { puts(s); printf(&amp;unk_1310); __isoc99_scanf(&amp;unk_13C8, &amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(&#34;[-] Invalid choice!
+      </section>
+      <div class="gblog-post__readmore">
+        
+          <a
+            class="flex-inline align-center fake-link"
+            title="Read full post"
+            href="/posts/onceandforall/"
+          >
+            Read full post
+            <i class="gblog-icon">gblog_arrow_right</i>
+          </a>
+        
+      </div>
+
+      <footer class="gblog-post__footer">
+        <div class="flex flex-wrap align-center gblog-post__meta">
+          <span class="flex align-center no-wrap">
+  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
+  <span class="gblog-post__tag">
+    <time datetime="2022-05-19T00:00:00Z">
+      
+      May 19, 2022
+    </time>
+  </span>
+</span>
+
+<span class="flex align-center no-wrap">
+  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
+  <span class="gblog-post__tag">16 min read</span>
+</span>
+
+
+
+
+
+  
+    
+    
+      
+        <span class="flex align-center no-wrap">
+          <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
+          
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a class="gblog-button__link" href="/authors/nasm/" title="All posts of this author">
+      nasm
+    </a>
+  </span>
+
+        </span>
+      
+    
+    
+  
+
+
+
+
+  
+    
+    
+      
+        <span class="flex align-center no-wrap">
+          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
+          
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/ctf/"
+      title="All posts tagged with 'ctf'"
+    >
+      ctf
+    </a>
+  </span>
+
+        </span>
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/HackTheBox/"
+      title="All posts tagged with 'HackTheBox'"
+    >
+      HackTheBox
+    </a>
+  </span>
+
+      
+    
+    
+  
+
+
+
+
+
+
+        </div>
+      </footer>
+    </article>
+  
+    <article class="gblog-post">
+      <header class="gblog-post__header">
+        <h1 class="gblog-post__title">
           <a href="/posts/bookwriter/">[pwnable - pwn] Bookwriter</a>
         </h1>
       </header>
@@ -2197,73 +2315,6 @@ Let&rsquo;s take a look at the src!
       </footer>
     </article>
   
-    <article class="gblog-post">
-      <header class="gblog-post__header">
-        <h1 class="gblog-post__title">
-          <a href="/posts/about/">About</a>
-        </h1>
-      </header>
-
-      <section class="gblog-markdown">
-        I&rsquo;m a french security enthusiast focused on low level stuff especially on binary exploitation / analysis and on kernel stuff. If you have any questions about what I write on my blog, feel free to DM me on discord: nasm#1307.
- Doing CTF&rsquo;s for ret2school, + pwn / RE / kernel. Engineering student at ESIEA.  
-      </section>
-      <div class="gblog-post__readmore">
-        
-      </div>
-
-      <footer class="gblog-post__footer">
-        <div class="flex flex-wrap align-center gblog-post__meta">
-          <span class="flex align-center no-wrap">
-  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
-  <span class="gblog-post__tag">
-    <time datetime="0001-01-01T00:00:00Z">
-      
-      Jan 1, 0001
-    </time>
-  </span>
-</span>
-
-<span class="flex align-center no-wrap">
-  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">1 min read</span>
-</span>
-
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a class="gblog-button__link" href="/authors/nasm/" title="All posts of this author">
-      nasm
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-
-
-
-
-
-
-
-
-
-        </div>
-      </footer>
-    </article>
-  
   
 
 
@@ -2276,8 +2327,13 @@ Let&rsquo;s take a look at the src!
       </a>
     
   </div>
-  <div class="gblog-paging__state">Page 2 of 2</div>
+  <div class="gblog-paging__state">Page 2 of 3</div>
   <div class="gblog-paging__item gblog-paging__item--next">
+    
+      <a class="flex-inline align-center fake-link no-wrap" href="/page/3/">
+        NEXT
+        <i class="gblog-icon">gblog_keyboard_arrow_right</i>
+      </a>
     
   </div>
 </nav>

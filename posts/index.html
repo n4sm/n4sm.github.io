@@ -302,7 +302,232 @@
     <article class="gblog-post">
       <header class="gblog-post__header">
         <h1 class="gblog-post__title">
-          <a href="/posts/chip8/">[pwnme 2023] chip8</a>
+          <a href="/posts/cs2101/">[HackTM finals 2023 - pwn] cs2101</a>
+        </h1>
+      </header>
+
+      <section class="gblog-markdown">
+        cs2101     cs2101 is shellcoding / unicorn sandbox escape challenge I did during the HackTM finals.
+What we have     The challenge is splitted into three file: the server, the unicorn callback based checker and the final C program that runs the shellcode without any restrictions. Let&rsquo;s take a look at the server:
+#!/usr/bin/env python3 import os import sys import base64 import tempfile from sc_filter import emulate def main(): encoded = input(&#34;Enter your base64 encoded shellcode:\n&#34;) encoded+= &#39;=======&#39; try: shellcode = base64.
+      </section>
+      <div class="gblog-post__readmore">
+        
+          <a
+            class="flex-inline align-center fake-link"
+            title="Read full post"
+            href="/posts/cs2101/"
+          >
+            Read full post
+            <i class="gblog-icon">gblog_arrow_right</i>
+          </a>
+        
+      </div>
+
+      <footer class="gblog-post__footer">
+        <div class="flex flex-wrap align-center gblog-post__meta">
+          <span class="flex align-center no-wrap">
+  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
+  <span class="gblog-post__tag">
+    <time datetime="2023-05-15T00:00:00Z">
+      
+      May 15, 2023
+    </time>
+  </span>
+</span>
+
+<span class="flex align-center no-wrap">
+  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
+  <span class="gblog-post__tag">6 min read</span>
+</span>
+
+
+
+
+
+
+
+
+  
+    
+    
+      
+        <span class="flex align-center no-wrap">
+          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
+          
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/cs2101/"
+      title="All posts tagged with 'cs2101'"
+    >
+      cs2101
+    </a>
+  </span>
+
+        </span>
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/ctf/"
+      title="All posts tagged with 'ctf'"
+    >
+      ctf
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/emulator/"
+      title="All posts tagged with 'emulator'"
+    >
+      emulator
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/hacktm/"
+      title="All posts tagged with 'hacktm'"
+    >
+      hacktm
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/linux/"
+      title="All posts tagged with 'linux'"
+    >
+      linux
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/nasm/"
+      title="All posts tagged with 'nasm'"
+    >
+      nasm
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/pwn/"
+      title="All posts tagged with 'pwn'"
+    >
+      pwn
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/shellcoding/"
+      title="All posts tagged with 'shellcoding'"
+    >
+      shellcoding
+    </a>
+  </span>
+
+      
+    
+    
+  
+    
+    
+      
+        
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a
+      class="gblog-button__link"
+      href="/tags/unicorn/"
+      title="All posts tagged with 'unicorn'"
+    >
+      unicorn
+    </a>
+  </span>
+
+      
+    
+    
+  
+
+
+
+
+
+
+        </div>
+      </footer>
+    </article>
+  
+    <article class="gblog-post">
+      <header class="gblog-post__header">
+        <h1 class="gblog-post__title">
+          <a href="/posts/chip8/">[pwnme 2023 - pwn] chip8</a>
         </h1>
       </header>
 
@@ -493,7 +718,7 @@ Remote service at : nc 51.254.39.184 1337
     <article class="gblog-post">
       <header class="gblog-post__header">
         <h1 class="gblog-post__title">
-          <a href="/posts/heaphop/">[pwnme 2023] Heap-hop</a>
+          <a href="/posts/heaphop/">[pwnme 2023 - pwn] Heap-hop</a>
         </h1>
       </header>
 
@@ -1815,124 +2040,6 @@ Kernel heap management (SLUB, SLAB, SLOB)     Same way as for userland, the kern
       </footer>
     </article>
   
-    <article class="gblog-post">
-      <header class="gblog-post__header">
-        <h1 class="gblog-post__title">
-          <a href="/posts/onceandforall/">[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all</a>
-        </h1>
-      </header>
-
-      <section class="gblog-markdown">
-        Once for all is a heap challenge I did during the HackTheBox Cyber Apocalypse event. This is a classic unsorted bin attack plus a FSOP on stdin. Find the tasks and the final exploit hereand here.
-Reverse engineering     All the snippets of pseudo-code are issued by IDA freeware:
-int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [rsp+18h] [rbp-8h] BYREF  int i; // [rsp+1Ch] [rbp-4h]  for ( i = 0; i &lt;= 49; ++i ) { puts(s); printf(&amp;unk_1310); __isoc99_scanf(&amp;unk_13C8, &amp;v4); puts(s); switch ( v4 ) { case 1: small_alloc(s); break; case 2: fix(s); break; case 3: examine(s); break; case 4: savebig(s); break; case 5: exit(0); default: puts(&#34;[-] Invalid choice!
-      </section>
-      <div class="gblog-post__readmore">
-        
-          <a
-            class="flex-inline align-center fake-link"
-            title="Read full post"
-            href="/posts/onceandforall/"
-          >
-            Read full post
-            <i class="gblog-icon">gblog_arrow_right</i>
-          </a>
-        
-      </div>
-
-      <footer class="gblog-post__footer">
-        <div class="flex flex-wrap align-center gblog-post__meta">
-          <span class="flex align-center no-wrap">
-  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
-  <span class="gblog-post__tag">
-    <time datetime="2022-05-19T00:00:00Z">
-      
-      May 19, 2022
-    </time>
-  </span>
-</span>
-
-<span class="flex align-center no-wrap">
-  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">16 min read</span>
-</span>
-
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a class="gblog-button__link" href="/authors/nasm/" title="All posts of this author">
-      nasm
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ctf/"
-      title="All posts tagged with 'ctf'"
-    >
-      ctf
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/HackTheBox/"
-      title="All posts tagged with 'HackTheBox'"
-    >
-      HackTheBox
-    </a>
-  </span>
-
-      
-    
-    
-  
-
-
-
-
-
-
-        </div>
-      </footer>
-    </article>
-  
   
 
 
@@ -1940,7 +2047,7 @@ int __cdecl main(int argc, const char **argv, const char **envp) { int v4; // [r
   <div class="gblog-paging__item gblog-paging__item--prev">
     
   </div>
-  <div class="gblog-paging__state">Page 1 of 2</div>
+  <div class="gblog-paging__state">Page 1 of 3</div>
   <div class="gblog-paging__item gblog-paging__item--next">
     
       <a class="flex-inline align-center fake-link no-wrap" href="/posts/page/2/">
