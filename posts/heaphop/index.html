@@ -233,7 +233,7 @@ Remote service at : nc 51.254.39.184 1336
         }
     },
     "url" : "https:\/\/nasm.re\/posts\/heaphop\/",
-    "wordCount" : "2498",
+    "wordCount" : "2501",
     "genre" : [ "ctf" , "nasm" , "pwn" , "linux" , "pwnme" , "heap" , "tcache" ]
 }
 </script>
@@ -764,7 +764,7 @@ For bug reporting instructions, please see:
         </a>
     </h2>
 </div>
-<p>Given tcache poisoning seems to be pretty easy to achieve, we need to find were use our arbitrary write. If you remind well, the binary isn&rsquo;t PIE and has only partial RELRO, which means we could easily hiijack the GOT entry of a function (like realloc) to replace it with system and then call <code>realloc(&quot;/bin/sh&quot;)</code>. This way we need to get a heap and a libc leak.</p>
+<p>Given tcache poisoning seems to be pretty easy to achieve, we need to find where we could use our arbitrary write. If you remind well, the binary isn&rsquo;t PIE based and has only partial RELRO, which means we could easily hiijack the GOT entry of a function (like realloc) to replace it with system and then call <code>realloc(&quot;/bin/sh&quot;)</code>. This way we need to get a heap and a libc leak.</p>
 <div class="gblog-post__anchorwrap">
     <h3 id="libc-leak">
         libc leak
