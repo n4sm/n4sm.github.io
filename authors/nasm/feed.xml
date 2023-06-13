@@ -8,7 +8,7 @@
     
             <link href="https://nasm.re/authors/nasm/" rel="alternate" type="text/html" title="HTML" />
             <link href="https://nasm.re/authors/nasm/feed.xml" rel="self" type="application/atom+xml" title="Atom" />
-    <updated>2023-05-23T23:50:29+02:00</updated>
+    <updated>2023-06-14T00:13:28+02:00</updated>
     
         <author>
             <name>nasm</name>
@@ -9821,7 +9821,7 @@ union<span class="o">{</span>baby_rarf_d0o_d00_do0_doo_do0_d0o<span class="o">}<
             
             
             <content type="html"><![CDATA[<p>I&rsquo;m a french security enthusiast focused on low level stuff especially on binary exploitation / analysis and on kernel stuff.
-If you have any questions about what I write on my blog, feel free to DM me on discord: <code>nasm#1307</code>.</p>
+If you have any questions about what I write on my blog, feel free to DM me on discord: <code>@nasm</code>.</p>
 <ul>
 <li>Doing CTF&rsquo;s for <a
   class="gblog-markdown__link"
