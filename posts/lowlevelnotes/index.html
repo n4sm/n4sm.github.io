@@ -1,844 +1,371 @@
 <!DOCTYPE html>
-<html
-  itemscope
-  itemtype="http://schema.org/WebPage"
-  lang="en"
-  class="color-toggle-hidden"
->
-  <head>
-    <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 
+<html theme="dark" showBanner="true" hasBanner="true" > 
+<link href="/fontawesome/css/fontawesome.css" rel="stylesheet">
+<link href="/fontawesome/css/brands.css" rel="stylesheet">
+<link href="/fontawesome/css/solid.css" rel="stylesheet">
+<script src="/js/color.global.min.js" ></script>
+<script src="/js/load-settings.js" ></script>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Linux kernel side notes | repr</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target linux kernel 5.18.12.There will be a lot of code for whi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux kernel side notes">
+<meta property="og:url" content="https://n4sm.github.io/posts/lowlevelnotes/index.html">
+<meta property="og:site_name" content="repr">
+<meta property="og:description" content="Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target linux kernel 5.18.12.There will be a lot of code for whi">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://n4sm.github.io/SLUB_schema1.png">
+<meta property="article:published_time" content="2022-07-17T22:00:00.000Z">
+<meta property="article:modified_time" content="2023-08-01T12:19:05.763Z">
+<meta property="article:author" content="nasm">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://n4sm.github.io/SLUB_schema1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="repr" type="application/atom+xml">
+  
+  
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-192.png" sizes="192x192">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-192.png" sizes="192x192">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
 
+<meta name="generator" content="Hexo 6.3.0"></head>
 
-
-
-  <meta name="description" content="Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target linux kernel 5.18.12. There will be a lot of code for which I do not comment the whole part.
-Kernel heap management (SLUB, SLAB, SLOB)     Same way as for userland, the kernel has many algorithms to manage memory allocation according to what the kernel is looking for (huge resources or not, safety needs etc)." />
-
-
-  <meta name="keywords" content="pwn,binary exploitation,cryptography,Reverse engineering,hypervisor" />
-
-
+<body>
   
   
     
-      
-      
-    
-  
-
-  
-    <meta name="author" content="nasm" />
-  
-
-
-    <title>
-      
-        Linux kernel side notes | 
-      repr
-    </title>
-
-    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
-<link
-  rel="icon"
-  type="image/png"
-  sizes="48x48"
-  href="/favicon/favicon-32x32.png"
-/>
-<link
-  rel="icon"
-  type="image/png"
-  sizes="32x32"
-  href="/favicon/favicon-32x32.png"
-/>
-<link
-  rel="icon"
-  type="image/png"
-  sizes="16x16"
-  href="/favicon/favicon-16x16.png"
-/>
-
-    
-
-    <meta property="og:title" content="Linux kernel side notes" />
-<meta
-  property="og:description"
-  content="
-    
-      Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target linux kernel 5.18.12. There will be a lot of code for which I do not comment the whole part.
-Kernel heap management (SLUB, SLAB, SLOB)     Same way as for userland, the kernel has many algorithms to manage memory allocation according to what the kernel is looking for (huge resources or not, safety needs etc).
-    
-  "
-/>
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://nasm.re/posts/lowlevelnotes/" />
-      <meta property="og:image" content="https://nasm.re/risa.png" />
-    <meta property="article:section" content="posts" />
-  
-    <meta
-      property="article:published_time"
-      content="2022-07-18T00:00:00+00:00"
-    />
-  
-  
-    <meta
-      property="article:modified_time"
-      content="2022-07-18T00:00:00+00:00"
-    />
-  
-
-<meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:image" content="https://nasm.re/risa.png" />
-    
-<meta name="twitter:title" content="Linux kernel side notes" />
-<meta
-  name="twitter:description"
-  content="
-    
-      Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target linux kernel 5.18.12. There will be a lot of code for which I do not comment the whole part.
-Kernel heap management (SLUB, SLAB, SLOB)     Same way as for userland, the kernel has many algorithms to manage memory allocation according to what the kernel is looking for (huge resources or not, safety needs etc).
-    
-  "
-/>
-
-
-    <script src="/js/main-b22ac364.bundle.min.js"></script>
-
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/Metropolis.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/LiberationSans.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/GeekblogIcons.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-
-<link
-  rel="preload"
-  href="/main-2857a4bc.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/main-2857a4bc.min.css"
-  media="all"
-/>
-
-<link
-  rel="preload"
-  href="/mobile-3888ed2b.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/mobile-3888ed2b.min.css"
-  media="screen and (max-width: 45rem)"
-/>
-
-<link
-  rel="preload"
-  href="/print-8a905a2e.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/print-8a905a2e.min.css"
-  media="print"
-/>
-
-<link
-  rel="preload"
-  href="/custom.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/custom.css"
-  media="all"
-/>
-
-
-
-
-
-<!-- Made with Geekblog theme https://github.com/thegeeklab/hugo-geekblog -->
-
-    
-
-
-
-
-<script type="application/ld+json">
-{
-    "@context": "http://schema.org",
-    "@type": "BlogPosting",
-    "articleSection": "posts",
-    "name": "Linux kernel side notes",
-    "headline": "Linux kernel side notes",
-    "alternativeHeadline": "",
-    "description": "Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target linux kernel 5.18.12. There will be a lot of code for which I do not comment the whole part.\nKernel heap management (SLUB, SLAB, SLOB)     Same way as for userland, the kernel has many algorithms to manage memory allocation according to what the kernel is looking for (huge resources or not, safety needs etc).",
-    "inLanguage": "en",
-    "isFamilyFriendly": "true",
-    "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "https:\/\/nasm.re\/posts\/lowlevelnotes\/"
-    },
-    "author" : [
-        {
-            "@type": "Person",
-            "name": "nasm"
-        }
-    ],
-    "copyrightHolder" : "repr",
-    "copyrightYear" : "2022",
-    "dateCreated": "2022-07-18T00:00:00.00Z",
-    "datePublished": "2022-07-18T00:00:00.00Z",
-    "dateModified": "2022-07-18T00:00:00.00Z",
-    "publisher":{
-        "@type":"Organization",
-        "name": "repr",
-        "url": "https://nasm.re",
-        "logo": {
-            "@type": "ImageObject",
-            "url": "https:\/\/nasm.re\/risa.png",
-            "width":"32",
-            "height":"32"
-        }
-    },
-    "url" : "https:\/\/nasm.re\/posts\/lowlevelnotes\/",
-    "wordCount" : "1199",
-    "genre" : [ ]
-}
-</script>
-
-
-    
-
-  </head>
-
-  <body>
-    
-  <!-- geekblog include: sprites/geekblog.svg -->
-  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_back" xmlns="http://www.w3.org/2000/svg"><path d="M31.999 14.035v3.93H7.673l11.134 11.228L16 32 .001 16.001 16 .002l2.807 2.807L7.673 14.037h24.326z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_left" xmlns="http://www.w3.org/2000/svg"><path d="M7.954 17.965v5.988L.001 16l7.953-7.953v5.988H32v3.93H7.954z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_right" xmlns="http://www.w3.org/2000/svg"><path d="M24.046 14.035V8.047L31.999 16l-7.953 7.953v-5.988H0v-3.93h24.046z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_bitbucket" xmlns="http://www.w3.org/2000/svg"><path d="M15.905 13.355c.189 1.444-1.564 2.578-2.784 1.839-1.375-.602-1.375-2.784-.034-3.403 1.151-.705 2.818.223 2.818 1.564zm1.907-.361c-.309-2.44-3.076-4.056-5.328-3.042-1.426.636-2.389 2.148-2.32 3.747.086 2.097 2.08 3.815 4.176 3.626s3.729-2.234 3.472-4.331zm4.108-9.315c-.756-.997-2.045-1.169-3.179-1.358-3.214-.516-6.513-.533-9.727.034-1.066.172-2.269.361-2.939 1.323 1.1 1.031 2.664 1.186 4.073 1.358 2.544.327 5.156.344 7.699.017 1.426-.172 3.008-.309 4.073-1.375zm.979 17.788c-.481 1.684-.206 3.953-1.994 4.932-3.076 1.701-6.806 1.89-10.191 1.289-1.787-.327-3.884-.894-4.864-2.578-.43-1.65-.705-3.334-.98-5.018l.103-.275.309-.155c5.121 3.386 12.288 3.386 17.427 0 .808.241.206 1.22.189 1.805zM26.01 4.951c-.584 3.764-1.255 7.51-1.908 11.257-.189 1.1-1.255 1.719-2.148 2.183-3.214 1.615-6.96 1.89-10.483 1.512-2.389-.258-4.829-.894-6.771-2.389-.911-.705-.911-1.908-1.083-2.922-.602-3.523-1.289-7.046-1.719-10.604.206-1.547 1.942-2.217 3.231-2.698C6.848.654 8.686.362 10.508.19c3.884-.378 7.854-.241 11.618.859 1.341.395 2.784.945 3.695 2.097.412.533.275 1.203.189 1.805z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_bookmark" xmlns="http://www.w3.org/2000/svg"><path d="M20.357 5.856q1.157 0 2.043.851t.885 2.008v23.284l-10.212-4.357-10.144 4.357V8.715q0-1.157.885-2.008t2.042-.851h14.502zm5.787 18.859V5.856q0-1.157-.851-2.042t-2.008-.885H8.715q0-1.157.885-2.042t2.043-.885h14.502q1.157 0 2.043.885t.885 2.042v23.216z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_auto" xmlns="http://www.w3.org/2000/svg"><path d="M16.846 18.938h2.382L15.22 7.785h-2.44L8.772 18.938h2.382l.871-2.44h3.95zm7.087-9.062L27.999 14l-4.066 4.124v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809zm-11.385 4.937L14 10.282l1.452 4.531h-2.904z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_dark" xmlns="http://www.w3.org/2000/svg"><path d="M14 21.435q3.079 0 5.257-2.178T21.435 14t-2.178-5.257T14 6.565q-1.51 0-3.079.697 1.917.871 3.108 2.701T15.22 14t-1.191 4.037-3.108 2.701q1.568.697 3.079.697zm9.933-11.559L27.999 14l-4.066 4.124v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_light" xmlns="http://www.w3.org/2000/svg"><path d="M14 21.435q3.079 0 5.257-2.178T21.435 14t-2.178-5.257T14 6.565 8.743 8.743 6.565 14t2.178 5.257T14 21.435zm9.933-3.311v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809L27.999 14z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_check" xmlns="http://www.w3.org/2000/svg"><path d="M8.885 20.197L25.759 3.323l2.24 2.24L8.885 24.677 0 15.792l2.24-2.24z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_clear" xmlns="http://www.w3.org/2000/svg"><path d="M32 3.222L19.222 16 32 28.778l-3.221 3.221-12.778-12.778L3.223 31.999.002 28.778 12.78 16 .002 3.222 3.223.001l12.778 12.778L28.779.001z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_cloud_off" xmlns="http://www.w3.org/2000/svg"><path d="M9.023 10.5H7q-1.914 0-3.281 1.395t-1.367 3.309 1.367 3.281T7 19.852h11.375zM3.5 4.976l1.477-1.477L24.5 23.022l-1.477 1.477-2.352-2.297H6.999q-2.898 0-4.949-2.051t-2.051-4.949q0-2.844 1.969-4.867t4.758-2.133zm19.086 5.578q2.242.164 3.828 1.832T28 16.351q0 3.008-2.461 4.758l-1.695-1.695q1.805-.984 1.805-3.063 0-1.422-1.039-2.461t-2.461-1.039h-1.75v-.602q0-2.68-1.859-4.539t-4.539-1.859q-1.531 0-2.953.711l-1.75-1.695Q11.431 3.5 14.001 3.5q2.953 0 5.496 2.078t3.09 4.977z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_code" xmlns="http://www.w3.org/2000/svg"><path d="M9.917 24.5a1.75 1.75 0 10-3.501.001 1.75 1.75 0 003.501-.001zm0-21a1.75 1.75 0 10-3.501.001A1.75 1.75 0 009.917 3.5zm11.666 2.333a1.75 1.75 0 10-3.501.001 1.75 1.75 0 003.501-.001zm1.75 0a3.502 3.502 0 01-1.75 3.026c-.055 6.581-4.721 8.039-7.82 9.023-2.898.911-3.846 1.349-3.846 3.117v.474a3.502 3.502 0 011.75 3.026c0 1.932-1.568 3.5-3.5 3.5s-3.5-1.568-3.5-3.5c0-1.294.711-2.424 1.75-3.026V6.526A3.502 3.502 0 014.667 3.5c0-1.932 1.568-3.5 3.5-3.5s3.5 1.568 3.5 3.5a3.502 3.502 0 01-1.75 3.026v9.06c.93-.456 1.914-.766 2.807-1.039 3.391-1.075 5.323-1.878 5.359-5.687a3.502 3.502 0 01-1.75-3.026c0-1.932 1.568-3.5 3.5-3.5s3.5 1.568 3.5 3.5z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_contacts" xmlns="http://www.w3.org/2000/svg"><path d="M22.688 22.688v-2q0-1.5-2.281-2.438t-4.406-.938-4.406.938-2.281 2.438v2h13.375zM16 9q-1.25 0-2.125.875T13 12t.875 2.125T16 15t2.125-.875T19 12t-.875-2.125T16 9zm10.688-3.687q1.063 0 1.844.813t.781 1.875v16q0 1.063-.781 1.875t-1.844.813H5.313q-1.063 0-1.844-.813t-.781-1.875v-16q0-1.063.781-1.875t1.844-.813h21.375zM5.313 32v-2.688h21.375V32H5.313zM26.688 0v2.688H5.313V0h21.375z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_copy" xmlns="http://www.w3.org/2000/svg"><path d="M23.502 25.438V7.626H9.562v17.812h13.94zm0-20.315q1.013 0 1.787.745t.774 1.757v17.812q0 1.013-.774 1.787t-1.787.774H9.562q-1.013 0-1.787-.774t-.774-1.787V7.625q0-1.013.774-1.757t1.787-.745h13.94zM19.689 0v2.562H4.438v17.812H1.936V2.562q0-1.013.745-1.787T4.438.001h15.251z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_create" xmlns="http://www.w3.org/2000/svg"><path d="M31.499 7.167l-3.25 3.25-6.666-6.666 3.25-3.25q.5-.5 1.25-.5t1.25.5l4.166 4.166q.5.5.5 1.25t-.5 1.25zM.001 25.333L19.667 5.667l6.666 6.666L6.667 31.999H.001v-6.666z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_date" xmlns="http://www.w3.org/2000/svg"><path d="M27.192 28.844V11.192H4.808v17.652h22.384zm0-25.689q1.277 0 2.253.976t.976 2.253v22.459q0 1.277-.976 2.216t-2.253.939H4.808q-1.352 0-2.291-.901t-.939-2.253V6.385q0-1.277.939-2.253t2.291-.976h1.577V.001h3.23v3.155h12.769V.001h3.23v3.155h1.577zm-3.155 11.267v3.155h-3.23v-3.155h3.23zm-6.46 0v3.155h-3.155v-3.155h3.155zm-6.384 0v3.155h-3.23v-3.155h3.23z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_download" xmlns="http://www.w3.org/2000/svg"><path d="M2.866 28.209h26.269v3.79H2.866v-3.79zm26.268-16.925L16 24.418 2.866 11.284h7.493V.001h11.283v11.283h7.493z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_email" xmlns="http://www.w3.org/2000/svg"><path d="M28.845 9.615v-3.23L16 14.422 3.155 6.385v3.23L16 17.577zm0-6.46q1.277 0 2.216.977T32 6.385v19.23q0 1.277-.939 2.253t-2.216.977H3.155q-1.277 0-2.216-.977T0 25.615V6.385q0-1.277.939-2.253t2.216-.977h25.69z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_git" xmlns="http://www.w3.org/2000/svg"><path d="M27.472 12.753L15.247.529a1.803 1.803 0 00-2.55 0l-2.84 2.84 2.137 2.137a2.625 2.625 0 013.501 3.501l3.499 3.499a2.625 2.625 0 11-1.237 1.237l-3.499-3.499c-.083.04-.169.075-.257.106v7.3a2.626 2.626 0 11-1.75 0v-7.3a2.626 2.626 0 01-1.494-3.607L8.62 4.606l-8.09 8.09a1.805 1.805 0 000 2.551l12.225 12.224a1.803 1.803 0 002.55 0l12.168-12.168a1.805 1.805 0 000-2.551z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_github" xmlns="http://www.w3.org/2000/svg"><path d="M16 .394c8.833 0 15.999 7.166 15.999 15.999 0 7.062-4.583 13.062-10.937 15.187-.813.146-1.104-.354-1.104-.771 0-.521.021-2.25.021-4.396 0-1.5-.5-2.458-1.083-2.958 3.562-.396 7.312-1.75 7.312-7.896 0-1.75-.625-3.167-1.646-4.291.167-.417.708-2.042-.167-4.25-1.333-.417-4.396 1.646-4.396 1.646a15.032 15.032 0 00-8 0S8.937 6.602 7.603 7.018c-.875 2.208-.333 3.833-.167 4.25-1.021 1.125-1.646 2.542-1.646 4.291 0 6.125 3.729 7.5 7.291 7.896-.458.417-.875 1.125-1.021 2.146-.917.417-3.25 1.125-4.646-1.333-.875-1.521-2.458-1.646-2.458-1.646-1.562-.021-.104.979-.104.979 1.042.479 1.771 2.333 1.771 2.333.938 2.854 5.396 1.896 5.396 1.896 0 1.333.021 2.583.021 2.979 0 .417-.292.917-1.104.771C4.582 29.455-.001 23.455-.001 16.393-.001 7.56 7.165.394 15.998.394zM6.063 23.372c.042-.083-.021-.187-.146-.25-.125-.042-.229-.021-.271.042-.042.083.021.187.146.25.104.062.229.042.271-.042zm.646.709c.083-.062.062-.208-.042-.333-.104-.104-.25-.146-.333-.062-.083.062-.062.208.042.333.104.104.25.146.333.062zm.625.937c.104-.083.104-.25 0-.396-.083-.146-.25-.208-.354-.125-.104.062-.104.229 0 .375s.271.208.354.146zm.875.875c.083-.083.042-.271-.083-.396-.146-.146-.333-.167-.417-.062-.104.083-.062.271.083.396.146.146.333.167.417.062zm1.187.521c.042-.125-.083-.271-.271-.333-.167-.042-.354.021-.396.146s.083.271.271.312c.167.062.354 0 .396-.125zm1.313.104c0-.146-.167-.25-.354-.229-.187 0-.333.104-.333.229 0 .146.146.25.354.229.187 0 .333-.104.333-.229zm1.208-.208c-.021-.125-.187-.208-.375-.187-.187.042-.312.167-.292.312.021.125.187.208.375.167s.312-.167.292-.292z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_gitlab" xmlns="http://www.w3.org/2000/svg"><path d="M1.629 11.034L14 26.888.442 17.048a1.09 1.09 0 01-.39-1.203l1.578-4.811zm7.217 0h10.309l-5.154 15.854zM5.753 1.475l3.093 9.559H1.63l3.093-9.559a.548.548 0 011.031 0zm20.618 9.559l1.578 4.811c.141.437-.016.922-.39 1.203l-13.558 9.84 12.371-15.854zm0 0h-7.216l3.093-9.559a.548.548 0 011.031 0z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_heart" xmlns="http://www.w3.org/2000/svg"><path d="M16 29.714a1.11 1.11 0 01-.786-.321L4.072 18.643c-.143-.125-4.071-3.714-4.071-8 0-5.232 3.196-8.357 8.535-8.357 3.125 0 6.053 2.464 7.464 3.857 1.411-1.393 4.339-3.857 7.464-3.857 5.339 0 8.535 3.125 8.535 8.357 0 4.286-3.928 7.875-4.089 8.035L16.785 29.392c-.214.214-.5.321-.786.321z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_keyboard_arrow_left" xmlns="http://www.w3.org/2000/svg"><path d="M25.875 28.25L22.125 32 6.126 16.001 22.125.002l3.75 3.75-12.25 12.25z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_keyboard_arrow_right" xmlns="http://www.w3.org/2000/svg"><path d="M6.125 28.25L18.375 16 6.125 3.75 9.875 0l15.999 15.999L9.875 31.998z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_keyborad_arrow_down" xmlns="http://www.w3.org/2000/svg"><path d="M3.281 5.36L14 16.079 24.719 5.36 28 8.641l-14 14-14-14z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_keyborad_arrow_up" xmlns="http://www.w3.org/2000/svg"><path d="M24.719 22.64L14 11.921 3.281 22.64 0 19.359l14-14 14 14z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_link" xmlns="http://www.w3.org/2000/svg"><path d="M24.037 7.963q3.305 0 5.634 2.366T32 16t-2.329 5.671-5.634 2.366h-6.46v-3.08h6.46q2.028 0 3.493-1.465t1.465-3.493-1.465-3.493-3.493-1.465h-6.46v-3.08h6.46zM9.615 17.578v-3.155h12.77v3.155H9.615zM3.005 16q0 2.028 1.465 3.493t3.493 1.465h6.46v3.08h-6.46q-3.305 0-5.634-2.366T0 16.001t2.329-5.671 5.634-2.366h6.46v3.08h-6.46q-2.028 0-3.493 1.465t-1.465 3.493z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_menu" xmlns="http://www.w3.org/2000/svg"><path d="M.001 5.334h31.998v3.583H.001V5.334zm0 12.416v-3.5h31.998v3.5H.001zm0 8.916v-3.583h31.998v3.583H.001z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_notifications" xmlns="http://www.w3.org/2000/svg"><path d="M25.846 22.154l3.308 3.308v1.615H2.847v-1.615l3.308-3.308V14q0-3.846 1.961-6.692t5.423-3.692V2.462q0-1 .692-1.731T16 0t1.769.731.692 1.731v1.154q3.461.846 5.423 3.692T25.846 14v8.154zM16 32q-1.385 0-2.346-.923t-.962-2.308h6.615q0 1.308-1 2.269T15.999 32z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_person" xmlns="http://www.w3.org/2000/svg"><path d="M16 20.023q5.052 0 10.526 2.199t5.473 5.754v4.023H0v-4.023q0-3.555 5.473-5.754t10.526-2.199zM16 16q-3.275 0-5.614-2.339T8.047 8.047t2.339-5.661T16 0t5.614 2.386 2.339 5.661-2.339 5.614T16 16z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_pin" xmlns="http://www.w3.org/2000/svg"><path d="M17.6 19.2h9.6v-1.6L22.4 16V3.2l4.8-1.6V0H4.8v1.6l4.8 1.6V16l-4.8 1.6v1.6h9.6v11.2L16 32l1.6-1.6V19.2z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_rss_feed" xmlns="http://www.w3.org/2000/svg"><path d="M-.481 12.048q8.482 0 14.457 5.976t5.976 14.457h-5.879q0-5.976-4.289-10.264T-.48 17.928v-5.879zm0-11.565q13.204 0 22.601 9.397t9.397 22.601h-5.783q0-10.891-7.662-18.553T-.481 6.266V.483zm0 27.468q0-1.831 1.301-3.132t3.229-1.301 3.181 1.253 1.253 3.181-1.301 3.229-3.132 1.301q-1.928 0-3.229-1.301T-.48 27.952z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_search" xmlns="http://www.w3.org/2000/svg"><path d="M11.925 20.161q3.432 0 5.834-2.402t2.402-5.834-2.402-5.834-5.834-2.402-5.834 2.402-2.402 5.834 2.402 5.834 5.834 2.402zm10.981 0L32 29.255 29.255 32l-9.094-9.094v-1.458l-.515-.515q-3.26 2.831-7.721 2.831-4.976 0-8.45-3.432T.001 11.925t3.474-8.45 8.45-3.474 8.407 3.474 3.432 8.45q0 1.802-.858 4.075t-1.973 3.646l.515.515h1.458z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_security" xmlns="http://www.w3.org/2000/svg"><path d="M16 0l13.072 5.855v8.715q0 6.059-3.745 11.063T16 31.999q-5.583-1.362-9.327-6.366T2.928 14.57V5.855zm0 16v13.004q4.017-1.294 6.808-4.868T26.144 16H16zm0 0V3.2L5.856 7.693v8.306H16z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_star" xmlns="http://www.w3.org/2000/svg"><path d="M14 22.052L5.324 27.31l2.3-9.859L0 10.813l10.056-.854L14 .692l3.944 9.267L28 10.813l-7.624 6.638 2.3 9.859z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_tag" xmlns="http://www.w3.org/2000/svg"><path d="M17.52 17.52v-7.041h-7.041v7.041h7.041zM28 10.479h-7.041v7.041H28v3.439h-7.041V28H17.52v-7.041h-7.041V28H7.04v-7.041H-.001V17.52H7.04v-7.041H-.001V7.04H7.04V-.001h3.439V7.04h7.041V-.001h3.439V7.04H28v3.439z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_timer" xmlns="http://www.w3.org/2000/svg"><path d="M16 29q4.428 0 7.536-3.143t3.107-7.571-3.107-7.536T16 7.643 8.464 10.75t-3.107 7.536 3.107 7.571T16 29zM26.714 9.786q1.214 1.571 2.107 4.036t.893 4.464q0 5.643-4 9.678T16 32t-9.714-4.036-4-9.678 4-9.678T16 4.572q1.929 0 4.464.929t4.107 2.143l2.143-2.214q1.143.929 2.143 2.143zM14.5 19.857v-9.143h3v9.143h-3zM20.571.001v3.071h-9.143V.001h9.143z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_tree" xmlns="http://www.w3.org/2000/svg"><path d="M32 14.423H20.808V9.616h-3.23v12.77h3.23v-4.807H32v12.845H20.808v-4.807h-6.385v-16h-3.23v4.807H.001V1.579h11.192v4.807h9.615V1.579H32v12.845z"/></svg></defs></svg>
-
-
-
-
-    <div
-      class="wrapper dark-mode-dim"
-    >
-      <header class="gblog-header">
-  <div class="container flex flex-wrap">
-    <div class="gblog-header__col-1 flex justify-start hidden-mobile"></div>
-    <div class="gblog-header__col-2 flex align-center justify-center ">
-      <a class="gblog-header__link" rel="me" href="https://nasm.re">
-        <span class="gblog-brand flex align-center justify-center">
-          <img
-            class="gblog-brand__img"
-            src="/risa.png"
-            alt=""
-          />
-          <span class="gblog-brand__title">repr</span>
-        </span>
-        
-          <span class="gblog-brand__subtitle flex align-center justify-center">pwn, RE, crypto stuff</span>
-        
-      </a>
-    </div>
-    <div class="gblog-header__col-3 flex justify-end">
-      <span id="gblog-dark-mode">
-        <svg class="icon gblog_brightness_dark">
-          <title></title>
-          <use xlink:href="#gblog_brightness_dark"></use>
-        </svg>
-        <svg class="icon gblog_brightness_light">
-          <title></title>
-          <use xlink:href="#gblog_brightness_light"></use>
-        </svg>
-        <svg class="icon gblog_brightness_auto">
-          <title></title>
-          <use xlink:href="#gblog_brightness_auto"></use>
-        </svg>
-      </span>
-    </div>
-  </div>
-</header>
-<nav class="gblog-nav">
-  <input type="checkbox" id="menu-control" class="hidden" />
-  <div class="gblog-nav__control">
-    <label for="menu-control" class="flex align-center justify-center">
-      <svg class="icon gblog_menu"><use xlink:href="#gblog_menu"></use></svg>
-      <svg class="icon gblog_clear"><use xlink:href="#gblog_clear"></use></svg>
-      <span>Navigation</span>
-    </label>
-  </div>
-  <ul class="gblog-nav__list container flex flex-wrap justify-center menu-content">
-    
-    
-    
-      
-
-  
-  
-  
-
-  
-    
-      
-      
-      
-
-      
-        <li>
-          <a
-            href="
-              https://github.com/n4sm
-            "
-            class="gblog-nav__entry "
-          >
-            
-              <svg class="icon gblog_github"><use xlink:href="#gblog_github"></use></svg>
-            
-            Github Profile
-          </a>
-        </li>
-      
-    
-  
-    
-      
-      
-      
-
-      
-        <li>
-          <a
-            href="
-              /posts/about
-            "
-            class="gblog-nav__entry "
-          >
-            
-              <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-            
-            About
-          </a>
-        </li>
-      
-    
-  
-
-
-
-
-
-
-    
-  </ul>
-</nav>
-
-
-
-      <main class="gblog-page container">
-        
-  <article class="gblog-post">
-    <header class="gblog-post__header">
-      
-      
-
-
-      <h1 class="gblog-post__title">Linux kernel side notes</h1>
-
-      
-        <div class="flex flex-wrap align-center gblog-post__meta gblog-post__meta--head">
-          <span class="flex align-center no-wrap">
-  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
-  <span class="gblog-post__tag">
-    <time datetime="2022-07-18T00:00:00Z">
-      
-      Jul 18, 2022
-    </time>
-  </span>
-</span>
-
-<span class="flex align-center no-wrap">
-  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">6 min read</span>
-</span>
-
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a class="gblog-button__link" href="/authors/nasm/" title="All posts of this author">
-      nasm
+<div id="banner" class="">
+  <img src="/pic/wall.png" itemprop="image">
+  <div id="banner-dim"></div>
+</div>
+ 
+   
+  <div id="main-grid" class="shadow   ">
+    <div id="nav" class=""  >
+      <navbar id="navbar">
+  <nav id="title-nav">
+    <a href="/">
+      <div id="vivia-logo">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div>repr </div>
     </a>
-  </span>
-
-        </span>
-      
+  </nav>
+  <nav id="main-nav">
+    
+      <a class="main-nav-link" href="/">Home</a>
+    
+      <a class="main-nav-link" href="/archives">Archives</a>
+    
+      <a class="main-nav-link" href="/about">About</a>
+    
+  </nav>
+  <nav id="sub-nav">
+    <a id="theme-btn" class="nav-icon">
+      <span class="material-symbols-rounded light-mode-icon">wb_sunny</span>
+      <span class="material-symbols-rounded dark-mode-icon">dark_mode</span>
+    </a>
+    
+      <a id="nav-rss-link" class="nav-icon mobile-hide" href="/atom.xml" title="RSS Feed">
+        <span class="material-symbols-rounded rss">rss_feed</span>
+      </a>
+    
+    <a id="nav-search-btn" class="nav-icon" title="Search" style="display: none;">
+      <span class="material-symbols-rounded">search</span>
+    </a>
+    <div id="nav-menu-btn" class="nav-icon">
+      <span class="material-symbols-rounded">menu</span>
+    </div>
+  </nav>
+</navbar>
+<div id="nav-dropdown" class="hidden">
+  <div id="dropdown-link-list">
+    
+      <a class="nav-dropdown-link" href="/">Home</a>
+    
+      <a class="nav-dropdown-link" href="/archives">Archives</a>
+    
+      <a class="nav-dropdown-link" href="/about">About</a>
     
     
+      <a class="nav-dropdown-link" href="/atom.xml" title="RSS Feed">RSS</a>
+     
+    </div>
+</div>
+<script>
+  let dropdownBtn = document.getElementById("nav-menu-btn");
+  let dropdownEle = document.getElementById("nav-dropdown");
+  dropdownBtn.onclick = function() {
+    dropdownEle.classList.toggle("hidden");
+  }
+</script>
+    </div>
+    <div id="sidebar-wrapper">
+      <sidebar id="sidebar">
   
+    <div class="widget-wrap">
+  <div class="info-card">
+    <div class="avatar">
+      
+        <image src=https://cdn.discordapp.com/attachments/755522926819934349/1135933820852502589/chtholly_nota_seniorious_by_asukaln_dfhx63b-414w-2x.jpg></image>
+      
+      <div class="img-dim"></div>
+    </div>
+    <div class="info">
+      <div class="username">nasm </div>
+      <div class="dot"></div>
+      <div class="subtitle">pwn / kernel stuff </div>
+      <div class="link-list">
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://twitter.com/nasm_re" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://github.com/n4sm" title="GitHub"><i class="fa-brands fa-github"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://ret2school.github.io/discord" title="Discord"><i class="fa-brands fa-discord"></i></a>
+         
+      </div>  
+    </div>
+  </div>
+</div>
+
+  
+  <div class="sticky">
+    
+      
 
 
-
-
-
-
-
-
-
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Categories</h3>
+      <div class="category-box">
+            <a class="category-link" href="/categories/pwn/">
+                pwn
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
+            </a>
         </div>
+    </div>
+  </div>
+
+
+    
       
-    </header>
-    <section class="gblog-markdown">
-      <p>Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target <a
-  class="gblog-markdown__link"
-  href="https://elixir.bootlin.com/linux/v5.18.12/source/kernel"
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Recent Posts</h3>
+      <ul>
+        
+          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] window-of-opportunity
+            </div>
+          </a>
+        
+          <a class="recent-link" href="/posts/mailman/" title="[ImaginaryCTF 2023 - pwn] mailman" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] mailman
+            </div>
+          </a>
+        
+      </ul>
+    </div>
+  </div>
+
+    
+  </div>
+</sidebar>
+    </div>
+    <div id="content-body">
+       
+
+<article id="post-lowlevelnotes" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   
-  >linux kernel 5.18.12</a
->.
-There will be a lot of code for which I do not comment the whole part.</p>
-<div class="gblog-post__anchorwrap">
-    <h1 id="kernel-heap-management-slub-slab-slob">
-        Kernel heap management (SLUB, SLAB, SLOB)
-        <a data-clipboard-text="https://nasm.re/posts/lowlevelnotes/#kernel-heap-management-slub-slab-slob" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Kernel heap management (SLUB, SLAB, SLOB)" href="#kernel-heap-management-slub-slab-slob">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h1>
-</div>
-<p>Same way as for userland, the kernel has many algorithms to manage memory allocation according to what the kernel is looking for (huge resources or not, safety needs etc).</p>
-<div class="gblog-post__anchorwrap">
-    <h2 id="slub">
-        SLUB
-        <a data-clipboard-text="https://nasm.re/posts/lowlevelnotes/#slub" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor SLUB" href="#slub">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p>The SLUB algorithm is the algorithm I know the more, so that&rsquo;s the one I will cover first. To allocate dynamically memory, the kernel provides the <code>kmalloc</code> function to which you can provide flags:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cm">/**
-</span><span class="cm"> * kmalloc - allocate memory
-</span><span class="cm"> * @size: how many bytes of memory are required.
-</span><span class="cm"> * @flags: the type of memory to allocate.
-</span><span class="cm"> *
-</span><span class="cm"> * kmalloc is the normal method of allocating memory
-</span><span class="cm"> * for objects smaller than page size in the kernel.
-</span><span class="cm"> *
-</span><span class="cm"> * The allocated object address is aligned to at least ARCH_KMALLOC_MINALIGN
-</span><span class="cm"> * bytes. For @size of power of two bytes, the alignment is also guaranteed
-</span><span class="cm"> * to be at least to the size.
-</span><span class="cm"> *
-</span><span class="cm"> * The @flags argument may be one of the GFP flags defined at
-</span><span class="cm"> * include/linux/gfp.h and described at
-</span><span class="cm"> * :ref:`Documentation/core-api/mm-api.rst &lt;mm-api-gfp-flags&gt;`
-</span><span class="cm"> *
-</span><span class="cm"> * The recommended usage of the @flags is described at
-</span><span class="cm"> * :ref:`Documentation/core-api/memory-allocation.rst &lt;memory_allocation&gt;`
-</span><span class="cm"> *
-</span><span class="cm"> * Below is a brief outline of the most useful GFP flags
-</span><span class="cm"> *
-</span><span class="cm"> * %GFP_KERNEL
-</span><span class="cm"> *	Allocate normal kernel ram. May sleep.
-</span><span class="cm"> *
-</span><span class="cm"> * %GFP_NOWAIT
-</span><span class="cm"> *	Allocation will not sleep.
-</span><span class="cm"> *
-</span><span class="cm"> * %GFP_ATOMIC
-</span><span class="cm"> *	Allocation will not sleep.  May use emergency pools.
-</span><span class="cm"> *
-</span><span class="cm"> * %GFP_HIGHUSER
-</span><span class="cm"> *	Allocate memory from high memory on behalf of user.
-</span><span class="cm"> *
-</span><span class="cm"> * Also it is possible to set different flags by OR&#39;ing
-</span><span class="cm"> * in one or more of the following additional @flags:
-</span><span class="cm"> *
-</span><span class="cm"> * %__GFP_HIGH
-</span><span class="cm"> *	This allocation has high priority and may use emergency pools.
-</span><span class="cm"> *
-</span><span class="cm"> * %__GFP_NOFAIL
-</span><span class="cm"> *	Indicate that this allocation is in no way allowed to fail
-</span><span class="cm"> *	(think twice before using).
-</span><span class="cm"> *
-</span><span class="cm"> * %__GFP_NORETRY
-</span><span class="cm"> *	If memory is not immediately available,
-</span><span class="cm"> *	then give up at once.
-</span><span class="cm"> *
-</span><span class="cm"> * %__GFP_NOWARN
-</span><span class="cm"> *	If allocation fails, don&#39;t issue any warnings.
-</span><span class="cm"> *
-</span><span class="cm"> * %__GFP_RETRY_MAYFAIL
-</span><span class="cm"> *	Try really hard to succeed the allocation but fail
-</span><span class="cm"> *	eventually.
-</span><span class="cm"> */</span>
-</code></pre></div><p>What are the main structures of SLUB management ? This can be described by this picture for which we will review each of the data structures (pic from <a
-  class="gblog-markdown__link"
-  href="https://programmersought.com/article/362810197389/"
+    
+   
+  <div class="article-inner">
+    <div class="article-main">
+      <header class="article-header">
+        
+<div class="main-title-bar">
+  <div class="main-title-dot"></div>
   
-  >here</a
->):</p>
-<img align="center" width="100%" src="../../SLUB_schema1.png">
-<p>To cover the whole allocation process, we will review the main structures to then take a look at the actual allocation algorithm.
-Given the complexity of such structures, each of these structures are treated in separate articles:</p>
+    
+      <h1 class="p-name article-title" itemprop="headline name">
+        Linux kernel side notes
+      </h1>
+    
+  
+</div>
+
+        <div class='meta-info-bar'>
+          <div class="meta-info">
+  <time class="dt-published" datetime="2022-07-17T22:00:00.000Z" itemprop="datePublished">2022-07-18</time>
+</div>
+          <div class="need-seperator meta-info">
+            <div class="meta-cate-flex">
+  
+  <a class="meta-cate-link" href="/categories/kernel/">kernel</a>
+   
+</div>
+  
+          </div>
+          <div class="wordcount need-seperator meta-info">
+            1.2k words 
+          </div>
+        </div>
+        
+      </header>
+      <div class="e-content article-entry" itemprop="articleBody">
+        
+          <p>Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target <a target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/v5.18.12/source/kernel">linux kernel 5.18.12</a>.<br>There will be a lot of code for which I do not comment the whole part.</p>
+<h1 id="Kernel-heap-management-SLUB-SLAB-SLOB"><a href="#Kernel-heap-management-SLUB-SLAB-SLOB" class="headerlink" title="Kernel heap management (SLUB, SLAB, SLOB)"></a>Kernel heap management (SLUB, SLAB, SLOB)</h1><p>Same way as for userland, the kernel has many algorithms to manage memory allocation according to what the kernel is looking for (huge resources or not, safety needs etc).</p>
+<h2 id="SLUB"><a href="#SLUB" class="headerlink" title="SLUB"></a>SLUB</h2><p>The SLUB algorithm is the algorithm I know the more, so that’s the one I will cover first. To allocate dynamically memory, the kernel provides the <code>kmalloc</code> function to which you can provide flags:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * kmalloc - allocate memory</span></span><br><span class="line"><span class="comment"> * @size: how many bytes of memory are required.</span></span><br><span class="line"><span class="comment"> * @flags: the type of memory to allocate.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * kmalloc is the normal method of allocating memory</span></span><br><span class="line"><span class="comment"> * for objects smaller than page size in the kernel.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * The allocated object address is aligned to at least ARCH_KMALLOC_MINALIGN</span></span><br><span class="line"><span class="comment"> * bytes. For @size of power of two bytes, the alignment is also guaranteed</span></span><br><span class="line"><span class="comment"> * to be at least to the size.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * The @flags argument may be one of the GFP flags defined at</span></span><br><span class="line"><span class="comment"> * include/linux/gfp.h and described at</span></span><br><span class="line"><span class="comment"> * :ref:`Documentation/core-api/mm-api.rst &lt;mm-api-gfp-flags&gt;`</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * The recommended usage of the @flags is described at</span></span><br><span class="line"><span class="comment"> * :ref:`Documentation/core-api/memory-allocation.rst &lt;memory_allocation&gt;`</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Below is a brief outline of the most useful GFP flags</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * %GFP_KERNEL</span></span><br><span class="line"><span class="comment"> *	Allocate normal kernel ram. May sleep.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * %GFP_NOWAIT</span></span><br><span class="line"><span class="comment"> *	Allocation will not sleep.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * %GFP_ATOMIC</span></span><br><span class="line"><span class="comment"> *	Allocation will not sleep.  May use emergency pools.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * %GFP_HIGHUSER</span></span><br><span class="line"><span class="comment"> *	Allocate memory from high memory on behalf of user.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Also it is possible to set different flags by OR&#x27;ing</span></span><br><span class="line"><span class="comment"> * in one or more of the following additional @flags:</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * %__GFP_HIGH</span></span><br><span class="line"><span class="comment"> *	This allocation has high priority and may use emergency pools.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * %__GFP_NOFAIL</span></span><br><span class="line"><span class="comment"> *	Indicate that this allocation is in no way allowed to fail</span></span><br><span class="line"><span class="comment"> *	(think twice before using).</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * %__GFP_NORETRY</span></span><br><span class="line"><span class="comment"> *	If memory is not immediately available,</span></span><br><span class="line"><span class="comment"> *	then give up at once.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * %__GFP_NOWARN</span></span><br><span class="line"><span class="comment"> *	If allocation fails, don&#x27;t issue any warnings.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * %__GFP_RETRY_MAYFAIL</span></span><br><span class="line"><span class="comment"> *	Try really hard to succeed the allocation but fail</span></span><br><span class="line"><span class="comment"> *	eventually.</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
+
+<p>What are the main structures of SLUB management ? This can be described by this picture for which we will review each of the data structures (pic from <a target="_blank" rel="noopener" href="https://programmersought.com/article/362810197389/">here</a>):</p>
+<img align="center" width="100%" src="../../../SLUB_schema1.png">
+
+
+<p>To cover the whole allocation process, we will review the main structures to then take a look at the actual allocation algorithm.<br>Given the complexity of such structures, each of these structures are treated in separate articles:</p>
 <ul>
-<li><a
-  class="gblog-markdown__link"
-  href="../kmem_cache"
-  
-  >kmem_cache</a
-></li>
+<li><a href="../kmem_cache">kmem_cache</a></li>
 </ul>
-<p>Let&rsquo;s take a look at the source code of the <code>__kmalloc</code> SLUB implemementation:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L4399
-</span><span class="c1"></span><span class="kt">void</span> <span class="o">*</span><span class="nf">__kmalloc</span><span class="p">(</span><span class="n">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">gfp_t</span> <span class="n">flags</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="n">s</span><span class="p">;</span>
-	<span class="kt">void</span> <span class="o">*</span><span class="n">ret</span><span class="p">;</span>
+<p>Let’s take a look at the source code of the <code>__kmalloc</code> SLUB implemementation:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slub.c#L4399</span></span><br><span class="line"><span class="type">void</span> *__kmalloc(<span class="type">size_t</span> size, <span class="type">gfp_t</span> flags)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache</span> *<span class="title">s</span>;</span></span><br><span class="line">	<span class="type">void</span> *ret;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (unlikely(size &gt; KMALLOC_MAX_CACHE_SIZE))</span><br><span class="line">		<span class="keyword">return</span> kmalloc_large(size, flags);</span><br><span class="line"></span><br><span class="line">	s = kmalloc_slab(size, flags);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (unlikely(ZERO_OR_NULL_PTR(s)))</span><br><span class="line">		<span class="keyword">return</span> s;</span><br><span class="line"></span><br><span class="line">	ret = slab_alloc(s, <span class="literal">NULL</span>, flags, _RET_IP_, size);</span><br><span class="line"></span><br><span class="line">	trace_kmalloc(_RET_IP_, ret, size, s-&gt;size, flags);</span><br><span class="line"></span><br><span class="line">	ret = kasan_kmalloc(s, ret, size, flags);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line">EXPORT_SYMBOL(__kmalloc);</span><br></pre></td></tr></table></figure>
 
-	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">KMALLOC_MAX_CACHE_SIZE</span><span class="p">))</span>
-		<span class="k">return</span> <span class="n">kmalloc_large</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
+<h3 id="Large-allocations"><a href="#Large-allocations" class="headerlink" title="Large allocations"></a>Large allocations</h3><p>Thus, if the requested size is larger than <code>KMALLOC_MAX_CACHE_SIZE</code>, <code>kmalloc_large</code> is called, and <code>kmalloc_order</code> is called according to a particular <code>order</code>that represents the number of pages from the requested size:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slab_common.c#L944</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * To avoid unnecessary overhead, we pass through large allocation requests</span></span><br><span class="line"><span class="comment"> * directly to the page allocator. We use __GFP_COMP, because we will need to</span></span><br><span class="line"><span class="comment"> * know the allocation order to free the pages properly in kfree.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">void</span> *<span class="title function_">kmalloc_order</span><span class="params">(<span class="type">size_t</span> size, <span class="type">gfp_t</span> flags, <span class="type">unsigned</span> <span class="type">int</span> order)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">void</span> *ret = <span class="literal">NULL</span>;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">page</span>;</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (unlikely(flags &amp; GFP_SLAB_BUG_MASK))</span><br><span class="line">		flags = kmalloc_fix_flags(flags);</span><br><span class="line"></span><br><span class="line">	flags |= __GFP_COMP;</span><br><span class="line">	page = alloc_pages(flags, order);</span><br><span class="line">	<span class="keyword">if</span> (likely(page)) &#123;</span><br><span class="line">		ret = page_address(page);</span><br><span class="line">		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B,</span><br><span class="line">				PAGE_SIZE &lt;&lt; order);</span><br><span class="line">	&#125;</span><br><span class="line">	ret = kasan_kmalloc_large(ret, size, flags);</span><br><span class="line">	<span class="comment">/* As ret might get tagged, call kmemleak hook after KASAN. */</span></span><br><span class="line">	kmemleak_alloc(ret, size, <span class="number">1</span>, flags);</span><br><span class="line">	<span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line">EXPORT_SYMBOL(kmalloc_order);</span><br></pre></td></tr></table></figure>
 
-	<span class="n">s</span> <span class="o">=</span> <span class="n">kmalloc_slab</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
-
-	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">ZERO_OR_NULL_PTR</span><span class="p">(</span><span class="n">s</span><span class="p">)))</span>
-		<span class="k">return</span> <span class="n">s</span><span class="p">;</span>
-
-	<span class="n">ret</span> <span class="o">=</span> <span class="n">slab_alloc</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">_RET_IP_</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
-
-	<span class="n">trace_kmalloc</span><span class="p">(</span><span class="n">_RET_IP_</span><span class="p">,</span> <span class="n">ret</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">s</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
-
-	<span class="n">ret</span> <span class="o">=</span> <span class="n">kasan_kmalloc</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">ret</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
-
-	<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
-<span class="p">}</span>
-<span class="n">EXPORT_SYMBOL</span><span class="p">(</span><span class="n">__kmalloc</span><span class="p">);</span>
-</code></pre></div><div class="gblog-post__anchorwrap">
-    <h3 id="large-allocations">
-        Large allocations
-        <a data-clipboard-text="https://nasm.re/posts/lowlevelnotes/#large-allocations" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Large allocations" href="#large-allocations">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h3>
-</div>
-<p>Thus, if the requested size is larger than <code>KMALLOC_MAX_CACHE_SIZE</code>, <code>kmalloc_large</code> is called, and <code>kmalloc_order</code> is called according to a particular <code>order</code>that represents the number of pages from the requested size:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slab_common.c#L944
-</span><span class="c1"></span><span class="cm">/*
-</span><span class="cm"> * To avoid unnecessary overhead, we pass through large allocation requests
-</span><span class="cm"> * directly to the page allocator. We use __GFP_COMP, because we will need to
-</span><span class="cm"> * know the allocation order to free the pages properly in kfree.
-</span><span class="cm"> */</span>
-<span class="kt">void</span> <span class="o">*</span><span class="nf">kmalloc_order</span><span class="p">(</span><span class="n">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">gfp_t</span> <span class="n">flags</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">order</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="kt">void</span> <span class="o">*</span><span class="n">ret</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-	<span class="k">struct</span> <span class="n">page</span> <span class="o">*</span><span class="n">page</span><span class="p">;</span>
-
-	<span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">GFP_SLAB_BUG_MASK</span><span class="p">))</span>
-		<span class="n">flags</span> <span class="o">=</span> <span class="n">kmalloc_fix_flags</span><span class="p">(</span><span class="n">flags</span><span class="p">);</span>
-
-	<span class="n">flags</span> <span class="o">|=</span> <span class="n">__GFP_COMP</span><span class="p">;</span>
-	<span class="n">page</span> <span class="o">=</span> <span class="n">alloc_pages</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span> <span class="n">order</span><span class="p">);</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">likely</span><span class="p">(</span><span class="n">page</span><span class="p">))</span> <span class="p">{</span>
-		<span class="n">ret</span> <span class="o">=</span> <span class="n">page_address</span><span class="p">(</span><span class="n">page</span><span class="p">);</span>
-		<span class="n">mod_lruvec_page_state</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">NR_SLAB_UNRECLAIMABLE_B</span><span class="p">,</span>
-				<span class="n">PAGE_SIZE</span> <span class="o">&lt;&lt;</span> <span class="n">order</span><span class="p">);</span>
-	<span class="p">}</span>
-	<span class="n">ret</span> <span class="o">=</span> <span class="n">kasan_kmalloc_large</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
-	<span class="cm">/* As ret might get tagged, call kmemleak hook after KASAN. */</span>
-	<span class="n">kmemleak_alloc</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
-	<span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
-<span class="p">}</span>
-<span class="n">EXPORT_SYMBOL</span><span class="p">(</span><span class="n">kmalloc_order</span><span class="p">);</span>
-</code></pre></div><p>The <code>__GFP_COMP</code> stands for the allocation of &ldquo;compound pages&rdquo;, to quote Jonathan Corbet from <a
-  class="gblog-markdown__link"
-  href="https://lwn.net/Articles/619514/"
-  
-  >this article</a
->:</p>
+<p>The <code>__GFP_COMP</code> stands for the allocation of “compound pages”, to quote Jonathan Corbet from <a target="_blank" rel="noopener" href="https://lwn.net/Articles/619514/">this article</a>:</p>
 <blockquote>
 <p>A compound page is simply a grouping of two or more physically contiguous pages into a unit that can, in many ways, be treated as a single, larger page. They are most commonly used to create huge pages, used within hugetlbfs or the transparent huge pages subsystem, but they show up in other contexts as well. Compound pages can serve as anonymous memory or be used as buffers within the kernel; they cannot, however, appear in the page cache, which is only prepared to deal with singleton pages.</p>
 </blockquote>
-<p>The actual allocation is made in <code>alloc_pages</code>, more specifically in <code>__alloc_pages</code> that requests pages to the buddy allocator. But that&rsquo;s out of scope for now. Thus what we know is that large allocations are handled directly by the buddy system.</p>
-<div class="gblog-post__anchorwrap">
-    <h3 id="small-allocations">
-        Small allocations
-        <a data-clipboard-text="https://nasm.re/posts/lowlevelnotes/#small-allocations" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Small allocations" href="#small-allocations">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h3>
-</div>
-<p>By following the other code path <code>kmalloc_slab</code> is called:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slab_common.c#L730
-</span><span class="c1"></span><span class="cm">/*
-</span><span class="cm"> * Find the kmem_cache structure that serves a given size of
-</span><span class="cm"> * allocation
-</span><span class="cm"> */</span>
-<span class="k">struct</span> <span class="n">kmem_cache</span> <span class="o">*</span><span class="nf">kmalloc_slab</span><span class="p">(</span><span class="n">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">gfp_t</span> <span class="n">flags</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
+<p>The actual allocation is made in <code>alloc_pages</code>, more specifically in <code>__alloc_pages</code> that requests pages to the buddy allocator. But that’s out of scope for now. Thus what we know is that large allocations are handled directly by the buddy system.</p>
+<h3 id="Small-allocations"><a href="#Small-allocations" class="headerlink" title="Small allocations"></a>Small allocations</h3><p>By following the other code path <code>kmalloc_slab</code> is called:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// https://elixir.bootlin.com/linux/v5.18.12/source/mm/slab_common.c#L730</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Find the kmem_cache structure that serves a given size of</span></span><br><span class="line"><span class="comment"> * allocation</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">struct</span> kmem_cache *<span class="title function_">kmalloc_slab</span><span class="params">(<span class="type">size_t</span> size, <span class="type">gfp_t</span> flags)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">unsigned</span> <span class="type">int</span> index;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (size &lt;= <span class="number">192</span>) &#123;</span><br><span class="line">		<span class="keyword">if</span> (!size)</span><br><span class="line">			<span class="keyword">return</span> ZERO_SIZE_PTR;</span><br><span class="line"></span><br><span class="line">		index = size_index[size_index_elem(size)];</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> (WARN_ON_ONCE(size &gt; KMALLOC_MAX_CACHE_SIZE))</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">		index = fls(size - <span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> kmalloc_caches[kmalloc_type(flags)][index];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-	<span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">192</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">size</span><span class="p">)</span>
-			<span class="k">return</span> <span class="n">ZERO_SIZE_PTR</span><span class="p">;</span>
+<h2 id="kmem-cache-init"><a href="#kmem-cache-init" class="headerlink" title="kmem_cache_init"></a>kmem_cache_init</h2><p><code>kmalloc_slab</code> returns the <code>kmalloc_cache</code> entry that matchs the provided flags and size. Let’s see how is initialized this array, the main initialization occurs in <code>kmem_cache_init</code>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __init <span class="title function_">kmem_cache_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">static</span> __initdata <span class="class"><span class="keyword">struct</span> <span class="title">kmem_cache</span> <span class="title">boot_kmem_cache</span>,</span></span><br><span class="line"><span class="class">			  <span class="title">boot_kmem_cache_node</span>;</span></span><br><span class="line">	<span class="type">int</span> node;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (debug_guardpage_minorder())</span><br><span class="line">		slub_max_order = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* Print slub debugging pointers without hashing */</span></span><br><span class="line">	<span class="keyword">if</span> (__slub_debug_enabled())</span><br><span class="line">		no_hash_pointers_enable(<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">	kmem_cache_node = &amp;boot_kmem_cache_node;</span><br><span class="line">	kmem_cache = &amp;boot_kmem_cache;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Initialize the nodemask for which we will allocate per node</span></span><br><span class="line"><span class="comment">	 * structures. Here we don&#x27;t need taking slab_mutex yet.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	for_each_node_state(node, N_NORMAL_MEMORY)</span><br><span class="line">		node_set(node, slab_nodes);</span><br></pre></td></tr></table></figure>
 
-		<span class="n">index</span> <span class="o">=</span> <span class="n">size_index</span><span class="p">[</span><span class="n">size_index_elem</span><span class="p">(</span><span class="n">size</span><span class="p">)];</span>
-	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-		<span class="k">if</span> <span class="p">(</span><span class="n">WARN_ON_ONCE</span><span class="p">(</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">KMALLOC_MAX_CACHE_SIZE</span><span class="p">))</span>
-			<span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
-		<span class="n">index</span> <span class="o">=</span> <span class="n">fls</span><span class="p">(</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
-	<span class="p">}</span>
-
-	<span class="k">return</span> <span class="n">kmalloc_caches</span><span class="p">[</span><span class="n">kmalloc_type</span><span class="p">(</span><span class="n">flags</span><span class="p">)][</span><span class="n">index</span><span class="p">];</span>
-<span class="p">}</span>
-</code></pre></div><div class="gblog-post__anchorwrap">
-    <h2 id="kmem_cache_init">
-        kmem_cache_init
-        <a data-clipboard-text="https://nasm.re/posts/lowlevelnotes/#kmem_cache_init" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor kmem_cache_init" href="#kmem_cache_init">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p><code>kmalloc_slab</code> returns the <code>kmalloc_cache</code> entry that matchs the provided flags and size. Let&rsquo;s see how is initialized this array, the main initialization occurs in <code>kmem_cache_init</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="kt">void</span> <span class="n">__init</span> <span class="nf">kmem_cache_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="k">static</span> <span class="n">__initdata</span> <span class="k">struct</span> <span class="n">kmem_cache</span> <span class="n">boot_kmem_cache</span><span class="p">,</span>
-			  <span class="n">boot_kmem_cache_node</span><span class="p">;</span>
-	<span class="kt">int</span> <span class="n">node</span><span class="p">;</span>
-
-	<span class="k">if</span> <span class="p">(</span><span class="n">debug_guardpage_minorder</span><span class="p">())</span>
-		<span class="n">slub_max_order</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-	<span class="cm">/* Print slub debugging pointers without hashing */</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">__slub_debug_enabled</span><span class="p">())</span>
-		<span class="n">no_hash_pointers_enable</span><span class="p">(</span><span class="nb">NULL</span><span class="p">);</span>
-
-	<span class="n">kmem_cache_node</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">boot_kmem_cache_node</span><span class="p">;</span>
-	<span class="n">kmem_cache</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">boot_kmem_cache</span><span class="p">;</span>
-
-	<span class="cm">/*
-</span><span class="cm">	 * Initialize the nodemask for which we will allocate per node
-</span><span class="cm">	 * structures. Here we don&#39;t need taking slab_mutex yet.
-</span><span class="cm">	 */</span>
-	<span class="n">for_each_node_state</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">N_NORMAL_MEMORY</span><span class="p">)</span>
-		<span class="n">node_set</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">slab_nodes</span><span class="p">);</span>
-</code></pre></div><p><code>slab_nodes</code> is a <a
-  class="gblog-markdown__link"
-  href="https://0xax.gitbooks.io/linux-insides/content/DataStructures/linux-datastructures-3.html"
-  
-  >bitmap</a
-> representing the nodes used by the kernel. Given we&rsquo;re on x86-64 the cpu is NUMA but behaves for compatibility purposes like a UMA system. Which means there is only one node used, and in it one &ldquo;zone&rdquo;: <code>N_NORMAL_MEMORY</code>. This way <code>for_each_node_state</code> loops only one time:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://elixir.bootlin.com/linux/latest/source/include/linux/nodemask.h#L482
-</span><span class="c1"></span><span class="cp">#define for_each_node_state(node, __state) \
-</span><span class="cp">	for ( (node) = 0; (node) == 0; (node) = 1)
-</span></code></pre></div><p>This way <code>slab_nodes</code> is initialized to <code>1</code>.</p>
+<p><code>slab_nodes</code> is a <a target="_blank" rel="noopener" href="https://0xax.gitbooks.io/linux-insides/content/DataStructures/linux-datastructures-3.html">bitmap</a> representing the nodes used by the kernel. Given we’re on x86-64 the cpu is NUMA but behaves for compatibility purposes like a UMA system. Which means there is only one node used, and in it one “zone”: <code>N_NORMAL_MEMORY</code>. This way <code>for_each_node_state</code> loops only one time:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// https://elixir.bootlin.com/linux/latest/source/include/linux/nodemask.h#L482</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> for_each_node_state(node, __state) \</span></span><br><span class="line"><span class="meta">	for ( (node) = 0; (node) == 0; (node) = 1)</span></span><br></pre></td></tr></table></figure>
+<p>This way <code>slab_nodes</code> is initialized to <code>1</code>.</p>
 <p>Then the first two kmem_cache are created: <code>kmem_cache_node</code> and <code>kmem_cache</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c">	<span class="c1">// https://elixir.bootlin.com/linux/latest/source/mm/slub.c#L4819
-</span><span class="c1"></span>	<span class="n">create_boot_cache</span><span class="p">(</span><span class="n">kmem_cache_node</span><span class="p">,</span> <span class="s">&#34;kmem_cache_node&#34;</span><span class="p">,</span>
-		<span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache_node</span><span class="p">),</span> <span class="n">SLAB_HWCACHE_ALIGN</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">	<span class="comment">// https://elixir.bootlin.com/linux/latest/source/mm/slub.c#L4819</span></span><br><span class="line">	create_boot_cache(kmem_cache_node, <span class="string">&quot;kmem_cache_node&quot;</span>,</span><br><span class="line">		<span class="keyword">sizeof</span>(<span class="keyword">struct</span> kmem_cache_node), SLAB_HWCACHE_ALIGN, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">	register_hotmemory_notifier(&amp;slab_memory_callback_nb);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* Able to allocate the per node structures */</span></span><br><span class="line">	slab_state = PARTIAL;</span><br><span class="line"></span><br><span class="line">	create_boot_cache(kmem_cache, <span class="string">&quot;kmem_cache&quot;</span>,</span><br><span class="line">			offsetof(<span class="keyword">struct</span> kmem_cache, node) +</span><br><span class="line">				nr_node_ids * <span class="keyword">sizeof</span>(<span class="keyword">struct</span> kmem_cache_node *),</span><br><span class="line">		       SLAB_HWCACHE_ALIGN, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">	kmem_cache = bootstrap(&amp;boot_kmem_cache);</span><br><span class="line">	kmem_cache_node = bootstrap(&amp;boot_kmem_cache_node);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* Now we can use the kmem_cache to allocate kmalloc slabs */</span></span><br><span class="line">	setup_kmalloc_cache_index_table();</span><br><span class="line">	create_kmalloc_caches(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* Setup random freelists for each cache */</span></span><br><span class="line">	init_freelist_randomization();</span><br><span class="line"></span><br><span class="line">	cpuhp_setup_state_nocalls(CPUHP_SLUB_DEAD, <span class="string">&quot;slub:dead&quot;</span>, <span class="literal">NULL</span>,</span><br><span class="line">				  slub_cpu_dead);</span><br><span class="line"></span><br><span class="line">	pr_info(<span class="string">&quot;SLUB: HWalign=%d, Order=%u-%u, MinObjects=%u, CPUs=%u, Nodes=%u\n&quot;</span>,</span><br><span class="line">		cache_line_size(),</span><br><span class="line">		slub_min_order, slub_max_order, slub_min_objects,</span><br><span class="line">		nr_cpu_ids, nr_node_ids);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-	<span class="n">register_hotmemory_notifier</span><span class="p">(</span><span class="o">&amp;</span><span class="n">slab_memory_callback_nb</span><span class="p">);</span>
-
-	<span class="cm">/* Able to allocate the per node structures */</span>
-	<span class="n">slab_state</span> <span class="o">=</span> <span class="n">PARTIAL</span><span class="p">;</span>
-
-	<span class="n">create_boot_cache</span><span class="p">(</span><span class="n">kmem_cache</span><span class="p">,</span> <span class="s">&#34;kmem_cache&#34;</span><span class="p">,</span>
-			<span class="n">offsetof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="o">+</span>
-				<span class="n">nr_node_ids</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">kmem_cache_node</span> <span class="o">*</span><span class="p">),</span>
-		       <span class="n">SLAB_HWCACHE_ALIGN</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-
-	<span class="n">kmem_cache</span> <span class="o">=</span> <span class="n">bootstrap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">boot_kmem_cache</span><span class="p">);</span>
-	<span class="n">kmem_cache_node</span> <span class="o">=</span> <span class="n">bootstrap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">boot_kmem_cache_node</span><span class="p">);</span>
-
-	<span class="cm">/* Now we can use the kmem_cache to allocate kmalloc slabs */</span>
-	<span class="n">setup_kmalloc_cache_index_table</span><span class="p">();</span>
-	<span class="n">create_kmalloc_caches</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-
-	<span class="cm">/* Setup random freelists for each cache */</span>
-	<span class="n">init_freelist_randomization</span><span class="p">();</span>
-
-	<span class="n">cpuhp_setup_state_nocalls</span><span class="p">(</span><span class="n">CPUHP_SLUB_DEAD</span><span class="p">,</span> <span class="s">&#34;slub:dead&#34;</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span>
-				  <span class="n">slub_cpu_dead</span><span class="p">);</span>
-
-	<span class="n">pr_info</span><span class="p">(</span><span class="s">&#34;SLUB: HWalign=%d, Order=%u-%u, MinObjects=%u, CPUs=%u, Nodes=%u</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span>
-		<span class="n">cache_line_size</span><span class="p">(),</span>
-		<span class="n">slub_min_order</span><span class="p">,</span> <span class="n">slub_max_order</span><span class="p">,</span> <span class="n">slub_min_objects</span><span class="p">,</span>
-		<span class="n">nr_cpu_ids</span><span class="p">,</span> <span class="n">nr_node_ids</span><span class="p">);</span>
-<span class="p">}</span>
-</code></pre></div><p>Let&rsquo;s take a look at the main functions. But before that, let&rsquo;s review the internal layout of the <code>kmem_cache</code> structure.</p>
-<div class="gblog-post__anchorwrap">
-    <h1 id="references">
-        References
-        <a data-clipboard-text="https://nasm.re/posts/lowlevelnotes/#references" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor References" href="#references">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h1>
-</div>
-<ul>
-<li><a
-  class="gblog-markdown__link"
-  href="https://www.cnblogs.com/adera/p/11718758.html"
-  
-  >cdnblogs, Allocation of mm-slab objects</a
-></li>
-<li><a
-  class="gblog-markdown__link"
-  href="https://www.cnblogs.com/linhaostudy/p/9992639.html"
-  
-  >cdnblogs, Linux Memory Description of Memory Node Node - Linux Memory Management (II)</a
-></li>
-<li><a
-  class="gblog-markdown__link"
-  href="https://programmersought.com/article/362810197389/"
-  
-  >programmerSought, Linux Memory Management SLUB Distributor 2 [Kmalloc_Cache Structure]</a
-></li>
-<li><a
-  class="gblog-markdown__link"
-  href="https://www.dingmos.com/index.php/archives/23/"
-  
-  >dingmos, Linux kernel | Memory management - Slab allocator</a
-></li>
-<li><a
-  class="gblog-markdown__link"
-  href="https://wenqupro.com/?thread-20.htm"
-  
-  >wenqupro, Article about kmem_cache</a
-></li>
-<li><a
-  class="gblog-markdown__link"
-  href="https://blog.csdn.net/m0_37637511/article/details/124960015"
-  
-  >cdnblogs, Slub Allocator Learning Series Linux 5.10</a
-></li>
-<li><a
-  class="gblog-markdown__link"
-  href="https://zhuanlan.zhihu.com/p/458668727"
-  
-  >zhuanlan, Non-professional understanding slub</a
-></li>
-<li><a
-  class="gblog-markdown__link"
-  href="https://blog.birost.com/a?ID=01100-ba652270-a5d4-4038-91a9-e0c56bcc643b"
-  
-  >Birost, Analysis of linux slub allocator</a
-></li>
-<li><a
-  class="gblog-markdown__link"
-  href="https://lwn.net/Articles/51437/"
-  
-  >LWN, The zen of kobjects</a
-></li>
+<p>Let’s take a look at the main functions. But before that, let’s review the internal layout of the <code>kmem_cache</code> structure.</p>
+<h1 id="References"><a href="#References" class="headerlink" title="References"></a>References</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/adera/p/11718758.html">cdnblogs, Allocation of mm-slab objects</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/linhaostudy/p/9992639.html">cdnblogs, Linux Memory Description of Memory Node Node - Linux Memory Management (II)</a></li>
+<li><a target="_blank" rel="noopener" href="https://programmersought.com/article/362810197389/">programmerSought, Linux Memory Management SLUB Distributor 2 [Kmalloc_Cache Structure]</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.dingmos.com/index.php/archives/23/">dingmos, Linux kernel | Memory management - Slab allocator</a></li>
+<li><a target="_blank" rel="noopener" href="https://wenqupro.com/?thread-20.htm">wenqupro, Article about kmem_cache</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_37637511/article/details/124960015">cdnblogs, Slub Allocator Learning Series Linux 5.10</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/458668727">zhuanlan, Non-professional understanding slub</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.birost.com/a?ID=01100-ba652270-a5d4-4038-91a9-e0c56bcc643b">Birost, Analysis of linux slub allocator</a></li>
+<li><a target="_blank" rel="noopener" href="https://lwn.net/Articles/51437/">LWN, The zen of kobjects</a></li>
 </ul>
 
-    </section>
-  </article>
-
-      </main>
-
-      <footer class="gblog-footer">
-  <nav class="container flex">
-    <div>
-      <section class="flex flex-wrap align-center">
         
-          <span class="gblog-footer__item gblog-footer__item--row">
-            <svg class="icon gblog_rss_feed"><use xlink:href="#gblog_rss_feed"></use></svg>
-            <a href="/feed.xml" class="gblog-footer__link">Atom Feed</a>
-          </span>
-        
-        
-          
+      </div>
 
-  
-  
-  
-
-  
-    
-      
-      
-      
-
-      
-        <span class="gblog-footer__item gblog-footer__item--row">
-          
-            <svg class="icon gblog_email"><use xlink:href="#gblog_email"></use></svg>
-          
-          <a
-            href="
-              /
-            "
-            class="gblog-footer__link"
-          >
-            Contact
-          </a>
-        </span>
-      
-    
-  
-
-
-
-
-
-
-        
-        
-        
-      </section>
-      <section class="flex flex-wrap align-center">
-        <span class="gblog-footer__item">
-          Built with <a href="https://gohugo.io/" class="gblog-footer__link">Hugo</a> and
-          <svg class="icon gblog_heart"><use xlink:href="#gblog_heart"></use></svg>
-        </span>
-      </section>
-      
-      
-        <section class="flex flex-wrap align-center">
-          <span class="gblog-footer__item">
-            Content licensed under
-            <a href="https://spdx.org/licenses/Beerware.html" class="gblog-footer__link no-wrap">Beerware license</a>
-          </span>
-        </section>
-      
+         
     </div>
     
-      <div class="flex flex-25 justify-end">
-        <span class="gblog-footer__item text-right">
-          <a class="gblog-footer__link fake-link" href="#" aria-label="Back to top">
-            <svg class="icon gblog_keyborad_arrow_up">
-              <use xlink:href="#gblog_keyborad_arrow_up"></use>
-            </svg>
-            <span class="hidden-mobile">Back to top</span>
-          </a>
-        </span>
-      </div>
+     
+  </div>
+  
     
-  </nav>
+<nav id="article-nav">
+  <a class="article-nav-btn left "
+    
+      href="/posts/kmem_cache/"
+      title="[Linux kernel side notes - SLUB] kmem_cache"
+     >
+    <i class="fa-solid fa-angle-left"></i>
+    <p class="title-text">
+      
+        [Linux kernel side notes - SLUB] kmem_cache
+        
+    </p>
+  </a>
+  <a class="article-nav-btn right "
+    
+      href="/posts/onceandforall/"
+      title="[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all"
+     >
+
+    <p class="title-text">
+      
+        [HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all
+        
+    </p>
+    <i class="fa-solid fa-angle-right"></i>
+  </a>
+</nav>
+
+
+  
+</article>
+
+ 
+    </div>
+    <div id="footer-wrapper">
+      <footer id="footer">
+  
+  <div id="footer-info" class="inner">
+    
+    &copy; 2023 nasm<br>
+    Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & Theme <a target="_blank" rel="noopener" href="https://github.com/saicaca/hexo-theme-vivia">Vivia</a>
+  </div>
 </footer>
 
     </div>
-  </body>
+    <div class="back-to-top-wrapper">
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+        <span class="material-symbols-rounded">keyboard_arrow_up</span>
+    </button>
+</div>
+
+<script>
+    function topFunction() {
+        window.scroll({ top: 0, behavior: 'smooth' });
+    }
+    let btn = document.getElementById('back-to-top-btn');
+    function scrollFunction() {
+        if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
+            btn.style.opacity = 1;
+        } else {
+            btn.style.opacity = 0;
+        }
+    }
+    window.onscroll = function() {
+        scrollFunction();
+    }
+</script>
+
+  </div>
+  <script src="/js/light-dark-switch.js"></script>
+</body>
 </html>

