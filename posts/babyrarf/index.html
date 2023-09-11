@@ -11,8 +11,16 @@
   <meta charset="utf-8">
   
   
+  
+
+  
   <title>[UnionCTF 2021 - pwn] babyrarf | repr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" href="/css/fonts/Roboto-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
   <meta name="description" content="The binary can be found right here. [UnionCTF] BabyrarfWelcome guys,  This Write-Up is about de first pwn challenge of unionctf: babyrarf.It was a really easy challenge with a stack based buffer overf">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[UnionCTF 2021 - pwn] babyrarf">
@@ -21,13 +29,13 @@
 <meta property="og:description" content="The binary can be found right here. [UnionCTF] BabyrarfWelcome guys,  This Write-Up is about de first pwn challenge of unionctf: babyrarf.It was a really easy challenge with a stack based buffer overf">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-02-21T00:00:00.000Z">
-<meta property="article:modified_time" content="2023-08-01T09:41:52.483Z">
+<meta property="article:modified_time" content="2023-09-05T09:45:11.050Z">
 <meta property="article:author" content="nasm">
 <meta property="article:tag" content="ctf">
-<meta property="article:tag" content="nasm">
-<meta property="article:tag" content="pwn">
 <meta property="article:tag" content="unionCTF 2021">
+<meta property="article:tag" content="pwn">
 <meta property="article:tag" content="buffer overflow">
+<meta property="article:tag" content="nasm">
 <meta property="article:tag" content="2021">
 <meta name="twitter:card" content="summary">
   
@@ -161,7 +169,12 @@
       <div class="category-box">
             <a class="category-link" href="/categories/pwn/">
                 pwn
-                <div class="category-count">2</div>
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
             </a>
         </div>
     </div>
@@ -279,13 +292,13 @@
 <nav id="article-nav">
   <a class="article-nav-btn left "
     
-      href="/posts/mipsy/"
-      title="[FCSC 2021 - pwn] Itsy Mipsy router"
+      href="/posts/blindate/"
+      title="[FCSC 2021 - pwn] Blind Date"
      >
     <i class="fa-solid fa-angle-left"></i>
     <p class="title-text">
       
-        [FCSC 2021 - pwn] Itsy Mipsy router
+        [FCSC 2021 - pwn] Blind Date
         
     </p>
   </a>
@@ -317,7 +330,7 @@
 
     </div>
     <div class="back-to-top-wrapper">
-    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+    <button id="back-to-top-btn" class="back-to-top-btn hide" onclick="topFunction()">
         <span class="material-symbols-rounded">keyboard_arrow_up</span>
     </button>
 </div>
@@ -329,9 +342,9 @@
     let btn = document.getElementById('back-to-top-btn');
     function scrollFunction() {
         if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
-            btn.style.opacity = 1;
+            btn.classList.remove('hide')
         } else {
-            btn.style.opacity = 0;
+            btn.classList.add('hide')
         }
     }
     window.onscroll = function() {

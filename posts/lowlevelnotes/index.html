@@ -11,8 +11,16 @@
   <meta charset="utf-8">
   
   
+  
+
+  
   <title>Linux kernel side notes | repr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" href="/css/fonts/Roboto-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
   <meta name="description" content="Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target linux kernel 5.18.12.There will be a lot of code for whi">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux kernel side notes">
@@ -22,7 +30,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://n4sm.github.io/SLUB_schema1.png">
 <meta property="article:published_time" content="2022-07-17T22:00:00.000Z">
-<meta property="article:modified_time" content="2023-08-01T12:19:05.763Z">
+<meta property="article:modified_time" content="2023-09-05T09:45:11.052Z">
 <meta property="article:author" content="nasm">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://n4sm.github.io/SLUB_schema1.png">
@@ -157,7 +165,12 @@
       <div class="category-box">
             <a class="category-link" href="/categories/pwn/">
                 pwn
-                <div class="category-count">2</div>
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
             </a>
         </div>
     </div>
@@ -295,25 +308,25 @@
 <nav id="article-nav">
   <a class="article-nav-btn left "
     
-      href="/posts/kmem_cache/"
-      title="[Linux kernel side notes - SLUB] kmem_cache"
+      href="/posts/catastrophe/"
+      title="[diceCTF 2022 - pwn] catastrophe"
      >
     <i class="fa-solid fa-angle-left"></i>
     <p class="title-text">
       
-        [Linux kernel side notes - SLUB] kmem_cache
+        [diceCTF 2022 - pwn] catastrophe
         
     </p>
   </a>
   <a class="article-nav-btn right "
     
-      href="/posts/onceandforall/"
-      title="[HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all"
+      href="/posts/kmem_cache/"
+      title="[Linux kernel side notes - SLUB] kmem_cache"
      >
 
     <p class="title-text">
       
-        [HackTheBox Cyber Apocalypse 2022 - pwn] Once and for all
+        [Linux kernel side notes - SLUB] kmem_cache
         
     </p>
     <i class="fa-solid fa-angle-right"></i>
@@ -338,7 +351,7 @@
 
     </div>
     <div class="back-to-top-wrapper">
-    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+    <button id="back-to-top-btn" class="back-to-top-btn hide" onclick="topFunction()">
         <span class="material-symbols-rounded">keyboard_arrow_up</span>
     </button>
 </div>
@@ -350,9 +363,9 @@
     let btn = document.getElementById('back-to-top-btn');
     function scrollFunction() {
         if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
-            btn.style.opacity = 1;
+            btn.classList.remove('hide')
         } else {
-            btn.style.opacity = 0;
+            btn.classList.add('hide')
         }
     }
     window.onscroll = function() {

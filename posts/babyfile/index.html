@@ -11,8 +11,16 @@
   <meta charset="utf-8">
   
   
+  
+
+  
   <title>[SECCON CTF 2022 Quals] babyfile | repr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" href="/css/fonts/Roboto-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
   <meta name="description" content="Introductionbabyfile is a file stream exploitation I did during the SECCON CTF 2022 Quals event. I didn’t succeed to flag it within the 24 hours :(. But anyway I hope this write up will be interesting">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[SECCON CTF 2022 Quals] babyfile">
@@ -21,11 +29,11 @@
 <meta property="og:description" content="Introductionbabyfile is a file stream exploitation I did during the SECCON CTF 2022 Quals event. I didn’t succeed to flag it within the 24 hours :(. But anyway I hope this write up will be interesting">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-08-18T22:00:00.000Z">
-<meta property="article:modified_time" content="2023-08-01T11:59:31.916Z">
+<meta property="article:modified_time" content="2023-09-05T09:45:11.050Z">
 <meta property="article:author" content="nasm">
 <meta property="article:tag" content="ctf">
-<meta property="article:tag" content="nasm">
 <meta property="article:tag" content="pwn">
+<meta property="article:tag" content="nasm">
 <meta property="article:tag" content="linux">
 <meta property="article:tag" content="file stream">
 <meta property="article:tag" content="SECCON">
@@ -161,7 +169,12 @@
       <div class="category-box">
             <a class="category-link" href="/categories/pwn/">
                 pwn
-                <div class="category-count">2</div>
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
             </a>
         </div>
     </div>
@@ -353,25 +366,25 @@
 <nav id="article-nav">
   <a class="article-nav-btn left "
     
-      href="/posts/heaphop/"
-      title="[pwnme 2023 - pwn] Heap-hop"
+      href="/posts/filestream/"
+      title="Linux file stream internals for fun and profit"
      >
     <i class="fa-solid fa-angle-left"></i>
     <p class="title-text">
       
-        [pwnme 2023 - pwn] Heap-hop
+        Linux file stream internals for fun and profit
         
     </p>
   </a>
   <a class="article-nav-btn right "
     
-      href="/posts/filestream/"
-      title="Linux file stream internals for fun and profit"
+      href="/posts/zigzag/"
+      title="[corCTF 2022 - pwn] zigzag"
      >
 
     <p class="title-text">
       
-        Linux file stream internals for fun and profit
+        [corCTF 2022 - pwn] zigzag
         
     </p>
     <i class="fa-solid fa-angle-right"></i>
@@ -396,7 +409,7 @@
 
     </div>
     <div class="back-to-top-wrapper">
-    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+    <button id="back-to-top-btn" class="back-to-top-btn hide" onclick="topFunction()">
         <span class="material-symbols-rounded">keyboard_arrow_up</span>
     </button>
 </div>
@@ -408,9 +421,9 @@
     let btn = document.getElementById('back-to-top-btn');
     function scrollFunction() {
         if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
-            btn.style.opacity = 1;
+            btn.classList.remove('hide')
         } else {
-            btn.style.opacity = 0;
+            btn.classList.add('hide')
         }
     }
     window.onscroll = function() {

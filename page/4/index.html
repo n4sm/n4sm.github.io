@@ -11,8 +11,16 @@
   <meta charset="utf-8">
   
   
+  
+
+  
   <title>repr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" href="/css/fonts/Roboto-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
   <meta name="description" content="pwn &#x2F; reverse &#x2F; crypto stuff">
 <meta property="og:type" content="website">
 <meta property="og:title" content="repr">
@@ -153,7 +161,12 @@
       <div class="category-box">
             <a class="category-link" href="/categories/pwn/">
                 pwn
-                <div class="category-count">2</div>
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
             </a>
         </div>
     </div>
@@ -191,7 +204,7 @@
       
    
 
-<article id="post-lowlevelnotes" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+<article id="post-kmem_cache" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
    
   <div class="article-inner">
     <div class="article-main">
@@ -202,7 +215,7 @@
   
     
       <h1 itemprop="name">
-        <a class="p-name article-title" href="/posts/lowlevelnotes/">Linux kernel side notes</a>
+        <a class="p-name article-title" href="/posts/kmem_cache/">[Linux kernel side notes - SLUB] kmem_cache</a>
       </h1>
     
   
@@ -221,7 +234,7 @@
   
           </div>
           <div class="wordcount need-seperator meta-info">
-            1.2k words 
+            2.5k words 
           </div>
         </div>
         
@@ -229,9 +242,11 @@
       <div class="e-content article-entry" itemprop="articleBody">
         
           <div class="truncate-text">
-            Here are just some side notes about linux kernel internals I put here to avoid to have to learn same things again and again. Every notes target linux kernel 5.18.12.There will be a lot of code for which I do not comment the whole part.
-Kernel heap management (SLUB, SLAB, SLOB)Same way as for userland, the kernel has many algorithms to manage memory allocation according to what the kernel is looking for (huge resources or not, safety needs etc).
-SLUBThe SLUB algorithm is the algorithm I know t...  
+            IntroductionThe kmem_cache structure is one of the main structures of the SLUB algorithm. It contains pointers to other structures (cpu_slab, node array) and informations about the cache it describes (object_size, name). Every notes target linux kernel 5.18.12.
+Overview of its role among the allocation process:
+
+Let’s dig intoHere is the definition of the kmem_cache structure:
+1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859// https...  
           </div>
         
       </div>
@@ -242,7 +257,7 @@ SLUBThe SLUB algorithm is the algorithm I know t...
      
     <a class="right-panel  non-pic  "
       
-      href="/posts/lowlevelnotes/" 
+      href="/posts/kmem_cache/" 
     >
        
       <i class="fa-solid fa-angle-right non-pic"></i>
@@ -492,7 +507,7 @@ We can create an entity and then initialize: a name, a numero and a function poi
 
     </div>
     <div class="back-to-top-wrapper">
-    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+    <button id="back-to-top-btn" class="back-to-top-btn hide" onclick="topFunction()">
         <span class="material-symbols-rounded">keyboard_arrow_up</span>
     </button>
 </div>
@@ -504,9 +519,9 @@ We can create an entity and then initialize: a name, a numero and a function poi
     let btn = document.getElementById('back-to-top-btn');
     function scrollFunction() {
         if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
-            btn.style.opacity = 1;
+            btn.classList.remove('hide')
         } else {
-            btn.style.opacity = 0;
+            btn.classList.add('hide')
         }
     }
     window.onscroll = function() {

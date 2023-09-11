@@ -11,8 +11,16 @@
   <meta charset="utf-8">
   
   
+  
+
+  
   <title>[Grey Cat CTF Quals 2023 - pwn] Write me a Book | repr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" href="/css/fonts/Roboto-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
   <meta name="description" content="Write me a book Write me a Book349 Give back to the library! Share your thoughts and experiences! The flag can be found in &#x2F;flag    Elma nc 34.124.157.94 12346   Write me a book is a heap challen">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[Grey Cat CTF Quals 2023 - pwn] Write me a Book">
@@ -21,11 +29,11 @@
 <meta property="og:description" content="Write me a book Write me a Book349 Give back to the library! Share your thoughts and experiences! The flag can be found in &#x2F;flag    Elma nc 34.124.157.94 12346   Write me a book is a heap challen">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-05-20T22:00:00.000Z">
-<meta property="article:modified_time" content="2023-08-01T09:42:56.622Z">
+<meta property="article:modified_time" content="2023-09-05T09:45:11.053Z">
 <meta property="article:author" content="nasm">
 <meta property="article:tag" content="ctf">
-<meta property="article:tag" content="nasm">
 <meta property="article:tag" content="pwn">
+<meta property="article:tag" content="nasm">
 <meta property="article:tag" content="heap">
 <meta name="twitter:card" content="summary">
   
@@ -159,7 +167,12 @@
       <div class="category-box">
             <a class="category-link" href="/categories/pwn/">
                 pwn
-                <div class="category-count">2</div>
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
             </a>
         </div>
     </div>
@@ -357,7 +370,7 @@
 
     </div>
     <div class="back-to-top-wrapper">
-    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+    <button id="back-to-top-btn" class="back-to-top-btn hide" onclick="topFunction()">
         <span class="material-symbols-rounded">keyboard_arrow_up</span>
     </button>
 </div>
@@ -369,9 +382,9 @@
     let btn = document.getElementById('back-to-top-btn');
     function scrollFunction() {
         if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
-            btn.style.opacity = 1;
+            btn.classList.remove('hide')
         } else {
-            btn.style.opacity = 0;
+            btn.classList.add('hide')
         }
     }
     window.onscroll = function() {

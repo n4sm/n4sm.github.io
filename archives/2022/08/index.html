@@ -11,8 +11,16 @@
   <meta charset="utf-8">
   
   
+  
+
+  
   <title>Archives: 2022/8 | repr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" href="/css/fonts/Roboto-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
   <meta name="description" content="pwn &#x2F; reverse &#x2F; crypto stuff">
 <meta property="og:type" content="website">
 <meta property="og:title" content="repr">
@@ -153,7 +161,12 @@
       <div class="category-box">
             <a class="category-link" href="/categories/pwn/">
                 pwn
-                <div class="category-count">2</div>
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
             </a>
         </div>
     </div>
@@ -194,7 +207,7 @@
     <div class="archive-top">
       <div class="main-title-bar">
         <div class="main-title-dot"></div>
-        <h1 class="article-title">Archive</h1>
+        <h1 class="article-title">Archives</h1>
       </div>    
     </div>
     
@@ -210,25 +223,6 @@
             <div class="article-count">4 articles</div>
         </div>
       
-      <a class="archive-article-link" href="/posts/babyfile/" title="[SECCON CTF 2022 Quals] babyfile">
-        <div class="date">08-19</div>
-        <div class="line">
-            <div class="dot"></div>
-        </div>
-        <div class="title">
-            <div class="title-inner">
-                
-                    [SECCON CTF 2022 Quals] babyfile
-                
-            </div>
-        </div>
-        <div class="tags">
-            #ctf #nasm #pwn #linux #file stream #SECCON
-        </div>
-      </a>
-    
-      
-      
       <a class="archive-article-link" href="/posts/filestream/" title="Linux file stream internals for fun and profit">
         <div class="date">08-19</div>
         <div class="line">
@@ -242,7 +236,26 @@
             </div>
         </div>
         <div class="tags">
-            #ctf #nasm #pwn #linux #file stream
+            #ctf #pwn #nasm #linux #file stream
+        </div>
+      </a>
+    
+      
+      
+      <a class="archive-article-link" href="/posts/babyfile/" title="[SECCON CTF 2022 Quals] babyfile">
+        <div class="date">08-19</div>
+        <div class="line">
+            <div class="dot"></div>
+        </div>
+        <div class="title">
+            <div class="title-inner">
+                
+                    [SECCON CTF 2022 Quals] babyfile
+                
+            </div>
+        </div>
+        <div class="tags">
+            #ctf #pwn #nasm #linux #file stream #SECCON
         </div>
       </a>
     
@@ -261,7 +274,7 @@
             </div>
         </div>
         <div class="tags">
-            #ctf #nasm #pwn #2022 #heap #corCTF #zig
+            #ctf #pwn #nasm #2022 #heap #corCTF #zig
         </div>
       </a>
     
@@ -280,7 +293,7 @@
             </div>
         </div>
         <div class="tags">
-            #ctf #nasm #pwn #2022 #heap #corCTF
+            #ctf #pwn #nasm #2022 #heap #corCTF
         </div>
       </a>
     
@@ -298,7 +311,7 @@
 
     </div>
     <div class="back-to-top-wrapper">
-    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+    <button id="back-to-top-btn" class="back-to-top-btn hide" onclick="topFunction()">
         <span class="material-symbols-rounded">keyboard_arrow_up</span>
     </button>
 </div>
@@ -310,9 +323,9 @@
     let btn = document.getElementById('back-to-top-btn');
     function scrollFunction() {
         if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
-            btn.style.opacity = 1;
+            btn.classList.remove('hide')
         } else {
-            btn.style.opacity = 0;
+            btn.classList.add('hide')
         }
     }
     window.onscroll = function() {
