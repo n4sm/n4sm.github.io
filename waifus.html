@@ -1,56 +1,113 @@
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="author" content="nasm">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WAIFFFUU !!</title>
-        <style>
-            body {
-                top: 0;
-                left: 0;
-                background-color: #343a40;
-                background-repeat: no-repeat;
-                background-size: contain;
-                background-position: center;
-                height: 100vh;
-                padding: 0;
-                margin: 0;
-            }
-        </style>
-    </head>
-    <body>
-    </body>
-    <script>
-        let images = [
-        "105373.jpg",
-        "1179447.jpg",
-        "1309757.jpg",
-        "224742.png",
-        "741824.png",
-        "780851.jpg",
-        "834335.jpg",
-        "971778.png",
-        "1138269.jpg",
-        "1206077.png",
-        "204748.jpg",
-        "535016.jpg",
-        "773496.jpg",
-        "804298.jpg",
-        "959328.jpg"
-        ];
+	<head>
+		<meta charset="utf-8">
+		<meta name="author" content="13154lfclm">
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+			<title>WAIFFFUU !!</title>
+		<style>
+			body {
+				top: 0;
+				left: 0;
+				background-color: #0b0d13;
+				background-repeat: no-repeat;
+				background-size: contain;
+				background-position: center;
+				height: 100vh;
+				padding: 0;
+				margin: 0;
+			}
+			#progress-bar {
+				margin: 0;
+				box-sizing: border-box;
+				border: 2px #8ea9ff solid;
+				border-radius: 10px;
+				transition: width 0.5s;
+			}
+		</style>
+	</head>
+	<body>
+		<hr id="progress-bar"></hr>
+	</body>
+	<script defer>
+		const defaultImageUrl = null;
+		const imagesUrl = [
+		        "/pic/105373.jpg",
+        		"/pic/1179447.jpg",
+        		"/pic/1309757.jpg",
+        		"/pic/224742.png",
+        		"/pic/741824.png",
+        		"/pic/780851.jpg",
+        		"/pic/834335.jpg",
+        		"/pic/971778.png",
+        		"/pic/1138269.jpg",
+        		"/pic/1206077.png",
+        		"/pic/204748.jpg",
+        		"/pic/535016.jpg",
+        		"/pic/773496.jpg",
+        		"/pic/804298.jpg",
+        		"/pic/959328.jpg"
+		];
 
-        function getRandomInt(max) {
-            return Math.floor(Math.random() * max);
-        }
+		const progressBarElement = document.getElementById('progress-bar');
+		let lastImageUrl = null;
+		let xhrIsLoading = false;
 
-        function changeBackground() {
-            let random_image = images[getRandomInt(images.length)];
-            document.body.style.backgroundImage = 'url("pic/'+random_image+'")';
-        }
+		function getRandomInt(max) {
+			return Math.floor(Math.random() * max);
+		}
 
-        changeBackground();
-        document.body.addEventListener('click', changeBackground);
-    </script>
+		function loadBackground(imageUrl) {
+			let xhr = new XMLHttpRequest();
+
+			xhr.open('GET', imageUrl, true);
+			xhr.responseType = 'blob';
+
+			xhr.onload = function () {
+				if (xhr.status === 200) {
+					const imageBlobUrl = URL.createObjectURL(xhr.response);
+
+					lastImageUrl = imageUrl;
+					document.body.style.backgroundImage = `url(${imageBlobUrl})`;
+				}
+
+				progressBarElement.style.display = 'none';
+				xhrIsLoading = false;
+			};
+
+			xhr.onprogress = function (event) {
+				if (event.lengthComputable) {
+					let percentage = ((event.loaded / event.total) * 100)
+					
+					progressBarElement.style.width = percentage.toString() + '%'
+				}
+			};
+
+			progressBarElement.style.width = 0;
+			progressBarElement.style.display = null;
+			xhrIsLoading = true;
+
+			xhr.send();
+		}
+
+		function changeBackground(imageUrl) {
+			if (xhrIsLoading
+			|| (!imageUrl && imagesUrl.length <= 1)
+			|| (imageUrl && imageUrl === lastImageUrl)) {
+				return;
+			}
+
+			if (!imageUrl) {
+				do {
+					imageUrl = imagesUrl[getRandomInt(imagesUrl.length)];
+				} while (imageUrl === lastImageUrl);
+			}
+
+			loadBackground(imageUrl);
+		}
+
+		changeBackground(defaultImageUrl);
+		document.body.addEventListener('click', () => { changeBackground(null) });
+	</script>
 </html>

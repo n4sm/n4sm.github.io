@@ -11,16 +11,8 @@
   <meta charset="utf-8">
   
   
-  
-
-  
   <title>Linux file stream internals for fun and profit | repr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-  <link rel="preload" href="/css/fonts/Roboto-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
-  <link rel="preload" href="/css/fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
-  <link rel="preload" href="/css/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
   <meta name="description" content="IntroductionFile streams are now a very common attack surface, here is a high level introduction that should make you understand the design of known attacks beyond the code reading for a particular fu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux file stream internals for fun and profit">
@@ -55,7 +47,7 @@
   
 <link rel="stylesheet" href="/css/style.css">
 
-<meta name="generator" content="Hexo 6.3.0"></head>
+<meta name="generator" content="Hexo 7.0.0"></head>
 
 <body>
   
@@ -167,17 +159,7 @@
   <div class="widget-wrap">
     <div class="widget">
       <h3 class="widget-title">Categories</h3>
-      <div class="category-box">
-            <a class="category-link" href="/categories/pwn/">
-                pwn
-                <div class="category-count">19</div>
-            </a>
-        
-            <a class="category-link" href="/categories/kernel/">
-                kernel
-                <div class="category-count">3</div>
-            </a>
-        </div>
+      <div class="category-box"></div>
     </div>
   </div>
 
@@ -189,15 +171,15 @@
       <h3 class="widget-title">Recent Posts</h3>
       <ul>
         
-          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
+          <a class="recent-link" href="/posts/hello-world/" title="Hello World" >
             <div class="recent-link-text">
-              [ImaginaryCTF 2023 - pwn] window-of-opportunity
+              Hello World
             </div>
           </a>
         
-          <a class="recent-link" href="/posts/mailman/" title="[ImaginaryCTF 2023 - pwn] mailman" >
+          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
             <div class="recent-link-text">
-              [ImaginaryCTF 2023 - pwn] mailman
+              [ImaginaryCTF 2023 - pwn] window-of-opportunity
             </div>
           </a>
         
@@ -233,7 +215,7 @@
 
         <div class='meta-info-bar'>
           <div class="meta-info">
-  <time class="dt-published" datetime="2022-08-18T22:00:00.000Z" itemprop="datePublished">2022-08-19</time>
+  <time class="dt-published" datetime="2022-08-18T22:00:00.000Z" itemprop="datePublished">2022-08-18</time>
 </div>
           <div class="need-seperator meta-info">
             <div class="meta-cate-flex">
@@ -407,7 +389,7 @@
 
     </div>
     <div class="back-to-top-wrapper">
-    <button id="back-to-top-btn" class="back-to-top-btn hide" onclick="topFunction()">
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
         <span class="material-symbols-rounded">keyboard_arrow_up</span>
     </button>
 </div>
@@ -419,9 +401,9 @@
     let btn = document.getElementById('back-to-top-btn');
     function scrollFunction() {
         if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
-            btn.classList.remove('hide')
+            btn.style.opacity = 1;
         } else {
-            btn.classList.add('hide')
+            btn.style.opacity = 0;
         }
     }
     window.onscroll = function() {
