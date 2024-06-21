@@ -120,7 +120,7 @@
   <div class="info-card">
     <div class="avatar">
       
-        <image src=https://cdn.discordapp.com/attachments/755522926819934349/1135933820852502589/chtholly_nota_seniorious_by_asukaln_dfhx63b-414w-2x.jpg></image>
+        <image src=/pic/chtholly.jpg></image>
       
       <div class="img-dim"></div>
     </div>
@@ -162,15 +162,15 @@
       <h3 class="widget-title">Recent Posts</h3>
       <ul>
         
-          <a class="recent-link" href="/posts/hello-world/" title="Hello World" >
-            <div class="recent-link-text">
-              Hello World
-            </div>
-          </a>
-        
           <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
             <div class="recent-link-text">
               [ImaginaryCTF 2023 - pwn] window-of-opportunity
+            </div>
+          </a>
+        
+          <a class="recent-link" href="/posts/mailman/" title="[ImaginaryCTF 2023 - pwn] mailman" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] mailman
             </div>
           </a>
         
@@ -184,76 +184,6 @@
     </div>
     <div id="content-body">
       
-   
-
-<article id="post-phonebook" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-   
-  <div class="article-inner">
-    <div class="article-main">
-      <header class="article-header">
-        
-<div class="main-title-bar">
-  <div class="main-title-dot"></div>
-  
-    
-      <h1 itemprop="name">
-        <a class="p-name article-title" href="/posts/phonebook/">[DCTF 2022 - pwn] phonebook</a>
-      </h1>
-    
-  
-</div>
-
-        <div class='meta-info-bar'>
-          <div class="meta-info">
-  <time class="dt-published" datetime="2022-04-16T22:00:00.000Z" itemprop="datePublished">2022-04-16</time>
-</div>
-          <div class="need-seperator meta-info">
-            <div class="meta-cate-flex">
-  
-  <a class="meta-cate-link" href="/categories/pwn/">pwn</a>
-   
-</div>
-  
-          </div>
-          <div class="wordcount need-seperator meta-info">
-            706 words 
-          </div>
-        </div>
-        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dctf/" rel="tag">dctf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/heap/" rel="tag">heap</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwn/" rel="tag">pwn</a></li></ul>
-
-      </header>
-      <div class="e-content article-entry" itemprop="articleBody">
-        
-          <div class="truncate-text">
-            Introphonebook is a basic heap challenge I did during the dctf event. It’s basically just a heap overflow wich allows us to overflow a function pointer with for example the address of system.
-The bug12345678$ ./phonebookChoose an option: [1-5]1. Store someone&#x27;s information2. Edit information3. Call someone4. Unfriend someone5. Add the hidden_note&gt; 
-
-We can create an entity and then initialize: a name, a numero and a function pointer.
-1234567891011121314151617int __fastcall create(unsi...  
-          </div>
-        
-      </div>
-
-         
-    </div>
-    
-     
-    <a class="right-panel  non-pic  "
-      
-      href="/posts/phonebook/" 
-    >
-       
-      <i class="fa-solid fa-angle-right non-pic"></i>
-       
-    </a>
-     
-  </div>
-  
-</article>
-
- 
-
    
 
 <article id="post-ftm" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
@@ -275,7 +205,7 @@ We can create an entity and then initialize: a name, a numero and a function poi
 
         <div class='meta-info-bar'>
           <div class="meta-info">
-  <time class="dt-published" datetime="2022-03-03T23:00:00.000Z" itemprop="datePublished">2022-03-03</time>
+  <time class="dt-published" datetime="2022-03-03T23:00:00.000Z" itemprop="datePublished">2022-03-04</time>
 </div>
           <div class="need-seperator meta-info">
             <div class="meta-cate-flex">
@@ -411,7 +341,7 @@ Basically, we have to crack open an electronic safe. It’s locked with an elect
 
         <div class='meta-info-bar'>
           <div class="meta-info">
-  <time class="dt-published" datetime="2021-11-06T23:00:00.000Z" itemprop="datePublished">2021-11-06</time>
+  <time class="dt-published" datetime="2021-11-06T23:00:00.000Z" itemprop="datePublished">2021-11-07</time>
 </div>
           <div class="need-seperator meta-info">
             <div class="meta-cate-flex">
@@ -460,6 +390,75 @@ Vuln...
 
  
 
+   
+
+<article id="post-pwnasis" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+   
+  <div class="article-inner">
+    <div class="article-main">
+      <header class="article-header">
+        
+<div class="main-title-bar">
+  <div class="main-title-dot"></div>
+  
+    
+      <h1 itemprop="name">
+        <a class="p-name article-title" href="/posts/pwnasis/">[ASIS CTF QUALS 2021 - pwn] abbr &amp; justpwnit</a>
+      </h1>
+    
+  
+</div>
+
+        <div class='meta-info-bar'>
+          <div class="meta-info">
+  <time class="dt-published" datetime="2021-10-24T00:00:00.000Z" itemprop="datePublished">2021-10-24</time>
+</div>
+          <div class="need-seperator meta-info">
+            <div class="meta-cate-flex">
+  
+  <a class="meta-cate-link" href="/categories/pwn/">pwn</a>
+   
+</div>
+  
+          </div>
+          <div class="wordcount need-seperator meta-info">
+            2.7k words 
+          </div>
+        </div>
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/2021/" rel="tag">2021</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ASIS-CTF/" rel="tag">ASIS CTF</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/heap/" rel="tag">heap</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nasm/" rel="tag">nasm</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oob-write/" rel="tag">oob write</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwn/" rel="tag">pwn</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ret2school/" rel="tag">ret2school</a></li></ul>
+
+      </header>
+      <div class="e-content article-entry" itemprop="articleBody">
+        
+          <div class="truncate-text">
+            Hello folks ! Here is a write up for the two first pwn challenges of the ASIS CTF.You can find the related files here.
+justpwnitjustpwnit was a warmup pwn challenge. That’s only a basic stack overflow.The binary is statically linked and here is the checksec’s output:
+123456[*] &#x27;/home/nasm/justpwnit&#x27;    Arch:     amd64-64-little    RELRO:    Partial RELRO    Stack:    No canary found    NX:       NX enabled    PIE:      No PIE (0x400000)
+Morever the source code is provided as it is t...  
+          </div>
+        
+      </div>
+
+         
+    </div>
+    
+     
+    <a class="right-panel  non-pic  "
+      
+      href="/posts/pwnasis/" 
+    >
+       
+      <i class="fa-solid fa-angle-right non-pic"></i>
+       
+    </a>
+     
+  </div>
+  
+</article>
+
+ 
+
 
   <nav id="page-nav">
     <!-- 在第二页时 page.prev_link 不知为何无法返回正确的链接 -->
@@ -481,7 +480,7 @@ Vuln...
   
   <div id="footer-info" class="inner">
     
-    &copy; 2023 nasm<br>
+    &copy; 2024 nasm<br>
     Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & Theme <a target="_blank" rel="noopener" href="https://github.com/saicaca/hexo-theme-vivia">Vivia</a>
   </div>
 </footer>
