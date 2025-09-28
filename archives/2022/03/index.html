@@ -11,16 +11,8 @@
   <meta charset="utf-8">
   
   
-  
-
-  
   <title>Archives: 2022/3 | repr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-  <link rel="preload" href="/css/fonts/Roboto-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
-  <link rel="preload" href="/css/fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
-  <link rel="preload" href="/css/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
   <meta name="description" content="pwn &#x2F; reverse &#x2F; crypto stuff">
 <meta property="og:type" content="website">
 <meta property="og:title" content="repr">
@@ -128,7 +120,7 @@
   <div class="info-card">
     <div class="avatar">
       
-        <image src=https://cdn.discordapp.com/attachments/755522926819934349/1135933820852502589/chtholly_nota_seniorious_by_asukaln_dfhx63b-414w-2x.jpg></image>
+        <image src=/pic/chtholly.jpg></image>
       
       <div class="img-dim"></div>
     </div>
@@ -168,6 +160,11 @@
                 kernel
                 <div class="category-count">3</div>
             </a>
+        
+            <a class="category-link" href="/categories/research/">
+                research
+                <div class="category-count">1</div>
+            </a>
         </div>
     </div>
   </div>
@@ -180,15 +177,15 @@
       <h3 class="widget-title">Recent Posts</h3>
       <ul>
         
-          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
+          <a class="recent-link" href="/posts/vbox_fuzzing/" title="Let's fuzz the VBox USB stack" >
             <div class="recent-link-text">
-              [ImaginaryCTF 2023 - pwn] window-of-opportunity
+              Let&#39;s fuzz the VBox USB stack
             </div>
           </a>
         
-          <a class="recent-link" href="/posts/mailman/" title="[ImaginaryCTF 2023 - pwn] mailman" >
+          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
             <div class="recent-link-text">
-              [ImaginaryCTF 2023 - pwn] mailman
+              [ImaginaryCTF 2023 - pwn] window-of-opportunity
             </div>
           </a>
         
@@ -207,7 +204,7 @@
     <div class="archive-top">
       <div class="main-title-bar">
         <div class="main-title-dot"></div>
-        <h1 class="article-title">Archives</h1>
+        <h1 class="article-title">Archive</h1>
       </div>    
     </div>
     
@@ -247,14 +244,14 @@
   
   <div id="footer-info" class="inner">
     
-    &copy; 2023 nasm<br>
+    &copy; 2025 nasm<br>
     Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & Theme <a target="_blank" rel="noopener" href="https://github.com/saicaca/hexo-theme-vivia">Vivia</a>
   </div>
 </footer>
 
     </div>
     <div class="back-to-top-wrapper">
-    <button id="back-to-top-btn" class="back-to-top-btn hide" onclick="topFunction()">
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
         <span class="material-symbols-rounded">keyboard_arrow_up</span>
     </button>
 </div>
@@ -266,9 +263,9 @@
     let btn = document.getElementById('back-to-top-btn');
     function scrollFunction() {
         if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
-            btn.classList.remove('hide')
+            btn.style.opacity = 1;
         } else {
-            btn.classList.add('hide')
+            btn.style.opacity = 0;
         }
     }
     window.onscroll = function() {

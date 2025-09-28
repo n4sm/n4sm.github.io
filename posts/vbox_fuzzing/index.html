@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+
+<html theme="dark" showBanner="true" hasBanner="true" > 
+<link href="/fontawesome/css/fontawesome.css" rel="stylesheet">
+<link href="/fontawesome/css/brands.css" rel="stylesheet">
+<link href="/fontawesome/css/solid.css" rel="stylesheet">
+<script src="/js/color.global.min.js" ></script>
+<script src="/js/load-settings.js" ></script>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Let&#39;s fuzz the VBox USB stack | repr</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="IntroductionIn 2025 I completed an internship at Out of bounds leveraging me to research for roughly 5 months for bugs in the VirtualBox USB stack (xHCI). In this blogpost I will explain mu workflow a">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Let&#39;s fuzz the VBox USB stack">
+<meta property="og:url" content="https://n4sm.github.io/posts/vbox_fuzzing/index.html">
+<meta property="og:site_name" content="repr">
+<meta property="og:description" content="IntroductionIn 2025 I completed an internship at Out of bounds leveraging me to research for roughly 5 months for bugs in the VirtualBox USB stack (xHCI). In this blogpost I will explain mu workflow a">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://n4sm.github.io/pic/xhci.png">
+<meta property="og:image" content="https://n4sm.github.io/pic/nested_results.png">
+<meta property="og:image" content="https://n4sm.github.io/pic/l1_results.png">
+<meta property="article:published_time" content="2025-09-27T22:00:00.000Z">
+<meta property="article:modified_time" content="2025-09-28T23:36:45.040Z">
+<meta property="article:author" content="nasm">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="nasm">
+<meta property="article:tag" content="hypervisor">
+<meta property="article:tag" content="fuzzing">
+<meta property="article:tag" content="VBox">
+<meta property="article:tag" content="VirtualBox">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://n4sm.github.io/pic/xhci.png">
+  
+    <link rel="alternate" href="/atom.xml" title="repr" type="application/atom+xml">
+  
+  
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/images/favicon-light-192.png" sizes="192x192">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-32.png" sizes="32x32">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-128.png" sizes="128x128">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-180.png" sizes="180x180">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/images/favicon-dark-192.png" sizes="192x192">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  
+  
+    
+<div id="banner" class="">
+  <img src="/pic/wall.png" itemprop="image">
+  <div id="banner-dim"></div>
+</div>
+ 
+   
+  <div id="main-grid" class="shadow   ">
+    <div id="nav" class=""  >
+      <navbar id="navbar">
+  <nav id="title-nav">
+    <a href="/">
+      <div id="vivia-logo">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div>repr </div>
+    </a>
+  </nav>
+  <nav id="main-nav">
+    
+      <a class="main-nav-link" href="/">Home</a>
+    
+      <a class="main-nav-link" href="/archives">Archives</a>
+    
+      <a class="main-nav-link" href="/about">About</a>
+    
+  </nav>
+  <nav id="sub-nav">
+    <a id="theme-btn" class="nav-icon">
+      <span class="material-symbols-rounded light-mode-icon">wb_sunny</span>
+      <span class="material-symbols-rounded dark-mode-icon">dark_mode</span>
+    </a>
+    
+      <a id="nav-rss-link" class="nav-icon mobile-hide" href="/atom.xml" title="RSS Feed">
+        <span class="material-symbols-rounded rss">rss_feed</span>
+      </a>
+    
+    <a id="nav-search-btn" class="nav-icon" title="Search" style="display: none;">
+      <span class="material-symbols-rounded">search</span>
+    </a>
+    <div id="nav-menu-btn" class="nav-icon">
+      <span class="material-symbols-rounded">menu</span>
+    </div>
+  </nav>
+</navbar>
+<div id="nav-dropdown" class="hidden">
+  <div id="dropdown-link-list">
+    
+      <a class="nav-dropdown-link" href="/">Home</a>
+    
+      <a class="nav-dropdown-link" href="/archives">Archives</a>
+    
+      <a class="nav-dropdown-link" href="/about">About</a>
+    
+    
+      <a class="nav-dropdown-link" href="/atom.xml" title="RSS Feed">RSS</a>
+     
+    </div>
+</div>
+<script>
+  let dropdownBtn = document.getElementById("nav-menu-btn");
+  let dropdownEle = document.getElementById("nav-dropdown");
+  dropdownBtn.onclick = function() {
+    dropdownEle.classList.toggle("hidden");
+  }
+</script>
+    </div>
+    <div id="sidebar-wrapper">
+      <sidebar id="sidebar">
+  
+    <div class="widget-wrap">
+  <div class="info-card">
+    <div class="avatar">
+      
+        <image src=/pic/chtholly.jpg></image>
+      
+      <div class="img-dim"></div>
+    </div>
+    <div class="info">
+      <div class="username">nasm </div>
+      <div class="dot"></div>
+      <div class="subtitle">pwn / kernel stuff </div>
+      <div class="link-list">
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://twitter.com/nasm_re" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://github.com/n4sm" title="GitHub"><i class="fa-brands fa-github"></i></a>
+        
+          <a class="link-btn" target="_blank" rel="noopener" href="https://ret2school.github.io/discord" title="Discord"><i class="fa-brands fa-discord"></i></a>
+         
+      </div>  
+    </div>
+  </div>
+</div>
+
+  
+  <div class="sticky">
+    
+      
+
+
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Categories</h3>
+      <div class="category-box">
+            <a class="category-link" href="/categories/pwn/">
+                pwn
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
+            </a>
+        
+            <a class="category-link" href="/categories/research/">
+                research
+                <div class="category-count">1</div>
+            </a>
+        </div>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget-wrap">
+    <div class="widget">
+      <h3 class="widget-title">Recent Posts</h3>
+      <ul>
+        
+          <a class="recent-link" href="/posts/vbox_fuzzing/" title="Let's fuzz the VBox USB stack" >
+            <div class="recent-link-text">
+              Let&#39;s fuzz the VBox USB stack
+            </div>
+          </a>
+        
+          <a class="recent-link" href="/posts/iwindow/" title="[ImaginaryCTF 2023 - pwn] window-of-opportunity" >
+            <div class="recent-link-text">
+              [ImaginaryCTF 2023 - pwn] window-of-opportunity
+            </div>
+          </a>
+        
+      </ul>
+    </div>
+  </div>
+
+    
+  </div>
+</sidebar>
+    </div>
+    <div id="content-body">
+       
+
+<article id="post-vbox_fuzzing" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  
+    
+   
+  <div class="article-inner">
+    <div class="article-main">
+      <header class="article-header">
+        
+<div class="main-title-bar">
+  <div class="main-title-dot"></div>
+  
+    
+      <h1 class="p-name article-title" itemprop="headline name">
+        Let&#39;s fuzz the VBox USB stack
+      </h1>
+    
+  
+</div>
+
+        <div class='meta-info-bar'>
+          <div class="meta-info">
+  <time class="dt-published" datetime="2025-09-27T22:00:00.000Z" itemprop="datePublished">2025-09-28</time>
+</div>
+          <div class="need-seperator meta-info">
+            <div class="meta-cate-flex">
+  
+  <a class="meta-cate-link" href="/categories/research/">research</a>
+   
+</div>
+  
+          </div>
+          <div class="wordcount need-seperator meta-info">
+            4.2k words 
+          </div>
+        </div>
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/VBox/" rel="tag">VBox</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/VirtualBox/" rel="tag">VirtualBox</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/fuzzing/" rel="tag">fuzzing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hypervisor/" rel="tag">hypervisor</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nasm/" rel="tag">nasm</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwn/" rel="tag">pwn</a></li></ul>
+
+      </header>
+      <div class="e-content article-entry" itemprop="articleBody">
+        
+          <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>In 2025 I completed an internship at Out of bounds leveraging me to research for roughly 5 months for bugs in the VirtualBox USB stack (xHCI). In this blogpost I will explain mu workflow and how I managed to fuzz this subsystem by using kAFL&#x2F;nyx.</p>
+<h2 id="xHCI"><a href="#xHCI" class="headerlink" title="xHCI"></a>xHCI</h2><p>eXtensible Host Controller Interface (xHCI) is the latest standard for USB host controller devices. It is backward compatible for both USB 1.0 and 2.0 protocols. The xHCI controller is implemented in VirtualBox as a cross-platform device in <code>src/VBox/Devices/USB/DevXHCI.cpp</code>. The xHCI device has to emulate quite complex behaviors, especially transfer rings which are to me one of the most interesting attack surfaces. In this section I will describe how it works and which are the known bugs on the surface. This information is based on the VirtualBox implementation and on the <a target="_blank" rel="noopener" href="https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/extensible-host-controler-interface-usb-xhci.pdf">xHCI specifications</a>.</p>
+<p>A xHCI controller interacts with the system through a #emph[MMIO area]. On VirtualBox it is structured as below:</p>
+<ul>
+<li>The <em>Capability Registers</em> (<code>[0x0000 - 0x007F]</code>) give read only information about the host controller, especially the <code>doorbell</code> offset.</li>
+<li>The <em>Runtime Registers</em> [<code>0x2000 - 0x3000</code>] manage the interrupts and the event ring segment.</li>
+<li>The <em>Extended Capabilities</em> [<code>0x1000 - 0x13FF</code>] manages LEDs and other minor features.</li>
+<li>The <em>Operational Registers</em>  [<code>0x0080 - 0x03FF</code>] are responsible for the command management (<code>USBCMD</code> register).</li>
+<li>The <em>Doorbell array</em> [<code>0x3000-0xffff</code>] is an array of 256 doorbell registers. A doorbell register allows to manage a specific device through its <code>DB target</code> field. A doorbell register can be “rung” to ask a device to perform operations on a usb device through the transfer rings.</li>
+</ul>
+<h3 id="Transfer-Ring-and-TRB"><a href="#Transfer-Ring-and-TRB" class="headerlink" title="Transfer Ring and TRB"></a>Transfer Ring and TRB</h3><p>A ring is a circular data structure, xHCI is using three different kind of rings: the command ring, the event ring and the transfer ring. Actually the command ring and the event are heavily rely on the transfer ring. The transfer ring is the ring that manages data transfer between a USB device and the software (in our case the nested guest). Those transfer are directional and are very complex operations, this might be, to me, the most buggy code surface by design in xHCI implementations. I will describe briefly some of its features, you can refer to the <a target="_blank" rel="noopener" href="https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/extensible-host-controler-interface-usb-xhci.pdf">xHCI specifications</a>.</p>
+<p><img src="/pic/xhci.png" alt="xhci subsystem structure">.</p>
+<p>To transfer data from the host memory to the USB device, the USB device allows the host controller to register different endpoints according to the type of the transfer and to its direction (device to host, host to device). All of the endpoints of a device are grouped together under the Device  structure and all of the Device Context structures are grouped under the <code>hub</code> structure.</p>
+<p>It might seem unnecessary to dig into the internals of the TRB management but the way VirtualBox is implementing it is key to lead successful fuzzing campaign. A basic TRB contains a pointer to the target data to transfer, its length and a type field that is describing its mode (isochronous, control, bulk, interrupt, Scatter&#x2F;Gather). According to the type of the transfer it leads to complex interactions which makes the TRB structure behaving very differently.</p>
+<h3 id="Vulnerability-research-perspective"><a href="#Vulnerability-research-perspective" class="headerlink" title="Vulnerability research perspective"></a>Vulnerability research perspective</h3><p>From a vulnerability research perspective, the TRB management surface seems a very promising attack surface because of its complexity. But it has a major drawback: to fuzz the TRB requests we need to already have an available endpoint to connect to. Then we assume there is at least a USB device connected to the host controller of the hypervisor. Furthermore, we should emulate it for fuzzing purposes. Another issue is that some transfer are actually asynchronous, which makes the harnessing quite difficult. At this point I’m not sure the TRB are the best surface to fuzz because of the complexity of the fuzzing process. That’s why it is not the first surface I targeted in the xHCI device.</p>
+<h1 id="Preliminary-work"><a href="#Preliminary-work" class="headerlink" title="Preliminary work"></a>Preliminary work</h1><p>At the start of my internship I really wanted to dig into kafl&#x2F;nyx because I already had experience using it for kernel fuzzing. Moreover, I was very excited about how easy it is to initialize the fuzzing loop and to perform full-system snapshotting. I already explained how kafl&#x2F;nyx is working theoretically, I will describe here how I concretely used to to perform nested fuzzing and then just hypervisor fuzzing.</p>
+<h2 id="Setup"><a href="#Setup" class="headerlink" title="Setup"></a>Setup</h2><p>I spent weeks trying to build the right setup to perform nested fuzzing, this task was very time consuming. To fuzz VirtualBox we need to instrument both the ring0 and ring3 components of VirtualBox and we need to add KASAN support to the L1 kernel and ASAN support for the ring3 component. Furthermore, given we are fuzzing the xHCI subsystem, we need to add xHCI support for the L1 kernel.</p>
+<p>Setups for nested fuzzing really look like a matryoshka, we are building a L2 linux kernel which will be emulated by a hypervisor (custom VirtualBox) running inside the L1 (a custom ubuntu server). The L1 is emulated by Qemu-PT and makes use of the KVM-PT module loaded in the L0. Both L1 and L2 and handled by the L0 KVM-PT module through paravirtualization. The L0 is not actually treating the L2 as a nested guest, emulated by the harnessed VirtualBox hypervisor running inside of the L1.</p>
+<h3 id="Building-the-L0-L1-and-L2-kernel"><a href="#Building-the-L0-L1-and-L2-kernel" class="headerlink" title="Building the L0, L1 and L2 kernel"></a>Building the L0, L1 and L2 kernel</h3><p>I needed to edit the KVM-PT modules loaded on the L0 so I needed to build a custom L0 kernel too. To build the L0 kernel and the custom KVM module you can refer to the <code>Makefile</code> in <code>build_kernel/Makefile</code> (rule <code>fullBuild</code> to build and install the kernel and rule <code>kvm</code> to just compile and load the KVM modules). To build the L1 kernel the <code>Makefile</code> is in <code>vbox/Makefile</code> (rule <code>linuxBuild</code>) once the L1 kernel is built you should install it on the L1 image, to do so you need to boot on the L1 (<code>sudo ./gen_L1/run.sh</code>) and run <code>make linuxBuild</code> that will install the kernel and the modules in the L1. The L1 kernel is built with <code>USB_XHCI_HCD</code>, <code>USB_PCI</code>, <code>KASAN</code> and <code>KASAN_INLINE</code> options enabled. The L2 kernel is built when the L2 boot image is created (<code>Makefile</code> file, <code>run_harness</code> rule) the L2 is linked with the <code>nyx_api.h</code> API header.</p>
+<h3 id="Building-the-L2-iso"><a href="#Building-the-L2-iso" class="headerlink" title="Building the L2 iso"></a>Building the L2 iso</h3><p>After building the L2 kernel we need to build the iso file of the L2 agent os that will be emulated by the target hypervisor. To do so I generate a <code>initrd</code> with <code>./gen_initrd.sh</code> and I edit the grub entry to boot on the newly built L2 kernel. And I finally insert the kernel module harness I built upon the L2 kernel in the initramfs. Once the L2 iso is successfully built I insert it into the L1 .qcow2 file using <code>guestmount</code>. NOTE: you need to install the package named <code>grub-pc-bin</code> otherwise the created iso will not boot.</p>
+<h3 id="Booting-on-the-L1"><a href="#Booting-on-the-L1" class="headerlink" title="Booting on the L1"></a>Booting on the L1</h3><p>To boot on the L1 image you can start <code>./gen_L1/run.sh</code> and if it is the first time you run to the Virtual Machine you need to append you publickey in <code>~/.ssh/authorized_keys</code>. This can be achieved by using the qemu console and the shared folder created at boot startupm it is located in <code>./vbox</code> on the host and is mounted on <code>/mnt/shared</code> on the L1. Once it’s done you can just use ssh to connect to the L1: <code>ssh nasm@locahost -p 2222</code>.</p>
+<p>NOTE: You need to have at least 15G to boot on the L1, otherwise it will assume you’re running in fuzzing mode and will start issuing nyx hypercalls.</p>
+<h3 id="Building-VirtualBox"><a href="#Building-VirtualBox" class="headerlink" title="Building VirtualBox"></a>Building VirtualBox</h3><p>I created a build script on the L1 to build VirtualBox and its kernel modules: <code>./buil.sh</code>. From my experiments VirtualBox needs to be configured with <code>--disable-java --build-headless --disable-docs --disable-hardening</code> and I built it using the <code>ASAN</code> <code>BUILD_TYPE</code> to be able to catch any out of bound read &#x2F; write access.</p>
+<h3 id="Configuring-and-starting-the-L2-virtual-machine"><a href="#Configuring-and-starting-the-L2-virtual-machine" class="headerlink" title="Configuring and starting the L2 virtual machine"></a>Configuring and starting the L2 virtual machine</h3><p>We built the boot iso file to boot on but we still need to configure the L2 virtual machine to enable xHCI support and paravirtualization. The virtual machine is described by the <code>out.vbox</code> file on the L1. The name of the L2 virtual machine is <code>target_L2</code> and its configuration can be dumped like this using <code>VBoxManage</code>: <code>sudo ./VirtualBox-7.1.8/out/linux.amd64/asan/bin/VBoxManage showvminfo target_L2</code>.</p>
+<p>To start the virtual machine I chose to pin the VirtualBox process on the cpu 0 using <code>tasklet</code>: <code>sudo taskset --cpu-list 0 ./VBoxManage startvm &quot;target_L2&quot; --type headless</code>. The <code>~/run.sh</code> script is started at the startup and is basically a systemd service. According to the amount of memory the L1 got, it is assuming to run fuzzing mode or in persistent mode (with a standard qemu version). If it is running in fuzzing mode it starts the L2 virtual machine.</p>
+<h2 id="The-L2-harness"><a href="#The-L2-harness" class="headerlink" title="The L2 harness"></a>The L2 harness</h2><p>The code is located in the <code>module_harness</code> directory.</p>
+<p>The L2 harness is a kernel module loaded at the boot startup, it needs to interact with the MMIO area of the xHCi controller, to do so we have to unload the existing xHCI device (<code>unbind_xhci_driver</code> function) and allocate a PCI region were the xHCI registers will be mapped (<code>xhci_fuzzer_init</code>).  Once the PCI region is allocated we can read and write to the xHCI MMIO area.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">unbind_xhci_driver</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pci_dev</span> *<span class="title">pdev</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Find the xHCI controller</span></span><br><span class="line">    pdev = pci_get_class(PCI_CLASS_SERIAL_USB_XHCI, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span> (!pdev) &#123;</span><br><span class="line">        printk(KERN_ERR <span class="string">&quot;No xHCI controller found\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Unbind the standard driver</span></span><br><span class="line">    <span class="keyword">if</span> (pdev-&gt;dev.driver) &#123;</span><br><span class="line">        printk(KERN_INFO <span class="string">&quot;Unbinding xhci_hcd driver\n&quot;</span>);</span><br><span class="line">        device_release_driver(&amp;pdev-&gt;dev);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    pci_dev_put(pdev);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> __init <span class="title function_">xhci_fuzzer_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pci_dev</span> *<span class="title">pdev</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    unbind_xhci_driver();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Find xHCI controller</span></span><br><span class="line">    <span class="keyword">while</span> ((pdev = pci_get_class(PCI_CLASS_SERIAL_USB_XHCI, pdev))) &#123;</span><br><span class="line">        <span class="keyword">if</span> (pci_enable_device(pdev)) &#123;</span><br><span class="line">            printk(KERN_ERR <span class="string">&quot;Failed to enable PCI device\n&quot;</span>);</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (pci_request_regions(pdev, MODULE_NAME)) &#123;</span><br><span class="line">            printk(KERN_ERR <span class="string">&quot;Failed to request PCI regions\n&quot;</span>);</span><br><span class="line">            pci_disable_device(pdev);</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        xhci_mmio_base = pci_iomap(pdev, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (!xhci_mmio_base) &#123;</span><br><span class="line">            printk(KERN_ERR <span class="string">&quot;Failed to map MMIO space\n&quot;</span>);</span><br><span class="line">            pci_release_regions(pdev);</span><br><span class="line">            pci_disable_device(pdev);</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        xhci_pci_dev = pdev;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Fuzzing"><a href="#Fuzzing" class="headerlink" title="Fuzzing"></a>Fuzzing</h1><p>Once we get there we got the very basic material to enable nested fuzzing. During my internship I wanted to first dig into nested fuzzing. That means to be able to perform most of the fuzzing logic from the L2 nested guest with minimal changes into the target hypervisor. To be able to perform fuzzing using kafl&#x2F;nyx we need to be able to achieve the following operations:</p>
+<ul>
+<li>Initialization handshake with the fuzzer frontend, through a <code>HYPERCALL_KAFL_ACQUIRE</code> &#x2F; <code>HYPERCALL_KAFL_RELEASE</code> sequence.</li>
+<li>submit the fuzzer configuration through the <code>SET_AGENT_CONFIG</code>.</li>
+<li>submit the payload address the fuzzer will write the input to, through <code>HYPERCALL_KAFL_GET_PAYLOAD</code> &#x2F; <code>KAFL_NESTED_PREPARE</code>.</li>
+<li>take the initial snapshot and actually write the content of the payload in memory, through the <code>HYPERCALL_KAFL_NEXT_PAYLOAD</code> hypercall.</li>
+<li>start recording the coverage data with <code>HYPERCALL_KAFL_ACQUIRE</code>.</li>
+<li>end the fuzzing loop and restore the initial snapshot through <code>HYPERCALL_KAFL_RELEASE</code>.</li>
+</ul>
+<p>This process is the same for any kind of fuzzing, nested or not, when we use kAFL @kafl. What is targeted through my different harnesses is the kernel context of the xHCI driver (which is part of the kernel module <code>VBoxDDR0.r0</code>). The evaluation results are done on a <code>Intel(R) Core(TM) i5-10600K CPU @ 4.10GHz</code> with 12 cores and 32G of ram memory.</p>
+<h2 id="Building-the-corpus"><a href="#Building-the-corpus" class="headerlink" title="Building the corpus"></a>Building the corpus</h2><p>The issue with the VirtualBox devices fuzzing is that the entry point of the device lies in a kernel module while most of the actual – and buggy – logic lies into the usermode process. To get access to the usermode code we need to first build an corpus that would go through the kernel module without being rejected. That’s why I am evaluating my different fuzzer implementations against the kernel code mainly. Because I spent a lot of time trying to fix my harness I couldn’t actually run one implementation for a long time, which means my corpus is pretty basic yet. To build the corpus I adopted the following design: I keep calling <code>xhciMmioWrite</code> until it returns <code>VINF_IOM_R3_MMIO_WRITE</code>, the return value indicating the write request should be treated in usermode. When it returns this value I send a crash report to the fuzzer frontend so the input can be sorted differently compared to the regular inputs.</p>
+<h2 id="Ip-ranges"><a href="#Ip-ranges" class="headerlink" title="Ip ranges"></a>Ip ranges</h2><p>To be able to do coverage guided fuzzing we need to give to the fuzzing frontend the specific IP range we would like to trace. It would be easy it this code range belonged to the linux kernel, but unfortunately the VirtualBox kernel devices are loaded dynamically at a random location in the kernel memory, even when the KASLR is disabled. To track the right areas I hooked the internal VirtualBox kernel module loading mechanism.</p>
+<p>When VirtualBox wants to load a kernel module it sends an ioctl request to the <code>vboxdrv</code> kernel driver. Then, <code>vboxdrv</code> loads the requested image in <code>supdrvIOCtl_LdrOpen</code>, right after mapping the module I just check the names of the modules and I send a hypercall to the fuzzer frontend to register two ip ranges for the modules <code>VBoxDDR0.r0</code> and <code>VMMR0.r0</code>. This way we are only tracing the code in the <code>VBoxDDR0.r0</code> device that is managing the devices, especially the <code>HXCI</code> device. <code>VMMR0.r0</code> is the Virtual Machine Monitor code containing the libraries and API devices are using to interact with the virtual machine.</p>
+<h2 id="Nested-fuzzing"><a href="#Nested-fuzzing" class="headerlink" title="Nested fuzzing"></a>Nested fuzzing</h2><p>What seems very promising to me is how nested fuzzing can almost be target agnostic. Using kafl&#x2F;nyx we only need to submit the cr3 of the process we want to fuzz. Everything else can be achieved outside of the L1, in both the L0 KVM module and in this L2 harness kernel module. This is what should be theoretically possible but concretely it is far more difficult. There are two main limitations, first to be able to trace the right code in the hypervisor process we need to get the cr3 value of the L1 target process. And the process that receives the interrupts from the L0 KVM module might be a wrapper process.</p>
+<p>With those limitations in mind, I started to look for a way to create a payload in the L2 and to start a basic fuzzing loop that will fuzz the MMIO area of the xHCI device by writing a random value at a random offset. However, according to the kAFL documentation, nested hypercalls are “roughly equivalent hypercalls for use with nested virtualization (when agent is a L2 guest)” but are untested and not fully supported yet. So I started looking at the code in the KVM-PT L0 module (<code>build_kernel/kafl.linux/arch/x86/kvm/vmx/nested.c</code>), the hypercall handling is done in the <code>nested_vmx_l1_wants_exit</code> function. This function is not doing much, it is mostly forwarding the hypercall to QEMU-pt, except for two hypercalls: <code>HYPERCALL_KAFL_NESTED_PREPARE</code> and <code>HYPERCALL_KAFL_NESTED_HPRINTF</code>. <code>HYPERCALL_KAFL_NESTED_HPRINTF</code> just reads the hypercall argument, the physical address of the hprintf buffer, and translates it to a L1 physical address (pa) and provide this new address to qemu. <code>HYPERCALL_KAFL_NESTED_PREPARE</code> allows the L2 guest to submit an array of pointers that will be mapped to the payload 1:1 as a non contiguous mapping. This is meant to be a way to provide pointers to different MMIO areas of different devices so when the payload actually gets written, different MMIO areas, not memory contiguous, could be fuzzed. The role of the KVM module here is just to translate those pointers to a valid L1 physical address that will be processed by qemu (qemu only knows about the L1 context).</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// build_kernel/kafl.linux/arch/x86/kvm/vmx/nested.c</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Return 1 if L1 wants to intercept an exit from L2.  Only call this when in</span></span><br><span class="line"><span class="comment"> * is_guest_mode (L2).</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="type">bool</span> <span class="title function_">nested_vmx_l1_wants_exit</span><span class="params">(<span class="keyword">struct</span> kvm_vcpu *vcpu,</span></span><br><span class="line"><span class="params">                                     <span class="keyword">union</span> vmx_exit_reason exit_reason)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">vmcs12</span> *<span class="title">vmcs12</span> =</span> get_vmcs12(vcpu);</span><br><span class="line">        u32 intr_info;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">switch</span> ((u16)exit_reason.basic) &#123;</span><br><span class="line">        <span class="keyword">case</span> EXIT_REASON_EXCEPTION_NMI:</span><br><span class="line">                intr_info = vmx_get_intr_info(vcpu);</span><br><span class="line">                <span class="keyword">if</span> (is_nmi(intr_info))</span><br><span class="line">                        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (is_page_fault(intr_info))</span><br><span class="line">                        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">                <span class="keyword">return</span> vmcs12-&gt;exception_bitmap &amp;</span><br><span class="line">                                (<span class="number">1u</span> &lt;&lt; (intr_info &amp; INTR_INFO_VECTOR_MASK));</span><br><span class="line"></span><br><span class="line">[...]</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> CONFIG_KVM_NYX</span></span><br><span class="line">        <span class="keyword">case</span> EXIT_REASON_VMCALL: <span class="keyword">case</span> EXIT_REASON_VMCLEAR:</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">        <span class="keyword">case</span> EXIT_REASON_VMCALL:</span><br><span class="line">                <span class="keyword">if</span> ((kvm_register_read(vcpu, VCPU_REGS_RAX)&amp;<span class="number">0xFFFFFFFF</span>) == HYPERCALL_KAFL_RAX_ID &amp;&amp; (kvm_register_read(vcpu, VCPU_REGS_RBX)&amp;<span class="number">0xFF000000</span>) == HYPERTRASH_HYPERCALL_MASK)&#123;</span><br><span class="line">                        <span class="keyword">switch</span>(kvm_register_read(vcpu, VCPU_REGS_RBX))&#123;</span><br><span class="line"></span><br><span class="line">                                <span class="keyword">case</span> HYPERCALL_KAFL_NESTED_CONFIG:</span><br><span class="line">                                        vcpu-&gt;run-&gt;exit_reason = KVM_EXIT_KAFL_NESTED_CONFIG;</span><br><span class="line">                                        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">                                <span class="keyword">case</span> HYPERCALL_KAFL_NESTED_PREPARE:</span><br><span class="line">                                        prepare_nested(vcpu, vmcs12);</span><br><span class="line">                                        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">                                <span class="keyword">case</span> HYPERCALL_KAFL_NESTED_ACQUIRE:</span><br><span class="line">                                        vcpu-&gt;run-&gt;exit_reason = KVM_EXIT_KAFL_NESTED_ACQUIRE;</span><br><span class="line">                                        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">                                <span class="keyword">case</span> HYPERCALL_KAFL_NESTED_RELEASE:</span><br><span class="line">                                        vcpu-&gt;run-&gt;exit_reason = KVM_EXIT_KAFL_NESTED_RELEASE;</span><br><span class="line">                                        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">                                <span class="keyword">case</span> HYPERCALL_KAFL_NESTED_HPRINTF:</span><br><span class="line">                                        vcpu-&gt;run-&gt;exit_reason = KVM_EXIT_KAFL_NESTED_HPRINTF;</span><br><span class="line">                                        vcpu-&gt;run-&gt;hypercall.args[<span class="number">0</span>] = handle_hprintf(vcpu);</span><br><span class="line">                                        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">                                <span class="keyword">case</span> HYPERCALL_KAFL_NESTED_EARLY_RELEASE:</span><br><span class="line">                                        vcpu-&gt;run-&gt;exit_reason = KVM_EXIT_KAFL_NESTED_EARLY_RELEASE;</span><br><span class="line">                                        <span class="keyword">break</span>;</span><br><span class="line">                        &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">case</span> EXIT_REASON_VMCLEAR:</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">[...]</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>The issue I encountered is that the address translation between the L2 and L1 context wasn’t handling well the case when the L2 guest had paging enabled. After literally trying hard on this issue for weeks I finally figured it out by using the L1 memory management unit directly (<code>vcpu-&gt;arch.mmu-&gt;gva_to_gpa</code>, instead of calling <code>kvm_translate_gpa</code>) against a L1 pa.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// build_kernel/kafl.linux/arch/x86/kvm/vmx/nested.c</span></span><br><span class="line"></span><br><span class="line">u64 <span class="title function_">g2va_to_g1pa</span><span class="params">(<span class="keyword">struct</span> kvm_vcpu *vcpu, <span class="keyword">struct</span> vmcs12* vmcs12, u64 addr)</span>&#123;</span><br><span class="line"></span><br><span class="line">        u64 gfn = <span class="number">0</span>;</span><br><span class="line">        u64 real_gfn = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">x86_exception</span> <span class="title">exception</span>;</span></span><br><span class="line"></span><br><span class="line">        real_gfn = vcpu-&gt;arch.mmu-&gt;gva_to_gpa(vcpu, vcpu-&gt;arch.mmu, addr, PFERR_USER_MASK | PFERR_WRITE_MASK, &amp;exception);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (real_gfn == INVALID_GPA) real_gfn = kvm_translate_gpa(vcpu, vcpu-&gt;arch.mmu, addr, PFERR_USER_MASK | PFERR_WRITE_MASK, &amp;exception);</span><br><span class="line">        printk(<span class="string">&quot;l2pa: %llx =&gt; l1pa: %llx\n&quot;</span>, addr, real_gfn);</span><br><span class="line">        <span class="keyword">return</span> real_gfn;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">prepare_nested</span><span class="params">(<span class="keyword">struct</span> kvm_vcpu *vcpu, <span class="keyword">struct</span> vmcs12* vmcs12)</span>&#123;</span><br><span class="line">        u64 guest_level_2_data_addr = kvm_register_read(vcpu, VCPU_REGS_RCX) &amp; <span class="number">0xFFFFFFFFFFFFFFFF</span>;</span><br><span class="line">        printk(KERN_EMERG <span class="string">&quot;HyperCall from Guest Level 2! RIP: %lx (created_vcpus: %x): %llx\n&quot;</span>, kvm_register_read(vcpu, VCPU_REGS_RIP), vcpu-&gt;kvm-&gt;last_boosted_vcpu, guest_level_2_data_addr);</span><br><span class="line"></span><br><span class="line">        u64 address = guest_level_2_data_addr &amp; <span class="number">0xFFFFFFFFFFFFF000</span>ULL;</span><br><span class="line">        u16 num = guest_level_2_data_addr &amp; <span class="number">0xFFF</span>;</span><br><span class="line">        u16 i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        u64 old_address = <span class="number">0</span>;</span><br><span class="line">        u64 new_address = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        u64 page_address_gfn = g2va_to_g1pa(vcpu, vmcs12, address) &gt;&gt; <span class="number">12</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; num; i++)&#123;</span><br><span class="line">                kvm_vcpu_read_guest_page(vcpu, page_address_gfn,  &amp;old_address, (i*<span class="number">0x8</span>), <span class="number">8</span>);</span><br><span class="line">                printk(<span class="string">&quot;READ -&gt; %llx\n&quot;</span>, old_address);</span><br><span class="line">                new_address = g2va_to_g1pa(vcpu, vmcs12, old_address);</span><br><span class="line">                kvm_vcpu_write_guest_page(vcpu, page_address_gfn,  &amp;new_address, (i*<span class="number">0x8</span>), <span class="number">8</span>);</span><br><span class="line">                printk(<span class="string">&quot;%d: %llx -&gt; %llx\n&quot;</span>, i, old_address, new_address);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        vcpu-&gt;run-&gt;exit_reason = KVM_EXIT_KAFL_NESTED_PREPARE;</span><br><span class="line">        vcpu-&gt;run-&gt;hypercall.args[<span class="number">0</span>] = num;</span><br><span class="line">        vcpu-&gt;run-&gt;hypercall.args[<span class="number">1</span>] = (page_address_gfn) &lt;&lt; <span class="number">12</span>;</span><br><span class="line">        vcpu-&gt;run-&gt;hypercall.args[<span class="number">2</span>] = vmcs12-&gt;host_cr3 &amp; <span class="number">0xFFFFFFFFFFFFF000</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Basic-Harness"><a href="#Basic-Harness" class="headerlink" title="Basic Harness"></a>Basic Harness</h2><p>My first idea was to allocate the payload in the L2 harness by issuing very specific MMIO requests to the target hypervisor from the L2, so when the hypervisor receives those requests, it performs various actions such as: initializing the fuzzer state from the MMIO handling context, start the fuzzing loop, and enable tracing and exiting the fuzzing loop.</p>
+<p>Concretely, the L2 harness just uses the <code>HYPERCALL_KAFL_NESTED_PREPARE</code> to provide the L2 kernel buffer to the fuzzer frontend. And then a few MMIO requests on the xHCI MMIO area are issued to initialize and start the fuzzing loop:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// include/nyx_api.h</span></span><br><span class="line"><span class="comment">// kafl_agent_init (L2 context)</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">kafl_agent_init</span><span class="params">(<span class="type">uint64_t</span> mmio)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="type">uint8_t</span>* payload_target = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">        hprintf_buffer = (<span class="type">uintptr_t</span>)get_zeroed_page(GFP_KERNEL);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (agent_initialized) &#123;</span><br><span class="line">                kafl_habort(<span class="string">&quot;Warning: Agent was already initialized!\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        kafl_hprintf(<span class="string">&quot;[*] Initialize kAFL Agent\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">        payload_buffer_size = <span class="number">0x2000</span>;</span><br><span class="line">        payload_buffer = (<span class="type">uint64_t</span>* )get_zeroed_page(GFP_KERNEL);</span><br><span class="line">        payload_target = (<span class="type">uint8_t</span>* )get_zeroed_page(GFP_KERNEL);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="number">10</span>; ++i) &#123;</span><br><span class="line">                <span class="keyword">if</span> (!mmio) payload_buffer[i] = (<span class="type">uint64_t</span>)virt_to_phys(payload_target);</span><br><span class="line">                <span class="keyword">else</span> payload_buffer[i] = (<span class="type">uint64_t</span>)mmio;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ve_buf = payload_target; <span class="comment">// internal kafl_fuzz_buffer ptr</span></span><br><span class="line">        ve_num = <span class="number">0x1000</span>;  <span class="comment">// internal kafl_fuzz_buffer sz</span></span><br><span class="line">        <span class="keyword">if</span> (!payload_buffer) &#123;</span><br><span class="line">                kafl_habort(<span class="string">&quot;Failed to allocate host payload buffer!\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        kAFL_hypercall(HYPERCALL_KAFL_NESTED_PREPARE,( (<span class="type">uint64_t</span>)virt_to_phys(payload_buffer)) | <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// module_harness/main.c</span></span><br><span class="line"><span class="comment">// basic harness for nested fuzzing (L2 kernel module)</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span></span><br><span class="line"><span class="title function_">dumb_fuzzing</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="type">uint32_t</span> val = <span class="number">0</span>;</span><br><span class="line">        <span class="type">uint32_t</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="type">uint32_t</span> offt = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        xhci_write32(<span class="number">0x1338</span>, <span class="number">0x8888</span>); <span class="comment">// init</span></span><br><span class="line">        kafl_hprintf(<span class="string">&quot;kafl init called in the L1\n&quot;</span>);</span><br><span class="line">        xhci_write32(<span class="number">0x1348</span>, <span class="number">0x8888</span>); <span class="comment">// start fuzzing and acquire</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="number">1</span>; ++i) &#123;</span><br><span class="line">                kafl_fuzz_buffer(&amp;offt, <span class="keyword">sizeof</span>(offt));  </span><br><span class="line">                kafl_fuzz_buffer(&amp;val, <span class="keyword">sizeof</span>(val));</span><br><span class="line">                </span><br><span class="line">                xhci_write32(offt, val); <span class="comment">// fuzz </span></span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        xhci_write32(<span class="number">0x1340</span>, <span class="number">0x8888</span>); <span class="comment">//release </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>From the L1 perspective, we need to instrument the target device writer handler <code>xhciMmioWrite</code> by adding the handlers for the MMIO requests we discussed right above:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// VirtualBox-7.1.8/src/VBox/Devices/USB/DevXHCI.cpp</span></span><br><span class="line"><span class="comment">// Basic L1 for the hypervisor to enable nested fuzzing</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="title function_">DECLCALLBACK</span><span class="params">(VBOXSTRICTRC)</span> <span class="title function_">xhciMmioWrite</span><span class="params">(PPDMDEVINS pDevIns, <span class="type">void</span> *pvUser, RTGCPHYS off, <span class="type">void</span> <span class="type">const</span> *pv, <span class="type">unsigned</span> cb)</span></span><br><span class="line">&#123;</span><br><span class="line">    PXHCI               pThis  = PDMDEVINS_2_DATA(pDevIns, PXHCI);</span><br><span class="line">    <span class="type">uint32_t</span>      offReg = (<span class="type">uint32_t</span>)off;</span><br><span class="line">    <span class="type">uint32_t</span> *    pu32   = (<span class="type">uint32_t</span> *)pv;</span><br><span class="line">    <span class="type">uint32_t</span>            iReg;</span><br><span class="line">    RT_NOREF(pvUser);</span><br><span class="line"></span><br><span class="line">    VBOXSTRICTRC rcStrict = VINF_SUCCESS;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> defined(IN_RING0)</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0x1338</span> == offReg</span><br><span class="line">        &amp;&amp; <span class="number">0x8888</span> == *pu32) &#123;</span><br><span class="line">        kafl_agent_init();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> rcStrict;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="number">0x1340</span> == offReg</span><br><span class="line">        &amp;&amp; <span class="number">0x8888</span> == *pu32) &#123;</span><br><span class="line">        kAFL_hypercall(HYPERCALL_KAFL_RELEASE, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">return</span> rcStrict;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="number">0x1348</span> == offReg</span><br><span class="line">        &amp;&amp; <span class="number">0x8888</span> == *pu32) &#123;</span><br><span class="line">        kAFL_hypercall(HYPERCALL_KAFL_NEXT_PAYLOAD, <span class="number">0</span>);</span><br><span class="line">        kAFL_hypercall(HYPERCALL_KAFL_ACQUIRE, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">return</span> rcStrict;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    rcStrict = xhciMmioWriteFuzzInternal(pDevIns, pvUser, off, pu32, <span class="keyword">sizeof</span>(<span class="type">uint32_t</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// to avoid an assert to crash in the calling function, unreliable af tho</span></span><br><span class="line">    <span class="keyword">if</span>(  rcStrict == VINF_SUCCESS</span><br><span class="line">                  || rcStrict == VINF_EM_DBG_STOP</span><br><span class="line">                  || rcStrict == VINF_EM_DBG_EVENT</span><br><span class="line">                  || rcStrict == VINF_EM_DBG_BREAKPOINT</span><br><span class="line">                  || rcStrict == VINF_EM_OFF</span><br><span class="line">                  || rcStrict == VINF_EM_SUSPEND</span><br><span class="line">                  || rcStrict == VINF_EM_RESET) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> rcStrict;</span><br><span class="line">    &#125; <span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> VINF_SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">[...]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Feeding-the-fuzzer-with-the-MMIO-area"><a href="#Feeding-the-fuzzer-with-the-MMIO-area" class="headerlink" title="Feeding the fuzzer with the MMIO area"></a>Feeding the fuzzer with the MMIO area</h3><p>Another type of harness I tried was heavily inspired on the HyperCube design @hypercube. Instead of giving the physical address of a L2 regular kernel buffer I tried to supply directly the address of the MMIO area (fetched with <code>pci_resource_start</code>). The issue is that qemu isn’t tracking well the MMIO areas, they do not get added to the bitmap that is tracking the dirty pages. I think I could solve this by patching the KVM-PT L0 module. </p>
+<p>If I manage to do it I could register tons of different MMIO areas for different devices and, all at once, fuzz them <code>HYPERCALL_KAFL_NESTED_PREPARE</code>. The would trigger a lot of different write requests all over the target MMIO areas.</p>
+<h3 id="Results"><a href="#Results" class="headerlink" title="Results"></a>Results</h3><p>To be honest, the nested fuzzing wasn’t working properly until I gave it another try while writing this report. By recording coverage the <code>VMMR0.r0</code> and <code>VBoxDDR0.r0</code> VirtualBox kernel modules, I got the following results after one hour and half: 7.5M executions, 2213 edges and 5641 blocks.</p>
+<p><img src="/pic/nested_results.png" alt="nested fuzzing results"></p>
+<p>Compared to the L1 fuzzing, nested fuzzing sounds to be way slower but way more stable at the same time. This is the approach which is the most similar to the <a target="_blank" rel="noopener" href="https://nyx-fuzz.com/papers/hypercube.pdf">HyperCube</a> design by leveraging both nested fuzzing and coverage guided fuzzing.</p>
+<h2 id="L1-fuzzing"><a href="#L1-fuzzing" class="headerlink" title="L1 fuzzing"></a>L1 fuzzing</h2><p>After trying unsuccessfully to to nested fuzzing through the MMIO regions I had another idea: fuzzing the MMIO handling surface by simply inserting my harness when the first read &#x2F; write request is reached in the MMIO read &#x2F; write handler. Then, from there, I can just perform a regular fuzzing loop by calling the internal xHCI <code>MmioWrite</code> &#x2F; <code>MmioRead</code> handler. This is a much more basic approach was very promising but is less reliable, indeed the MMIO write requests are first filtered by the <code>iomMmioHandlerNew</code> function, and I am starting to fuzz the interface after the L2 guest request has been filtered and checked already.</p>
+<p>This harness is iterating five times through the <code>xhciMmioWrite</code> function feeding it with arguments supplied by the fuzzer and when <code>xhciMmioWrite</code> returns a usermode code we keep track of the arguments by saving the input. The kernel buffer is allocated with (<code>SUPR0ContAlloc</code> or <code>__get_free_pages</code>) and is shared with the userland context of the device. Which means that if the fuzz iteration ends up in userland you can keep using the <code>kafl_fuzz_buffer</code> with the input payload.</p>
+<h3 id="Issues"><a href="#Issues" class="headerlink" title="Issues"></a>Issues</h3><p>I really struggled to write a working harness. I spent most of the internship trying to make it reliable, which means, avoiding timeouts and non-deterministic behaviors. The first issue is the how the assertions should be handled, I tried to dig as deeply as possible into the assertion management system. I ended up hooking <code>RTAssertShouldPanic</code>, which appeared to be, to me, the most commonly used function when it comes to internal assertions treatment. I aimed to add the <code>HYPERCALL_KAFL_RELEASE</code> hypercall to this function in case it is crashing, then it would have had restarted the fuzzing loop when an assert fails. But apparently this doesn’t work. Instead I just commented out all of the <code>assert</code> calls in the device source code. This is very ugly, instead I should replace them by a <code>HYPERCALL_KAFL_RELEASE</code> hypercall.</p>
+<h3 id="Results-1"><a href="#Results-1" class="headerlink" title="Results"></a>Results</h3><p>I got better results after trying this approach. This is due to the lack of context switches between VirtualBox and the L2 guest, by avoiding the context switches I can focus on fuzzing the target <code>xhciMmioWrite</code> interface. After one hour of fuzzing without a prior corpus I got the following results: 7.5M executions, 614 blocks and 327 edges. <em>L1 fuzzing is two times faster than nested fuzzing.</em></p>
+<p><img src="/pic/l1_results.png" alt="L1 results"></p>
+<p>The fuzzer is stable and deterministic, there are less edges and blocks reached compared to the nested fuzzing campaign because we are only tracing the coverage inside of the target device. When we are performing nested fuzzing, the context switches are going through a lot of code, and then, are increasing the code coverage artificially.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// VirtualBox-7.1.8/src/VBox/Devices/USB/DevXHCI.cpp</span></span><br><span class="line"><span class="comment">// Basic harness directly in the L1 hypervisor code</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="title function_">DECLCALLBACK</span><span class="params">(VBOXSTRICTRC)</span> <span class="title function_">xhciMmioWrite</span><span class="params">(PPDMDEVINS pDevIns, <span class="type">void</span> *pvUser, RTGCPHYS off, <span class="type">void</span> <span class="type">const</span> *pv, <span class="type">unsigned</span> cb)</span></span><br><span class="line">&#123;</span><br><span class="line">    PXHCI               pThis  = PDMDEVINS_2_DATA(pDevIns, PXHCI);</span><br><span class="line">    <span class="type">uint32_t</span>      offReg = (<span class="type">uint32_t</span>)off;</span><br><span class="line">    <span class="type">uint32_t</span> *    pu32   = (<span class="type">uint32_t</span> *)pv;</span><br><span class="line">    <span class="type">uint32_t</span>            iReg;</span><br><span class="line">    RT_NOREF(pvUser);</span><br><span class="line"></span><br><span class="line">    VBOXSTRICTRC rcStrict = VINF_SUCCESS;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0x1448</span> == offReg &amp;&amp; <span class="number">0x8888</span> == *pu32) &#123;</span><br><span class="line"></span><br><span class="line">            kAFL_hypercall(HYPERCALL_KAFL_NEXT_PAYLOAD, <span class="number">0</span>);</span><br><span class="line">            kAFL_hypercall(HYPERCALL_KAFL_ACQUIRE, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i) &#123;</span><br><span class="line">                    kafl_fuzz_buffer(&amp;off, <span class="keyword">sizeof</span>(off));</span><br><span class="line">                    kafl_fuzz_buffer(pu32, <span class="keyword">sizeof</span>(*pu32));</span><br><span class="line"></span><br><span class="line">                    <span class="comment">// validate the offset</span></span><br><span class="line">                    <span class="keyword">if</span> ((off &amp; <span class="number">0x3</span>) || !xhci_is_interesting(off)) <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">                    rcStrict = xhciMmioWriteFuzzInternal(pDevIns, pvUser, off, pu32, <span class="keyword">sizeof</span>(<span class="type">uint32_t</span>));</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">if</span> ((VBOXSTRICTRC)VINF_IOM_R3_MMIO_WRITE == rcStrict) &#123;</span><br><span class="line">                        kAFL_hypercall(HYPERCALL_KAFL_RELEASE, <span class="number">0</span>);</span><br><span class="line">                        <span class="keyword">return</span> rcStrict;</span><br><span class="line">                    &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            kAFL_hypercall(HYPERCALL_KAFL_RELEASE, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>I detailed two types of harnesses which appear to work against the ring0 xHCI module emulated by VirtualBox. I didn’t have time to test this approach against the user mode code – where the main logic lies – but this shouldn’t be so different compared to the ring0 fuzzing. The L1 fuzzing approach ended up being quite deterministic and surprisingly fast and stable and only requires to add a small harness into the target device. Even though I didn’t find any bugs during the fuzzing campaign, I am very optimistic for the upcoming improvements and their ability to trigger buggy code paths.</p>
+
+        
+      </div>
+
+         
+    </div>
+    
+     
+  </div>
+  
+    
+<nav id="article-nav">
+  <a class="article-nav-btn left  disabled "
+     >
+    <i class="fa-solid fa-angle-left"></i>
+    <p class="title-text">
+        
+    </p>
+  </a>
+  <a class="article-nav-btn right "
+    
+      href="/posts/iwindow/"
+      title="[ImaginaryCTF 2023 - pwn] window-of-opportunity"
+     >
+
+    <p class="title-text">
+      
+        [ImaginaryCTF 2023 - pwn] window-of-opportunity
+        
+    </p>
+    <i class="fa-solid fa-angle-right"></i>
+  </a>
+</nav>
+
+
+  
+</article>
+
+ 
+    </div>
+    <div id="footer-wrapper">
+      <footer id="footer">
+  
+  <div id="footer-info" class="inner">
+    
+    &copy; 2025 nasm<br>
+    Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & Theme <a target="_blank" rel="noopener" href="https://github.com/saicaca/hexo-theme-vivia">Vivia</a>
+  </div>
+</footer>
+
+    </div>
+    <div class="back-to-top-wrapper">
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+        <span class="material-symbols-rounded">keyboard_arrow_up</span>
+    </button>
+</div>
+
+<script>
+    function topFunction() {
+        window.scroll({ top: 0, behavior: 'smooth' });
+    }
+    let btn = document.getElementById('back-to-top-btn');
+    function scrollFunction() {
+        if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
+            btn.style.opacity = 1;
+        } else {
+            btn.style.opacity = 0;
+        }
+    }
+    window.onscroll = function() {
+        scrollFunction();
+    }
+</script>
+
+  </div>
+  <script src="/js/light-dark-switch.js"></script>
+</body>
+</html>
