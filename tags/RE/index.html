@@ -11,8 +11,16 @@
   <meta charset="utf-8">
   
   
+  
+
+  
   <title>Tag: RE | repr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" href="/css/fonts/Roboto-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/Roboto-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+  <link rel="preload" href="/css/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
   <meta name="description" content="pwn &#x2F; reverse &#x2F; crypto stuff">
 <meta property="og:type" content="website">
 <meta property="og:title" content="repr">
@@ -38,7 +46,7 @@
   
 <link rel="stylesheet" href="/css/style.css">
 
-<meta name="generator" content="Hexo 7.0.0"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 <body>
   
@@ -120,7 +128,7 @@
   <div class="info-card">
     <div class="avatar">
       
-        <image src=/pic/chtholly.jpg></image>
+        <image src=https://cdn.discordapp.com/attachments/755522926819934349/1135933820852502589/chtholly_nota_seniorious_by_asukaln_dfhx63b-414w-2x.jpg></image>
       
       <div class="img-dim"></div>
     </div>
@@ -150,7 +158,17 @@
   <div class="widget-wrap">
     <div class="widget">
       <h3 class="widget-title">Categories</h3>
-      <div class="category-box"></div>
+      <div class="category-box">
+            <a class="category-link" href="/categories/pwn/">
+                pwn
+                <div class="category-count">19</div>
+            </a>
+        
+            <a class="category-link" href="/categories/kernel/">
+                kernel
+                <div class="category-count">3</div>
+            </a>
+        </div>
     </div>
   </div>
 
@@ -189,7 +207,7 @@
     <div class="archive-top">
       <div class="main-title-bar">
         <div class="main-title-dot"></div>
-        <h1 class="article-title">Archive</h1>
+        <h1 class="article-title">Archives</h1>
       </div>    
     </div>
     
@@ -229,14 +247,14 @@
   
   <div id="footer-info" class="inner">
     
-    &copy; 2024 nasm<br>
+    &copy; 2023 nasm<br>
     Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & Theme <a target="_blank" rel="noopener" href="https://github.com/saicaca/hexo-theme-vivia">Vivia</a>
   </div>
 </footer>
 
     </div>
     <div class="back-to-top-wrapper">
-    <button id="back-to-top-btn" class="back-to-top-btn" onclick="topFunction()">
+    <button id="back-to-top-btn" class="back-to-top-btn hide" onclick="topFunction()">
         <span class="material-symbols-rounded">keyboard_arrow_up</span>
     </button>
 </div>
@@ -248,9 +266,9 @@
     let btn = document.getElementById('back-to-top-btn');
     function scrollFunction() {
         if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
-            btn.style.opacity = 1;
+            btn.classList.remove('hide')
         } else {
-            btn.style.opacity = 0;
+            btn.classList.add('hide')
         }
     }
     window.onscroll = function() {
